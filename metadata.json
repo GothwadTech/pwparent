@@ -1,0 +1,6 @@
+{
+  "name": "PW Parent's App",
+  "description": "Pixel-perfect clone of PW (Physics Wallah) Parent's App including onboarding, login, OTP verification, linked child accounts, lectures & DPP dashboard, weekly report, announcements feed, help centre & support, purchases, and parent profile settings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
