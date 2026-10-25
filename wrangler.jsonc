@@ -1,0 +1,41 @@
+// Cloudflare Pages project config.
+// Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+//
+// Used by:
+//   npx wrangler pages dev dist        -> local preview WITH Functions + env
+//   npx wrangler pages deploy          -> deploy dist/ from CI or your laptop
+//
+// `pages_build_output_dir` is what marks this as a Pages (not Workers) project.
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pwparent",
+  "compatibility_date": "2025-01-01",
+  "pages_build_output_dir": "./dist",
+
+  // `directory` is REQUIRED whenever an `assets` block is present — without it
+  // wrangler fails with: "The `assets` property in your configuration is
+  // missing the required `directory` property."
+  "assets": {
+    "directory": "./dist",
+
+    // SPA fallback: any unmatched path serves /index.html, so refresh and deep
+    // links (/dashboard, /profile) return 200 instead of 404.
+    "not_found_handling": "single-page-application",
+
+    // Default strips trailing `.html` / `/index`. Kept explicit here because
+    // `none` would break the /index.html -> / rewrite people expect.
+    "html_handling": "auto-trailing-slash"
+  },
+
+  // Non-secret, build-time defaults for Pages Functions (functions/*.ts).
+  // Real secrets go to: npx wrangler pages secret put GEMINI_API_KEY
+  "vars": {
+    "APP_ENV": "production"
+  }
+
+  // Per-environment overrides (Production = your main branch, Preview = PRs):
+  // "env": {
+  //   "preview": { "vars": { "APP_ENV": "preview" } }
+  // }
+}

@@ -1,0 +1,19 @@
+# Cloudflare Pages redirect/rewrite rules.
+# Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# ⚠️ Do NOT add the classic SPA rule `/*  /index.html  200` here.
+#    Combined with the default `html_handling: auto-trailing-slash` it strips
+#    `.html`, matches `/*` again and Cloudflare discards the rule as an
+#    infinite loop (`wrangler pages dev` prints:
+#      "Infinite loop detected in this rule and has been ignored").
+#
+#    SPA fallback is handled by `assets.not_found_handling: "single-page-application"`
+#    in wrangler.jsonc instead — verified working for deep links + refresh.
+#
+# Add real redirect rules below (first match wins). Keep this file present even
+# if empty: it makes `dist/_redirects` exist and future rules a one-liner.
+
+# --- Examples -----------------------------------------------------------------
+# /docs/*  https://docs.example.com/:splat  301
+# /old     /new                              308
+# /api/legacy/*  https://api.example.com/:splat  302
