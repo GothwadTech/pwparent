@@ -18,6 +18,7 @@ Weekly report · Announcements · Help centre · Purchases · Parent profile
 ## 🚀 Quick start (local)
 
 ```bash
+nvm use                 # .nvmrc -> Node 22 (Cloudflare Pages bhi yahi padhta hai)
 npm ci                  # lockfile committed hai -> deterministic install
 cp .env.example .env.local   # optional: bina env ke bhi app mock mode pe chalti hai
 npm run dev             # http://localhost:3000
@@ -41,7 +42,9 @@ Connect to Git → `GothwadTech/pwparent`, phir:
 | Build command | `npm run build` |
 | Build output directory | **`dist`** |
 | Root directory | `/` |
-| Env var `NODE_VERSION` | **`22`** |
+| Build system version | **V3** (Settings → Builds & deployments), agar option dikhe |
+| Node version | **22** — repo me `.nvmrc` + `.node-version` committed hain, Cloudflare inhe khud padh leta hai |
+| Env var `NODE_VERSION` | `22` *(sirf backup ke liye — Production **aur** Preview dono me)* |
 
 Baaki environment variables: [`docs/CLOUDFLARE_PAGES.md`](docs/CLOUDFLARE_PAGES.md)
 

@@ -28,8 +28,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Must match the NODE_VERSION you set in the Cloudflare Pages dashboard.
-          node-version: 22
+          # Single source of truth: .nvmrc (= the version Cloudflare Pages and
+          # `nvm` will also pick up). Bump it there, not here.
+          node-version-file: .nvmrc
           cache: npm
 
       # `npm ci` (not `npm install`) so CI uses the committed, tested dependency
@@ -61,10 +62,11 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  # Proves the dependency tree also installs on the older npm that Cloudflare's
-  # default build image ships. Remove this job if you pin npm >= 11 on Pages.
+  # Cloudflare Pages Build System V2 still defaults to Node 18.17.1 and V3 to
+  # 22.16.0. This job proves the tree also installs/builds on an older Node+npm
+  # so a stale build image degrades loudly here instead of silently on Pages.
   install-compat:
-    name: npm ci on Node 20 (Cloudflare image parity)
+    name: npm ci on Node 20 (older build image parity)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -126,7 +126,7 @@ Workers runtime pe directly support nahi hota. Details: `docs/FIREBASE.md` §8.
 
 | Variable | Value | Kyun |
 |---|---|---|
-| `NODE_VERSION` | `22` | Vite 8 + Tailwind 4 ke liye Node ≥ 20.19. Cloudflare ka default aksar 18 hota hai. |
+| `NODE_VERSION` | `22` | **Sirf agar repo me `.nvmrc`/`.node-version` na ho.** Vite 8 ko Node ≥ 20.19 chahiye; Pages Build System **V2** ka default **18.17.1** hai (V3 = 22.16.0). Cloudflare `package.json` ka `engines` ignore karta hai. File aur env var dono ho to **file jeet-ti hai**. Production aur Preview me alag-alag add karna padta hai. |
 | `NPM_FLAGS` | *(empty)* | Lockfile committed hai → `npm ci` deterministic. `--legacy-peer-deps` ki zaroorat nahi. |
 | `NODE_OPTIONS` | `--max-old-space-size=4096` | Sirf OOM aaye to. |
 | `DISABLE_HMR` | *(local only)* | AI Studio artifact — `vite.config.ts` isko padhta hai. Pages pe set mat karo. |

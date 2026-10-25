@@ -32,6 +32,7 @@ server-side Pages Functions chalati hai.
 | `.env.example` | Saare env vars ka template + explanation. |
 | `.dev.vars.example` | Local Pages Functions ke secrets (copy → `.dev.vars`, git-ignored). |
 | `.npmrc` | CI install behaviour (audit/fund off). |
+| `.nvmrc` + `.node-version` | **Node 22 pin.** Cloudflare Pages `package.json` ka `engines` **ignore** karta hai — ye files padhta hai. Iske bina Build System V2 image Node 18.17.1 use karti hai aur Vite 8 build fail ho jata hai. |
 
 ---
 
@@ -144,13 +145,36 @@ Local dev me: `cp .dev.vars.example .dev.vars` aur value bhar do
 | `GEMINI_MODEL` | optional, default `gemini-2.5-flash` |
 | `ALLOWED_ORIGIN` | optional, `/api/*` CORS allowlist (pages.dev auto-allowed) |
 
-### 4c. Build-time vars (dashboard me env var ki tarah add karo)
+### 4c. Node version + build image  ← **sabse common failure**
+
+Cloudflare Pages ka build image ye default Node deta hai:
+
+| Build system version | Default Node |
+|---|---|
+| **V2** (purane projects) | **18.17.1** ← Vite 8 isko reject karta hai |
+| **V3** (May 2025+) | 22.16.0 |
+
+`package.json` ka `engines` field Cloudflare **ignore** karta hai. Node pin karne
+ke 3 tarike hain:
+
+1. **Repo me `.nvmrc` / `.node-version`** ← already committed (`22`). Sabse
+   reliable, kyunki ye Production **aur** Preview dono builds pe lagta hai.
+2. Env var `NODE_VERSION=22` — **Production aur Preview me alag-alag** add
+   karna padta hai (dono environments ke vars independent hote hain; sirf
+   Production me set karke PR build pass nahi hoga).
+3. Dashboard → **Settings → Builds & deployments → Build system version** ko
+   **V3** pe switch karo (agar option dikhe).
+
+> Agar `.nvmrc`/`.node-version` commit hai to `NODE_VERSION` env var ki zaroorat
+> nahi — aur ulta, agar file hai to env var ignore hota hai (file jeet-ti hai).
+
+Baaki build vars:
 
 | Variable | Value | Kyun |
 |---|---|---|
-| `NODE_VERSION` | `22` | Vite 8 ko Node ≥ 20.19 chahiye. Cloudflare ka default Node aksar purana hota hai → build fail. |
-| `NPM_FLAGS` | *(khali chhod do)* | `--legacy-peer-deps` **mat** daalo — lockfile commit hai, zaroorat nahi. |
-| `NODE_OPTIONS` | `--max-old-space-size=4096` | Sirf agar build OOM ho (ise pehle mat lagana). |
+| `NODE_VERSION` | `22` | Sirf agar `.nvmrc` na ho; **Production + Preview dono** me |
+| `NPM_FLAGS` | *(khali chhod do)* | `--legacy-peer-deps` **mat** daalo — lockfile commit hai, zaroorat nahi |
+| `NODE_OPTIONS` | `--max-old-space-size=4096` | Sirf agar build OOM ho (pehle mat lagana) |
 
 ---
 

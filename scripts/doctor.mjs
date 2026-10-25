@@ -53,7 +53,23 @@ if (nodeMajor > 20 || (nodeMajor === 20 && nodeMinor >= 19)) {
 } else {
   bad(`Node ${process.versions.node} is too old for Vite 8. Use Node 20.19+ / 22, and set NODE_VERSION=22 on Pages.`);
 }
-warn('Reminder: Pages needs env var NODE_VERSION=22 to match.');
+const nvmrc = (read('.nvmrc') ?? '').trim();
+const nodeVersion = (read('.node-version') ?? '').trim();
+if (nvmrc || nodeVersion) {
+  const pinned = nvmrc || nodeVersion;
+  const pinnedMajor = Number(pinned.split('.')[0]);
+  if (pinnedMajor >= 20) {
+    ok(`.nvmrc/.node-version pins Node ${pinned} — Cloudflare Pages reads these (its V2 image defaults to Node 18.17.1, which Vite 8 rejects)`);
+  } else {
+    bad(`.nvmrc pins Node ${pinned}, too old for Vite 8 (needs >= 20.19). Use 22.`);
+  }
+  if (nvmrc && nodeVersion && nvmrc !== nodeVersion) {
+    warn(`.nvmrc (${nvmrc}) and .node-version (${nodeVersion}) disagree — keep them identical.`);
+  }
+} else {
+  bad('No .nvmrc / .node-version. Cloudflare Pages ignores package.json `engines`, so without one of these (or NODE_VERSION env var in BOTH Production and Preview) the V2 build image uses Node 18 and the build fails.');
+}
+warn('Pages build image: Settings -> Builds & deployments -> Build system version = V3 if available.');
 
 // ------------------------------------------------------------- git hygiene ---
 section('Git hygiene');

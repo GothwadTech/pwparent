@@ -20,7 +20,10 @@ npm run verify        # typecheck + test + build + dist validation
 
 ## 0b. Cloudflare pe build fail, GitHub Actions pe pass → ye 5 cheezein check karo
 
-1. **`NODE_VERSION=22`** env var — Production **aur** Preview dono me (§2a). 9/10 baar yahi hai.
+1. **Node version** — repo me `.nvmrc` = `22` commit hai (is PR me add hua).
+   Cloudflare `engines` ignore karta hai, `.nvmrc`/`.node-version` padhta hai.
+   Env var se karna ho to `NODE_VERSION=22` **Production aur Preview dono** me (§2a).
+   Saath me Settings → Builds & deployments → **Build system version = V3** karo.
 2. **Build output directory = `dist`** (na `build`, na `/dist`, na `dist/`).
 3. **Build command = `npm run build`** (custom `npm ci && ...` mat likho jab tak zaroorat na ho).
 4. **Production branch = `main`** (Settings → Builds & deployments).
@@ -107,13 +110,28 @@ sirf **build environment** ka hota hai — aur sabse common culprit Node version
 hai (Cloudflare ka default image aksar Node 18 deta hai, aur Vite 8 ko
 Node >= 20.19 chahiye).
 
-**Fix (pehle yahi karo):** Pages → Settings → Environment variables →
+**Fix (repo-side, already applied):** root me `.nvmrc` aur `.node-version`
+dono me `22` commit kar diya — Cloudflare Pages inhe padhta hai, aur ye
+Production + Preview dono builds pe lagte hain.
+
+**Fix (dashboard-side, agar file wali cheez na chale):** Pages → Settings →
+Environment variables →
 ```
 NODE_VERSION=22
 ```
-**Production aur Preview dono** environments me add karo → Deployments →
-**Retry deployment**. Phir build log ki pehli line dekho:
-`Using Node.js version ...` — 22.x aana chahiye.
+⚠️ **Production aur Preview dono** me alag-alag add karna padta hai — dono
+environments ke env vars independent hote hain. Sirf Production me set karke
+PR/preview build fix nahi hoga.
+
+**Aur:** Settings → **Builds & deployments → Build system version** → **V3**
+(V3 image me Node 22.16.0 default hai; V2 me 18.17.1).
+
+Note: agar `.nvmrc`/`.node-version` commit hai to `NODE_VERSION` env var
+**ignore** hota hai (file jeet-ti hai) — dono me se ek rakho, aur dono ka value
+same (`22`).
+
+Deploy ke baad build log ki pehli lines me confirm karo:
+`Using Node.js version 22.x` aana chahiye.
 
 
 
