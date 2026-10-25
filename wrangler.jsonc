@@ -1,0 +1,25 @@
+// Cloudflare Pages project config.
+// Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+//
+// ⚠️ HARD CONSTRAINT — do NOT add an `assets` block here.
+// Cloudflare Pages validates this file during the build and rejects it:
+//
+//   ✘ [ERROR] Running configuration file validation for Pages:
+//       - Configuration file for Pages projects does not support "assets"
+//   Failed: unable to read the Wrangler configuration file with code: 1
+//
+// That failure happens BEFORE npm install, so nothing else in the repo can
+// rescue it. Keep this file to the Pages-supported keys only.
+//
+// Consequences:
+//   * SPA fallback / routing  -> public/_redirects  (NOT assets.not_found_handling)
+//   * headers & caching       -> public/_headers
+//   * build output directory  -> pages_build_output_dir below AND the dashboard
+//                                (Settings -> Builds & deployments) must agree: dist
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pwparent",
+  "compatibility_date": "2025-01-01",
+  "pages_build_output_dir": "./dist"
+}

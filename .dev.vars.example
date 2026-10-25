@@ -1,0 +1,14 @@
+# Local secrets for `wrangler pages dev` (Cloudflare Pages Functions).
+# Copy to `.dev.vars` — that file is git-ignored and never uploaded.
+#
+#   cp .dev.vars.example .dev.vars
+#
+# In production set the same names with:
+#   npx wrangler pages secret put GEMINI_API_KEY --project-name=pwparent
+# or Pages dashboard -> Settings -> Environment variables -> Encrypt.
+
+GEMINI_API_KEY=""
+GEMINI_MODEL="gemini-2.5-flash"
+
+# Optional: exact origin allowed to call /api/* (preview URLs are auto-allowed)
+ALLOWED_ORIGIN="https://pwparent.pages.dev"

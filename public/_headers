@@ -1,0 +1,50 @@
+# Cloudflare Pages response headers.
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+#
+# Files in public/ are copied into dist/ by `vite build`, so this lands at
+# dist/_headers automatically and Pages applies it on every deploy.
+# Rules are cumulative; for a repeated header the FIRST match wins.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 0
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+# Fingerprinted build assets -> cache hard, filenames are content-hashed.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Entry document must always be revalidated, else users keep a stale bundle.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# App icons rarely change.
+/assets/ic_launcher.webp
+  Cache-Control: public, max-age=604800
+/assets/ic_launcher_round.webp
+  Cache-Control: public, max-age=604800
+
+# Pages config files should never be cached by the browser.
+/_redirects
+  Cache-Control: no-store
+/_headers
+  Cache-Control: no-store
+
+# ---------------------------------------------------------------------------
+# Content-Security-Policy (OPTIONAL — off by default on purpose)
+# ---------------------------------------------------------------------------
+# The current index.html contains an inline `class="bg-[#0c0d14] ..."` style
+# attribute and Vite injects a small inline modulepreload script, so a strict
+# CSP without 'unsafe-inline' will blank the page.
+#
+# To enable it: uncomment the block below, deploy to a PREVIEW branch first,
+# and fix every console violation. Then harden it by moving the inline class
+# into src/index.css and setting `build.modulePreload.polyfill: false` (or a
+# nonce/hash) in vite.config.ts.
+#
+# /*
+#   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.cloudfunctions.net wss://*.firebaseio.com; frame-src 'self' https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'

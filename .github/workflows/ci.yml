@@ -1,0 +1,81 @@
+name: CI
+
+# Runs the exact same pipeline Cloudflare Pages will run, so a red build here
+# means the Pages deploy would fail too.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Single source of truth: .nvmrc (= the version Cloudflare Pages and
+          # `nvm` will also pick up). Bump it there, not here.
+          node-version-file: .nvmrc
+          cache: npm
+
+      # `npm ci` (not `npm install`) so CI uses the committed, tested dependency
+      # tree. If this step fails with ERESOLVE, the lockfile is out of sync —
+      # run `npm install` locally and commit the new package-lock.json.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify lockfile is in sync
+        run: npm ls --depth=0 > /dev/null
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate build output for Cloudflare Pages
+        run: npm run check:build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+          if-no-files-found: error
+
+  # Cloudflare Pages Build System V2 still defaults to Node 18.17.1 and V3 to
+  # 22.16.0. This job proves the tree also installs/builds on an older Node+npm
+  # so a stale build image degrades loudly here instead of silently on Pages.
+  install-compat:
+    name: npm ci on Node 20 (older build image parity)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install with npm ci
+        run: npm ci
+      - name: Build
+        run: npm run build

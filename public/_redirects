@@ -1,0 +1,49 @@
+# Cloudflare Pages redirect/rewrite rules.
+# Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# WHY THERE IS NO `/*  /index.html  200` RULE HERE (do not add one)
+# ─────────────────────────────────────────────────────────────────────────────
+# That is the classic "SPA fallback" recipe, but on this project it is both
+# REDUNDANT and RISKY:
+#
+# 1. REDUNDANT — Cloudflare Pages already does it for you. From Cloudflare's own
+#    docs: "If your project does not include a top-level 404.html file, Pages
+#    assumes that you are deploying a single-page application ... and serves the
+#    root (/) for any incoming path that does not correspond to a static asset."
+#    This repo intentionally ships NO 404.html, so /dashboard, /profile and any
+#    other deep link already return 200 with index.html.
+#
+#    Verified locally with `wrangler pages dev dist`:
+#      /                     200
+#      /dashboard            200
+#      /profile              200
+#      /some/random/deep/link 200
+#      /index.html           308 -> /
+#
+# 2. RISKY — the rule loops against Pages' default html handling: the rewrite
+#    target /index.html gets `.html`/`/index` stripped, matches /* again, and
+#    Cloudflare rejects it:
+#      ▲ Infinite loop detected in this rule and has been ignored
+#      ✘ Invalid _redirects configuration ... [code: 100324]
+#    Locally it is only a warning; the deploy-time API validator can hard-fail
+#    the deployment with code 100324.
+#
+# NOTE: the alternative mechanism, `assets.not_found_handling:
+# "single-page-application"` in wrangler.jsonc, is a *Workers static assets*
+# setting. Classic Cloudflare Pages REJECTS any `assets` block in the config
+# file ("Configuration file for Pages projects does not support \"assets\""),
+# so that is not available here either. Native Pages SPA detection is the
+# correct mechanism for this deployment.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Keep this file: it makes dist/_redirects exist, so adding a REAL redirect
+# later is a one-liner. Rules are evaluated top to bottom; first match wins.
+# Also: never add a 404.html to public/ — that would switch Pages out of SPA
+# mode and break every deep link.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# --- Examples (uncomment and adapt) ------------------------------------------
+# /docs/*  https://docs.example.com/:splat  301
+# /old     /new                              308
+# /blog/:slug  /articles/:slug               301
