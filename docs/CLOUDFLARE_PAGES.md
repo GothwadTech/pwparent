@@ -21,8 +21,8 @@ server-side Pages Functions chalati hai.
 
 | File | Kaam |
 |---|---|
-| `wrangler.jsonc` | Pages project config (`name`, `pages_build_output_dir: ./dist`, SPA 404 handling). `wrangler pages dev` / `wrangler pages deploy` isko padhta hai. |
-| `public/_redirects` | Redirect/rewrite rules. **Note:** classic SPA rule `/*  /index.html  200` yahan mat daalo — wo infinite-loop me discard ho jata hai. SPA fallback `wrangler.jsonc` ke `not_found_handling` se aata hai. |
+| `wrangler.jsonc` | Pages project config — sirf `name`, `compatibility_date`, `pages_build_output_dir: ./dist`. **`assets` block bilkul mat daalo** (Cloudflare Pages use reject karta hai → build install se pehle hi fail, §1c). |
+| `public/_redirects` | Redirect/rewrite rules (abhi koi rule nahi). **Note:** `/*  /index.html  200` mat daalo — Cloudflare use infinite loop `[code: 100324]` bol ke reject karta hai, aur wo redundant bhi hai (neeche §3c). |
 | `public/_headers` | Security + cache headers (hashed assets = immutable, `index.html` = no-cache). |
 | `functions/_middleware.ts` | `/api/*` pe CORS + `/api/health` endpoint. Static routes ko touch nahi karta. |
 | `functions/api/ai.ts` | Optional Gemini proxy — API key **server side** rehti hai, bundle me nahi jati. |
@@ -250,7 +250,8 @@ Checklist:
 - [ ] `index.html` 200 deta hai, assets `/assets/*` se load ho rahe hain
 - [ ] Refresh pe blank/404 nahi aata
 - [ ] `dist/_redirects` + `dist/_headers` deploy hue (CI `check:build` ye verify karta hai)
-- [ ] `wrangler.jsonc` me `assets.directory` + `not_found_handling` set hai (bina `directory` ke wrangler error deta hai)
+- [ ] `wrangler.jsonc` me **`assets` block NAHI** hai (Pages use reject karta hai — asli build failure yahi tha)
+- [ ] `public/` me **`404.html` NAHI** hai (uske hone se Pages SPA mode chhod deta hai → deep links 404)
 - [ ] Console me `[config] Running in MOCK mode` ya Firebase init — jo expect kiya tha wahi
 - [ ] Bundle me koi secret nahi (CI ka secret scan pass)
 
@@ -269,12 +270,13 @@ add karna padega.
 
 | Symptom (Pages build log) | Reason | Fix |
 |---|---|---|
+| `Configuration file for Pages projects does not support "assets"` | `wrangler.jsonc` me `assets` block tha | **Block hata do.** Pages config validation `npm install` se PEHLE chalti hai, isliye iske hote hue baaki sab fix bekaar hain. §1c |
 | `npm error code ERESOLVE` / `Could not resolve dependency: peerOptional esbuild` | Purana `package.json` me `esbuild@^0.25` pin tha jo Vite 8 (`esbuild ^0.27\|\|^0.28`) se conflict karta tha | **Fixed** — `esbuild` hata diya. Ab `package-lock.json` commit hai + `npm ci` use hota hai. |
 | `Cannot read properties of null (reading 'edgesOut')` | npm 10 ka arborist bug, `jsdom` ke optional `canvas` peer pe | **Fixed** — tests ab `happy-dom` pe hain (koi native/optional peer nahi). |
 | Build succeeds but site 404 / "There is nothing here yet" | Build output directory galat (`build/` ya `/dist` with slash) | **`dist`** set karo (no leading slash). |
 | Blank white page, console me `Failed to load module script` | Asset base path ya stale cache | Hard refresh; `vite.config.ts` me `base` default `/` rehne do. |
 | Page loads but app is empty / `undefined` values | `VITE_*` vars build ke time existing nahi the | Env vars **Production + Preview** dono me add karo, phir **Retry deployment**. |
-| Refresh pe 404 | SPA fallback nahi laga | `wrangler.jsonc` → `assets.not_found_handling: "single-page-application"` (already set). `_redirects` me `/* /index.html 200` **mat** daalo — wo rule infinite-loop bol ke ignore hota hai. |
+| Refresh pe 404 | `public/` me `404.html` aa gaya, ya output dir galat | Pages bina `404.html` ke project ko **automatically SPA** maanta hai aur unmatched path pe `/` serve karta hai. `404.html` mat banao. (`_redirects` catch-all ki zaroorat nahi — §3c) |
 | `error:0308010C:digital envelope routines::unsupported` ya `SyntaxError: Unexpected token '?'` | Node version purana (16/18) | Env var `NODE_VERSION=22`. |
 | `vite: command not found` | Install step skip / `npm ci` fail hua | Build command `npm run build` rakho (Cloudflare pehle `npm ci` chalata hai). |
 | Deploy hota hai par purana version dikhta hai | Branch mapping | `main` = Production branch honi chahiye (Settings → Builds & deployments). |

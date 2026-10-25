@@ -143,10 +143,19 @@ for (const f of ['public/_redirects', 'public/_headers']) {
   else bad(`${f} missing — SPA routing / headers will not work.`);
 }
 const redirects = read('public/_redirects') ?? '';
-if (/^\s*\/\*\s+\/index\.html\s+200/m.test(redirects)) {
-  bad('_redirects contains `/*  /index.html  200` — with html_handling auto-trailing-slash Cloudflare discards it as an infinite loop. SPA fallback comes from wrangler.jsonc `not_found_handling`.');
+if (/^\s*\/\*\s+\/(index\.html|200\.html)?\s*200/m.test(redirects)) {
+  bad('_redirects contains a `/* -> 200` SPA catch-all. Cloudflare flags it as an infinite loop (code 100324) and it is redundant: Pages serves index.html for unmatched paths automatically when no 404.html exists.');
 } else {
-  ok('_redirects has no infinite-loop SPA rule (fallback handled by wrangler.jsonc)');
+  ok('_redirects has no SPA catch-all (Pages native SPA detection covers deep links)');
+}
+
+// A 404.html switches Pages OUT of SPA mode -> every deep link would 404.
+const notFoundFiles = ['public/404.html', 'dist/404.html', 'public/200.html'];
+const present404 = notFoundFiles.filter((f) => existsSync(path.join(root, f)));
+if (present404.length) {
+  bad(`Found ${present404.join(', ')} — its presence makes Pages stop treating the app as an SPA, so deep links like /dashboard would 404. Remove it.`);
+} else {
+  ok('No 404.html/200.html — Pages stays in SPA mode (deep links return index.html)');
 }
 
 const wrangler = read('wrangler.jsonc');
@@ -160,7 +169,16 @@ if (!wrangler) {
     .replace(/,\s*([}\]])/g, '$1');
   try {
     const cfg = JSON.parse(stripped);
-    if (cfg.pages_build_output_dir) ok(`wrangler.jsonc ok — name="${cfg.name}", output="${cfg.pages_build_output_dir}"`);
+
+    // THE root cause of the original Cloudflare build failure. Pages validates
+    // this file BEFORE npm install, so nothing else in the repo can recover.
+    if ('assets' in cfg) {
+      bad('wrangler.jsonc contains an `assets` block. Classic Cloudflare Pages rejects it and the build dies before installing anything: "Configuration file for Pages projects does not support \\"assets\\"". Remove it — SPA fallback comes from Pages itself (no 404.html).');
+    } else {
+      ok('wrangler.jsonc has no `assets` block (Pages rejects that key — was the real build failure)');
+    }
+
+    if (cfg.pages_build_output_dir) ok(`pages_build_output_dir = "${cfg.pages_build_output_dir}"`);
     else bad('wrangler.jsonc has no `pages_build_output_dir` — Cloudflare will not treat this as a Pages project.');
   } catch (e) {
     bad(`wrangler.jsonc does not parse: ${e.message}`);

@@ -40,9 +40,16 @@ Dono green hone chahiye. CI wahi cheezein chalata hai, to local green = CI green
 5. **UI hamesha `src/lib/backend` facade se data le**, `firebase/*` se directly
    nahi. Isse mock mode me app chalti rehti hai aur tests bina network ke pass
    hote hain.
-6. **`public/_redirects` me `/*  /index.html  200` mat daalo** — Cloudflare usko
-   infinite loop bol ke ignore karta hai. SPA fallback `wrangler.jsonc` ke
-   `assets.not_found_handling` se aata hai. `check:build` is rule ko fail karta hai.
+6. **`public/_redirects` me `/*  /index.html  200` mat daalo** — Cloudflare use
+   infinite loop `[code: 100324]` bol ke reject karta hai, aur wo redundant hai.
+   Pages bina `404.html` ke project ko khud SPA maanta hai aur unmatched path pe
+   `index.html` deta hai. `check:build` is rule ko fail karta hai.
+7. **`wrangler.jsonc` me `assets` block mat daalo** — classic Pages use reject
+   karta hai (`Configuration file for Pages projects does not support "assets"`)
+   aur build `npm install` se pehle hi mar jata hai. `doctor` + `check:build`
+   dono isko fail karte hain.
+8. **`public/` me `404.html` mat banao** — uske hote hi Pages SPA mode chhod
+   deta hai aur saare deep links 404 dene lagte hain.
 7. **Naya component** = `src/components/`, domain types `src/types.ts` me.
 8. **Tests** — naye lib/logic pe test zaroori. Vitest + happy-dom + Testing
    Library already set hai (`src/tests/`). jsdom mat lao (npm 10 pe optional

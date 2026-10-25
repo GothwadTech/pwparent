@@ -100,11 +100,29 @@ if (!existsSync(dist) || !statSync(dist).isDirectory()) {
   }
 
   const redirects = read(path.join(dist, '_redirects'));
-  if (redirects && /^\s*\/\*\s+\/index\.html\s+200/m.test(redirects)) {
+  if (redirects && /^\s*\/\*\s+\/(index\.html|200\.html)?\s*200/m.test(redirects)) {
     fail(
-      'dist/_redirects contains `/*  /index.html  200`. Cloudflare rejects that rule as an ' +
-        'infinite loop when html_handling is auto-trailing-slash, so the SPA fallback silently dies. ' +
-        'Deep links are handled by wrangler.jsonc -> assets.not_found_handling = "single-page-application".',
+      'dist/_redirects contains a `/* -> 200` SPA catch-all. Cloudflare rejects that rule as an ' +
+        'infinite loop [code: 100324], and it is redundant: Pages serves index.html for unmatched ' +
+        'paths automatically as long as no 404.html is shipped.',
+    );
+  }
+
+  // A 404.html would switch Pages out of SPA mode and break every deep link.
+  if (existsSync(path.join(dist, '404.html'))) {
+    fail('dist/404.html exists — Pages would stop treating this as an SPA, so /dashboard etc. would 404.');
+  } else {
+    console.log('  ✔ no 404.html (Pages SPA mode active — deep links serve index.html)');
+  }
+
+  // wrangler.jsonc must stay free of an `assets` block: Pages validates it
+  // before installing anything and hard-fails on that key.
+  const wranglerSrc = read(path.join(root, 'wrangler.jsonc')) ?? read(path.join(root, 'wrangler.toml'));
+  if (wranglerSrc && /^\s*"assets"\s*:/m.test(wranglerSrc)) {
+    fail(
+      'wrangler.jsonc contains an `assets` block. Classic Cloudflare Pages rejects it with ' +
+        '"Configuration file for Pages projects does not support \\"assets\\"" and the build fails ' +
+        'before npm install ever runs.',
     );
   }
 }

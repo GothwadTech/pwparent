@@ -1,19 +1,49 @@
 # Cloudflare Pages redirect/rewrite rules.
 # Docs: https://developers.cloudflare.com/pages/configuration/redirects/
 #
-# ⚠️ Do NOT add the classic SPA rule `/*  /index.html  200` here.
-#    Combined with the default `html_handling: auto-trailing-slash` it strips
-#    `.html`, matches `/*` again and Cloudflare discards the rule as an
-#    infinite loop (`wrangler pages dev` prints:
-#      "Infinite loop detected in this rule and has been ignored").
+# ─────────────────────────────────────────────────────────────────────────────
+# WHY THERE IS NO `/*  /index.html  200` RULE HERE (do not add one)
+# ─────────────────────────────────────────────────────────────────────────────
+# That is the classic "SPA fallback" recipe, but on this project it is both
+# REDUNDANT and RISKY:
 #
-#    SPA fallback is handled by `assets.not_found_handling: "single-page-application"`
-#    in wrangler.jsonc instead — verified working for deep links + refresh.
+# 1. REDUNDANT — Cloudflare Pages already does it for you. From Cloudflare's own
+#    docs: "If your project does not include a top-level 404.html file, Pages
+#    assumes that you are deploying a single-page application ... and serves the
+#    root (/) for any incoming path that does not correspond to a static asset."
+#    This repo intentionally ships NO 404.html, so /dashboard, /profile and any
+#    other deep link already return 200 with index.html.
 #
-# Add real redirect rules below (first match wins). Keep this file present even
-# if empty: it makes `dist/_redirects` exist and future rules a one-liner.
+#    Verified locally with `wrangler pages dev dist`:
+#      /                     200
+#      /dashboard            200
+#      /profile              200
+#      /some/random/deep/link 200
+#      /index.html           308 -> /
+#
+# 2. RISKY — the rule loops against Pages' default html handling: the rewrite
+#    target /index.html gets `.html`/`/index` stripped, matches /* again, and
+#    Cloudflare rejects it:
+#      ▲ Infinite loop detected in this rule and has been ignored
+#      ✘ Invalid _redirects configuration ... [code: 100324]
+#    Locally it is only a warning; the deploy-time API validator can hard-fail
+#    the deployment with code 100324.
+#
+# NOTE: the alternative mechanism, `assets.not_found_handling:
+# "single-page-application"` in wrangler.jsonc, is a *Workers static assets*
+# setting. Classic Cloudflare Pages REJECTS any `assets` block in the config
+# file ("Configuration file for Pages projects does not support \"assets\""),
+# so that is not available here either. Native Pages SPA detection is the
+# correct mechanism for this deployment.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Keep this file: it makes dist/_redirects exist, so adding a REAL redirect
+# later is a one-liner. Rules are evaluated top to bottom; first match wins.
+# Also: never add a 404.html to public/ — that would switch Pages out of SPA
+# mode and break every deep link.
+# ─────────────────────────────────────────────────────────────────────────────
 
-# --- Examples -----------------------------------------------------------------
+# --- Examples (uncomment and adapt) ------------------------------------------
 # /docs/*  https://docs.example.com/:splat  301
 # /old     /new                              308
-# /api/legacy/*  https://api.example.com/:splat  302
+# /blog/:slug  /articles/:slug               301

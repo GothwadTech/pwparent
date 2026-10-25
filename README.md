@@ -117,7 +117,7 @@ functions/             Cloudflare Pages Functions (optional, server-side)
   _middleware.ts       /api/* CORS + /api/health
   api/ai.ts            Gemini proxy (key server-side rehti hai)
 public/_headers        security + cache headers
-public/_redirects      redirect rules (SPA fallback wrangler.jsonc se)
+public/_redirects      redirect rules (SPA fallback Pages khud karta hai — 404.html mat banao)
 scripts/
   check-build-output.mjs   dist sanity + secret-leak scan
   doctor.mjs               deploy pre-flight

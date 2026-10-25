@@ -89,6 +89,66 @@ npm i -g npm@12 && npm ci && npm run build
 ya GitHub Actions wale deploy path (Option B) use karo jahan Node 22 + npm 12
 guaranteed hai.
 
+### 1c. `Configuration file for Pages projects does not support "assets"`  ← **ASLI WAJAH, fix ho chuki**
+
+Ye is project ka **real** root cause tha. Teen commits tak build fail hota raha
+(`4683757`, `af995ea`, `b5ce1e6`) jabki GitHub Actions Node 20 aur Node 22 dono
+pe green tha — kyunki ye failure **install ya build ki hi nahi thi**.
+
+**Actual Cloudflare build log:**
+```
+Using v2 root directory strategy
+Success: Finished cloning repository files
+Checking for configuration in a Wrangler configuration file (BETA)
+
+Found wrangler.json file. Reading build configuration...
+
+✘ [ERROR] Running configuration file validation for Pages:
+
+    - Configuration file for Pages projects does not support "assets"
+
+🪵  Logs were written to "/root/.config/.wrangler/logs/wrangler-....log"
+Failed: unable to read the Wrangler configuration file with code: 1
+Failed: an internal error occurred.
+```
+
+**Reason:** `wrangler.jsonc` me ye block tha:
+```jsonc
+"assets": {
+  "directory": "./dist",
+  "not_found_handling": "single-page-application",
+  "html_handling": "auto-trailing-slash"
+}
+```
+`assets` ek **Workers static-assets** setting hai. Classic **Cloudflare Pages**
+config file me ye key allowed hi nahi. Pages ye validation **repo clone ke turant
+baad, `npm install` se pehle** chalata hai — isliye Node version, lockfile,
+dependencies, build command… kuch bhi fix karne se farq nahi padta tha.
+
+**Ye local pe kyun chhup gaya:** `wrangler pages dev` isi config ko accept kar
+leta hai (uska validator alag/lenient hai). Upar se, pehle `assets` me `directory`
+missing hone par wrangler ne *"missing the required `directory` property"* bola
+tha — jo `directory` add karne se chala gaya, aur laga ki config theek ho gayi.
+Asli rejection sirf Cloudflare ke **server-side Pages validator** pe hota hai.
+
+**Fix (already applied):** `wrangler.jsonc` ab sirf Pages-supported keys rakhta hai:
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pwparent",
+  "compatibility_date": "2025-01-01",
+  "pages_build_output_dir": "./dist"
+}
+```
+Output dir dashboard me bhi `dist` set karo (dono agree karne chahiye).
+
+**Regression guard:** `npm run doctor` aur `npm run check:build` dono ab **fail**
+karte hain agar `assets` block wapas aa jaye.
+
+**Sabak:** jab Cloudflare fail ho aur GitHub Actions pass, to log me sabse
+**upar** wali lines padho — `Checking for configuration in a Wrangler
+configuration file` step build se pehle aata hai, aur wahi asli culprit tha.
+
 ---
 
 ## 2. Build failures
@@ -236,44 +296,48 @@ install ~40% fast).
 
 ### 3c. Refresh / deep link pe 404  *(is repo me fix ho chuka)*
 
-**Reason:** SPA fallback set nahi tha.
+**Sahi mechanism (classic Cloudflare Pages):** Cloudflare ke docs ke mutabik —
 
-**⚠️ Common galti:** `public/_redirects` me classic rule daalna:
+> "If your project does not include a top-level `404.html` file, Pages assumes
+> that you are deploying a single-page application ... and serves the root (`/`)
+> for any incoming path that does not correspond to a static asset."
+
+Matlab **kuch configure karne ki zaroorat nahi**: bas `public/` me `404.html`
+**mat** rakho, aur Pages khud har unmatched path pe `index.html` (200) dega.
+
+Is repo me wahi hai — verify kiya hua (`wrangler pages dev dist`):
+```
+/                       200
+/dashboard              200
+/profile                200
+/some/random/deep/link  200      ← native SPA fallback, koi rule nahi
+/some/deep/route        200      ← body me id="root" (asli index.html)
+/index.html             308 → /
+Parsed 0 valid redirect rules    ← koi warning nahi
+```
+
+**Do galat tarike jo fail karte hain:**
+
+1. `_redirects` me classic catch-all:
 ```
 /*    /index.html   200      ← MAT DAALO
 ```
-Default `html_handling: auto-trailing-slash` ke saath ye rule `.html` strip karta
-hai, dobara `/*` se match hota hai, aur Cloudflare isko **infinite loop** bol ke
-ignore kar deta hai:
+Cloudflare isko loop bol ke reject karta hai:
 ```
-▲ [WARNING] Found 1 invalid redirect rule:
-  ▶︎ Infinite loop detected in this rule and has been ignored...
-      at dist/_redirects:9 | /*    /index.html   200
+▲ Infinite loop detected in this rule and has been ignored...
+✘ Invalid _redirects configuration ... [code: 100324]
 ```
-Matlab fallback chupchap mar jata hai aur tumhe 404 milte hain.
+Locally sirf warning hai; **deploy-time API validator ise hard-fail kar sakta
+hai**. Aur ye redundant hai — upar wala native behaviour kaafi hai.
 
-**Fix (already applied):** fallback `wrangler.jsonc` se aata hai:
-```jsonc
-"assets": {
-  "directory": "./dist",                                   // REQUIRED
-  "not_found_handling": "single-page-application",
-  "html_handling": "auto-trailing-slash"
-}
-```
+2. `wrangler.jsonc` me `assets.not_found_handling: "single-page-application"`.
+Ye **Workers static assets** ki setting hai; classic Pages isko reject karta hai
+(§1c) — aur yahi is project ki asli build failure thi.
 
-Verify:
-```bash
-npm run build
-npx wrangler pages dev dist
-curl -o /dev/null -sw "%{http_code}\n" localhost:8788/some/deep/link   # 200
-curl -o /dev/null -sw "%{http_code}\n" localhost:8788/index.html       # 307 -> /
-```
-`npm run check:build` ab `_redirects` me us loop wale rule ko **fail** karta hai,
-to ye galti dobara commit nahi ho sakti.
-
-Agar tum Git-integration (Option A) use kar rahe ho aur `wrangler.jsonc` ignore
-ho raha ho (kuch purane setups me hota tha), tab fallback `_redirects` se chahiye —
-us case me `html_handling` ko `none` karo ya rule ko exact paths tak limited rakho.
+**Agar deep link phir bhi 404 de:**
+- `public/` ya `dist/` me `404.html` to nahi? (hatao — SPA mode off kar deta hai)
+- Build output dir dashboard me `dist` hai?
+- `npm run doctor` chalao — ye dono cheezein check karta hai.
 
 ### 3d. Purana version dikh raha hai
 
@@ -330,7 +394,8 @@ dash.cloudflare.com → My Profile → API Tokens → Create Token
 
 | Symptom | Reason / Fix |
 |---|---|
-| `The \`assets\` property in your configuration is missing the required \`directory\` property.` | `wrangler.jsonc` me `assets` block hai par `directory` nahi. Fix: `"assets": { "directory": "./dist", "not_found_handling": "single-page-application" }`. (Repo me already set.) |
+| `Configuration file for Pages projects does not support "assets"` | **§1c** — `wrangler.jsonc` se `assets` block hatao. Ye build se pehle validation fail hai. |
+| `The \`assets\` property ... is missing the required \`directory\` property.` | Ye error sirf **local** `wrangler pages dev`/`deploy` (Workers assets) me aata hai. Pages ke liye sahi jawab `assets` block ko **poora hata dena** hai, `directory` add karna nahi (§1c). |
 | `/api/health` 404 deta hai | Functions deploy hi nahi hui. Check: `functions/` repo **root** pe hai (dist ke andar nahi), aur build output dir `dist` set hai. Deploy log me `Uploaded ... Functions` line dhoondho. |
 | Static routes Functions se override ho rahe | Pages Functions ka route static file se pehle match hota hai. Hamare functions sirf `/api/*` pe hain, to SPA routes safe hain. Naya function add karo to `_redirects` ke saath conflict mat banao. |
 | `env.GEMINI_API_KEY` undefined | Secret set nahi: `npx wrangler pages secret put GEMINI_API_KEY --project-name=pwparent`. Local pe `.dev.vars` chahiye. |
