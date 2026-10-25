@@ -45,9 +45,15 @@ Connect to Git → `GothwadTech/pwparent`, phir:
 
 Baaki environment variables: [`docs/CLOUDFLARE_PAGES.md`](docs/CLOUDFLARE_PAGES.md)
 
-> Deploy fail ho raha tha? Do asli wajah thi — `esbuild` peer-dependency
-> conflict (`npm ci` hi fail) aur ek npm-10 arborist bug. Dono fix ho chuke
-> hain. Details: [`docs/DEPLOYMENT_TROUBLESHOOTING.md`](docs/DEPLOYMENT_TROUBLESHOOTING.md)
+> **Deploy fail ho raha tha?** Repo side ki do asli wajah thi — `esbuild`
+> peer-dependency conflict (`npm ci` hi fail ho jata tha) aur ek npm-10 arborist
+> bug. Dono fix ho chuke hain, aur is branch pe GitHub Actions CI green hai
+> (Node 20 + Node 22 dono pe).
+>
+> Agar Cloudflare ka build **phir bhi** fail ho aur CI green ho, to farq sirf
+> build environment ka hai → **`NODE_VERSION=22`** env var Production *aur*
+> Preview dono me lagao, output dir `dist` rakho, phir **Retry deployment**.
+> Details: [`docs/DEPLOYMENT_TROUBLESHOOTING.md`](docs/DEPLOYMENT_TROUBLESHOOTING.md) §0b
 
 CLI se deploy:
 ```bash

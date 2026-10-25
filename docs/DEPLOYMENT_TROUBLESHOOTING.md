@@ -18,6 +18,19 @@ npm run verify        # typecheck + test + build + dist validation
 
 ---
 
+## 0b. Cloudflare pe build fail, GitHub Actions pe pass → ye 5 cheezein check karo
+
+1. **`NODE_VERSION=22`** env var — Production **aur** Preview dono me (§2a). 9/10 baar yahi hai.
+2. **Build output directory = `dist`** (na `build`, na `/dist`, na `dist/`).
+3. **Build command = `npm run build`** (custom `npm ci && ...` mat likho jab tak zaroorat na ho).
+4. **Production branch = `main`** (Settings → Builds & deployments).
+5. Build log ki **pehli 10 lines** padho — Node/npm version aur install command wahin dikhti hai.
+   Asli error hamesha log ke end me hota hai, "Build failed" message me nahi.
+
+Log share karo (paste) to exact line pe fix bata denge.
+
+---
+
 ## 1. Dependency resolution failures  *(is repo me fix ho chuka)*
 
 ### 1a. `ERESOLVE` — esbuild vs vite
@@ -77,7 +90,32 @@ guaranteed hai.
 
 ## 2. Build failures
 
-### 2a. Node version purana
+### 2a. Node version purana  ← *is project me sabse probable wajah*
+
+**Evidence (PR #1, commit `4683757`):** GitHub Actions pe wahi code **Node 22 aur
+Node 20 dono pe pass** hua, `wrangler pages dev` local pe sahi chala — par
+Cloudflare ka apna build fail hua:
+
+```
+Cloudflare Pages   completed | conclusion: failure
+Status: 🚫 Build failed.
+project: pwparent   account: 53c7503cbecd6c548349980df2dc7b7f
+```
+
+Jab code + lockfile dono jagah green ho aur sirf Cloudflare fail ho, to farq
+sirf **build environment** ka hota hai — aur sabse common culprit Node version
+hai (Cloudflare ka default image aksar Node 18 deta hai, aur Vite 8 ko
+Node >= 20.19 chahiye).
+
+**Fix (pehle yahi karo):** Pages → Settings → Environment variables →
+```
+NODE_VERSION=22
+```
+**Production aur Preview dono** environments me add karo → Deployments →
+**Retry deployment**. Phir build log ki pehli line dekho:
+`Using Node.js version ...` — 22.x aana chahiye.
+
+
 
 **Log:** `SyntaxError: Unexpected token '?'` · `error:0308010C:digital envelope routines::unsupported` · `Cannot find module 'node:path'`
 
