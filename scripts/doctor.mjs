@@ -107,13 +107,34 @@ else ok('No uncommitted changes to deploy config');
 // ------------------------------------------------------------- app config ----
 section('App config');
 const pkg = JSON.parse(read('package.json') ?? '{}');
-if (pkg.scripts?.build === 'vite build') ok('package.json build script = `vite build`');
-else bad(`Unexpected build script: ${pkg.scripts?.build}`);
+/**
+ * The build script must (a) end with `vite build` and (b) run the Node guard
+ * first. Anything else means Cloudflare's `npm run build` will not produce dist/.
+ */
+const buildScript = pkg.scripts?.build ?? '';
+if (/vite build\s*$/.test(buildScript)) ok(`build script ends with \`vite build\` (${buildScript})`);
+else bad(`build script does not end with \`vite build\`: ${buildScript}`);
 if (pkg.dependencies?.firebase) ok(`firebase ${pkg.dependencies.firebase} present (backend scaffold ready)`);
 else warn('firebase dependency missing — docs/FIREBASE.md assumes it is installed.');
 if (pkg.dependencies?.esbuild || pkg.devDependencies?.esbuild) {
   bad('esbuild is pinned in package.json — this conflicts with Vite 8 peer deps and breaks `npm ci` on Pages. Remove it.');
 } else ok('No standalone esbuild pin (was the original ERESOLVE cause)');
+
+// wrangler drags in workerd (~135 MB) and miniflare -> sharp (~28 MB) native
+// binaries that `vite build` never needs. They are a classic CI/build-image
+// failure source, so wrangler is invoked via `npx wrangler@4` instead.
+if (pkg.dependencies?.wrangler || pkg.devDependencies?.wrangler) {
+  bad('wrangler is a dependency — it installs ~200 MB of native binaries (workerd, sharp) that the build never uses and that break on some build images. Remove it and use `npx wrangler@4` in scripts.');
+} else ok('No wrangler dependency (scripts use `npx wrangler@4` — keeps node_modules ~200 MB lighter)');
+
+// 2) the Node guard must stay wired into `build`, else an old build image
+//    fails with an opaque Vite error instead of an actionable message.
+if (/check-node\.mjs/.test(pkg.scripts?.build ?? '')) {
+  ok('build script runs the Node guard (old build images fail loudly, not mysteriously)');
+} else {
+  bad('build script lost `node scripts/check-node.mjs`. Without it a Node 18 build image (Cloudflare Build System V2 default) fails with a confusing Vite error.');
+}
+if (!existsSync(path.join(root, 'scripts/check-node.mjs'))) bad('scripts/check-node.mjs is missing but referenced by the build script.');
 
 // ------------------------------------------------------------ pages assets ---
 section('Cloudflare Pages assets');

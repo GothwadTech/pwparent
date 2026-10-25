@@ -35,7 +35,7 @@ Dono green hone chahiye. CI wahi cheezein chalata hai, to local green = CI green
    - `.env.example` me entry (placeholder `MY_*` rakhna — code usko "not set" maanta hai)
    - `docs/ENVIRONMENT.md` me table row
 4. **Secret kabhi `VITE_` prefix ke saath nahi.** `GEMINI_API_KEY` jaisi cheezein
-   `wrangler pages secret put` se, local pe `.dev.vars` se. CI bundle scan karta
+   `npx wrangler@4 pages secret put` se, local pe `.dev.vars` se. CI bundle scan karta
    hai — leak pe build fail hoga.
 5. **UI hamesha `src/lib/backend` facade se data le**, `firebase/*` se directly
    nahi. Isse mock mode me app chalti rehti hai aur tests bina network ke pass
@@ -69,6 +69,10 @@ export async function onRequestPost(ctx) { ... }
 - `firebase-admin` Workers runtime pe nahi chalta → REST API + `fetch` use karo
   (`docs/FIREBASE.md` §8).
 - Local test: `npm run pages:dev` → `curl localhost:8788/api/<name>`.
+- **`wrangler` ko `dependencies`/`devDependencies` me mat daalo** — wo 135 MB
+  `workerd` + `sharp` native binaries lata hai jo `vite build` ke liye bekaar hain
+  aur Cloudflare ke build image pe install fail kar sakte hain. Scripts
+  `npx --yes wrangler@4` use karte hain; `npm run doctor` isko enforce karta hai.
 - `/api/*` ke alawa koi route mat pakdo, warna SPA/static assets se conflict hoga.
 
 ## Troubleshooting

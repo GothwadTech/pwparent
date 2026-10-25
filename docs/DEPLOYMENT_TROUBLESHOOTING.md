@@ -167,7 +167,33 @@ Agar tum chahte ho ki type error pe deploy ruke:
 ```
 (Thoda slow ho jata hai, par strict rehta hai.)
 
-### 2d. Out of memory / build timeout
+### 2d. Native binaries / oversized node_modules  *(is repo me fix ho chuka)*
+
+**Symptom:** install step bahut slow, ya `sharp`/`workerd`/platform-binary errors,
+ya container disk/OOM — jabki GitHub Actions pe sab green ho.
+
+**Reason:** `wrangler` ko `devDependencies` me rakhne se ye aata tha:
+```
+wrangler -> miniflare -> sharp -> @img/sharp-linux-x64   (28 MB native)
+wrangler -> workerd -> @cloudflare/workerd-linux-64      (135 MB native)
+```
+`node_modules` **559 MB** ho jata tha, aur `vite build` ko inme se kisi ki
+zaroorat nahi. Native binaries build image ke platform se match na kare to install
+fail hota hai — Actions runners pe ye aksar chhup jata hai kyunki wahan disk/time
+zyada hota hai.
+
+**Fix (already applied):** `wrangler` dependency se hataya; scripts ab
+`npx --yes wrangler@4` use karte hain. Result: **559 MB → 399 MB**, 30 packages
+kam, koi native `@cloudflare`/`@img` binary nahi.
+
+Verify:
+```bash
+npm ls @cloudflare/workerd-linux-x64 sharp   # "empty" aana chahiye
+npm run doctor                               # "No wrangler dependency" ✔
+```
+Regression guard: `doctor` fail karta hai agar wrangler wapas dependencies me aa jaye.
+
+### 2e. Out of memory / build timeout
 
 **Log:** `JavaScript heap out of memory` · build 15+ min
 

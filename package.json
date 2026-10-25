@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "node scripts/check-node.mjs && vite build",
     "preview": "vite preview --host=0.0.0.0 --port=4173",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
@@ -20,9 +20,9 @@
     "doctor": "node scripts/doctor.mjs",
     "verify": "npm run typecheck && npm run test && npm run build && npm run check:build",
     "clean": "rm -rf dist node_modules/.vite .wrangler",
-    "pages:build": "vite build && node scripts/check-build-output.mjs",
-    "pages:dev": "npm run build && wrangler pages dev dist --ip=0.0.0.0 --port=8788",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy --project-name=pwparent --branch=main"
+    "pages:build": "npm run build && node scripts/check-build-output.mjs",
+    "pages:dev": "npm run pages:build && npx --yes wrangler@4 pages dev dist --ip=0.0.0.0 --port=8788",
+    "pages:deploy": "npm run pages:build && npx --yes wrangler@4 pages deploy --project-name=pwparent --branch=main"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -43,7 +43,6 @@
     "happy-dom": "^21.0.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
-    "vitest": "^4.0.0",
-    "wrangler": "^4.50.0"
+    "vitest": "^4.0.0"
   }
 }

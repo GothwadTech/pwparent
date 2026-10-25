@@ -32,6 +32,43 @@ server-side Pages Functions chalati hai.
 | `.env.example` | Saare env vars ka template + explanation. |
 | `.dev.vars.example` | Local Pages Functions ke secrets (copy → `.dev.vars`, git-ignored). |
 | `.npmrc` | CI install behaviour (audit/fund off). |
+| `.nvmrc` + `.node-version` | **Node 22 pin.** Cloudflare Pages `package.json` ka `engines` **ignore** karta hai — ye files padhta hai. |
+| `scripts/check-node.mjs` | `vite build` se pehle Node version check. Purana build image (V2 = Node 18.17.1) milne pe **loud, actionable error** deta hai bajaye opaque Vite failure ke. |
+
+### `wrangler` jaan-boojh ke dependency NAHI hai
+
+`wrangler` ko `devDependencies` me daalne se ye native binaries install hote hain:
+
+| Package | Size | Kis liye |
+|---|---|---|
+| `@cloudflare/workerd-linux-64` | **135 MB** | sirf local `pages dev` runtime |
+| `miniflare` → `sharp` → `@img/sharp-linux-x64` | **28 MB + 16 MB** | sirf local emulation |
+
+`vite build` ko inme se **kisi ki zaroorat nahi**. Isse `node_modules` 559 MB →
+**399 MB** hua, aur native-binary install failures ka risk khatam (sharp/workerd
+CI images pe fail hone ke liye badnaam hain — aur GitHub Actions ke paas disk/time
+zyada hone ki wajah se wahan ye problem dikhti hi nahi).
+
+Isliye saare scripts wrangler ko **on-demand** late hain:
+
+```bash
+npx --yes wrangler@4 pages dev dist      # npm run pages:dev yahi karta hai
+npx --yes wrangler@4 pages deploy        # npm run pages:deploy
+```
+
+Tum manually command chalao to bhi `npx` prefix lagana:
+
+```bash
+npx wrangler@4 login
+npx wrangler@4 pages secret put GEMINI_API_KEY --project-name=pwparent
+npx wrangler@4 pages project create pwparent --production-branch=main
+npx wrangler@4 pages deployment list --project-name=pwparent
+```
+
+GitHub Actions wale deploy workflow me `cloudflare/wrangler-action@v3` khud
+wrangler install karta hai — wahan bhi repo dependency ki zaroorat nahi.
+`npm run doctor` check karta hai ki wrangler galti se wapas `dependencies` me na
+aa jaye.
 | `.nvmrc` + `.node-version` | **Node 22 pin.** Cloudflare Pages `package.json` ka `engines` **ignore** karta hai — ye files padhta hai. Iske bina Build System V2 image Node 18.17.1 use karti hai aur Vite 8 build fail ho jata hai. |
 
 ---
@@ -72,10 +109,10 @@ Preview: har non-`main` branch/PR ko apna preview URL milta hai
 
 ```bash
 npm ci
-npm run pages:build                 # vite build + dist validation
-npx wrangler login                  # browser me Cloudflare auth
-npx wrangler pages project create pwparent --production-branch=main
-npx wrangler pages deploy --project-name=pwparent --branch=main
+npm run pages:build                            # vite build + dist validation
+npx wrangler@4 login                           # browser me Cloudflare auth
+npx wrangler@4 pages project create pwparent --production-branch=main
+npx wrangler@4 pages deploy --project-name=pwparent --branch=main
 ```
 
 `npm run pages:deploy` = upar wale last 2 steps (build + deploy) ek saath.
@@ -131,7 +168,7 @@ Pages dashboard → project → **Settings → Environment variables** → add f
 
 ```bash
 # CLI se (encrypt ho ke store hota hai)
-npx wrangler pages secret put GEMINI_API_KEY --project-name=pwparent
+npx wrangler@4 pages secret put GEMINI_API_KEY --project-name=pwparent
 
 # ya dashboard: Settings -> Environment variables -> Encrypt
 ```

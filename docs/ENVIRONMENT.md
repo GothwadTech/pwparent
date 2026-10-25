@@ -5,7 +5,7 @@ Is app me **do tarah** ke variables hain. Dono ko mix karna sabse common galti h
 | Type | Prefix | Kahan set hota hai | Browser me jata hai? |
 |---|---|---|---|
 | **Client config** | `VITE_` | Pages env vars / `.env.local` — **build time** pe inline | ✅ Haan (public) |
-| **Server secret** | *(koi prefix nahi)* | `wrangler pages secret put` / `.dev.vars` — **runtime** | ❌ Nahi (safe) |
+| **Server secret** | *(koi prefix nahi)* | `npx wrangler@4 pages secret put` / `.dev.vars` — **runtime** | ❌ Nahi (safe) |
 
 > Rule of thumb: agar value leak hone se nuksaan hai → wo secret hai → `VITE_`
 > prefix mat lagao, Pages secret banao.
@@ -104,9 +104,9 @@ Set karna:
 
 ```bash
 # production / preview (encrypted, dashboard me bhi dikhega as secret)
-npx wrangler pages secret put GEMINI_API_KEY --project-name=pwparent
+npx wrangler@4 pages secret put GEMINI_API_KEY --project-name=pwparent
 
-# local (wrangler pages dev)
+# local (npm run pages:dev)
 cp .dev.vars.example .dev.vars    # git-ignored
 ```
 

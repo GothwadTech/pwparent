@@ -58,11 +58,13 @@ Baaki environment variables: [`docs/CLOUDFLARE_PAGES.md`](docs/CLOUDFLARE_PAGES.
 > Preview dono me lagao, output dir `dist` rakho, phir **Retry deployment**.
 > Details: [`docs/DEPLOYMENT_TROUBLESHOOTING.md`](docs/DEPLOYMENT_TROUBLESHOOTING.md) §0b
 
-CLI se deploy:
+CLI se deploy (`wrangler` deliberately dependency nahi hai — `npx` se on-demand
+aata hai, warna 135 MB workerd + sharp native binaries install hote jo build ko
+fail kar sakte hain):
 ```bash
-npm run pages:build                                  # vite build + dist validation
-npx wrangler pages project create pwparent --production-branch=main
-npx wrangler pages deploy --project-name=pwparent    # ya: npm run pages:deploy
+npm run pages:build                                       # vite build + dist validation
+npx wrangler@4 pages project create pwparent --production-branch=main
+npx wrangler@4 pages deploy --project-name=pwparent       # ya: npm run pages:deploy
 ```
 
 Production jaisa local preview (Functions + `_headers` + SPA fallback ke saath):
@@ -139,8 +141,8 @@ docs/                  CLOUDFLARE_PAGES · ENVIRONMENT · FIREBASE · TROUBLESHO
 | `npm run doctor` | Deploy pre-flight (lockfile, Node, configs, git hygiene) |
 | `npm run verify` | typecheck + test + build + check:build |
 | `npm run pages:build` | build + check (CI/Pages ke liye) |
-| `npm run pages:dev` | build + `wrangler pages dev dist` |
-| `npm run pages:deploy` | build + `wrangler pages deploy` |
+| `npm run pages:dev` | build + `npx wrangler@4 pages dev dist` (`:8788`) |
+| `npm run pages:deploy` | build + `npx wrangler@4 pages deploy` |
 | `npm run clean` | `dist/`, vite cache, `.wrangler/` hatao |
 
 ## 🔐 Secrets
