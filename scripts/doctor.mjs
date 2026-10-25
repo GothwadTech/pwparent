@@ -191,8 +191,9 @@ const workflows = existsSync(path.join(root, '.github/workflows'))
 if (workflows.includes('ci.yml')) ok('CI workflow present (.github/workflows/ci.yml)');
 else warn('ci.yml missing — PRs will not be tested.');
 if (workflows.includes('deploy-cloudflare-pages.yml')) {
-  ok('Wrangler deploy workflow present (Option B)');
-  warn('If you use the Cloudflare Git integration (Option A), delete deploy-cloudflare-pages.yml to avoid double deploys.');
+  warn('Wrangler deploy workflow (Option B) is present. This project deploys via the Cloudflare Git integration (Option A), so on every push to main BOTH would publish a production deployment and fight each other. Delete it unless you are switching to Option B.');
+} else {
+  ok('No Option B deploy workflow — Cloudflare Git integration (Option A) is the single deploy path, no double deploys');
 }
 
 // ------------------------------------------------------------------- dist ----

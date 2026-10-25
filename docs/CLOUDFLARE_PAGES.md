@@ -27,7 +27,6 @@ server-side Pages Functions chalati hai.
 | `functions/_middleware.ts` | `/api/*` pe CORS + `/api/health` endpoint. Static routes ko touch nahi karta. |
 | `functions/api/ai.ts` | Optional Gemini proxy — API key **server side** rehti hai, bundle me nahi jati. |
 | `.github/workflows/ci.yml` | Har push/PR pe typecheck → test → build → build-output validation. |
-| `.github/workflows/deploy-cloudflare-pages.yml` | Wrangler se direct deploy (Option B). |
 | `scripts/check-build-output.mjs` | Deploy se pehle `dist/` sanity + secret-leak check. |
 | `.env.example` | Saare env vars ka template + explanation. |
 | `.dev.vars.example` | Local Pages Functions ke secrets (copy → `.dev.vars`, git-ignored). |
@@ -117,8 +116,17 @@ npx wrangler@4 pages deploy --project-name=pwparent --branch=main
 
 `npm run pages:deploy` = upar wale last 2 steps (build + deploy) ek saath.
 
-GitHub Actions se automatic deploy chahiye to `.github/workflows/deploy-cloudflare-pages.yml`
-already ready hai. Bas 2 repo secrets chahiye:
+> **Is project me Option B workflow jaan-boojh ke hata diya gaya hai**, kyunki
+> deploy Cloudflare Git integration (Option A) se ho raha hai. Dono saath me
+> chalte to har `main` push pe **do production deployments** banti aur ek dusre
+> ko override karti. `npm run doctor` is par warn karta hai.
+>
+> Kabhi Option B pe switch karna ho to workflow git history se wapas la sakte ho:
+> ```bash
+> git show b55e042:.github/workflows/deploy-cloudflare-pages.yml \
+>   > .github/workflows/deploy-cloudflare-pages.yml
+> ```
+> Uske baad 2 repo secrets chahiye:
 
 | Secret | Kahan se |
 |---|---|
