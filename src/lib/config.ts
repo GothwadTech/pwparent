@@ -103,6 +103,25 @@ export const isFirebaseEnabled: boolean = backendMode === 'firebase';
 /** reCAPTCHA v3 site key (optional; Firebase phone auth on web may require it). */
 export const recaptchaSiteKey = read('RECAPTCHA_SITE_KEY');
 
+/**
+ * Admin Panel gate.
+ *
+ * ⚠️ HONEST LIMITATION: this app is a pure client-side SPA, so anything the
+ * browser can read is public. A passcode inlined by Vite stops casual users,
+ * NOT a determined one — they can read it out of the JS bundle.
+ *
+ * That is fine for a demo/portfolio build. For a real deployment, gate admin
+ * writes in `firestore.rules` against an `admins/{uid}` allow-list instead and
+ * treat this passcode as UI-only. See docs/ADMIN_PANEL.md.
+ */
+export const ADMIN_PASSCODE: string = read('ADMIN_PASSCODE') ?? 'pw-admin-demo';
+
+/** Shown as a small badge in the UI so nobody mistakes this for the real product. */
+export const IS_DEMO_BUILD: boolean = (read('DEMO_BUILD') ?? 'true').toLowerCase() !== 'false';
+
+/** Anonymous Auth gives every visitor a real `uid`, which is what Firestore rules key on. */
+export const USE_ANONYMOUS_AUTH: boolean = (read('USE_ANONYMOUS_AUTH') ?? 'true').toLowerCase() !== 'false';
+
 if (!isFirebaseConfigured) {
   const missing = missingFirebaseKeys().map((k) => `VITE_${k.replace(/[A-Z]/g, (m) => `_${m}`).toUpperCase()}`);
   // eslint-disable-next-line no-console

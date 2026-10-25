@@ -72,10 +72,17 @@ Production jaisa local preview (Functions + `_headers` + SPA fallback ke saath):
 npm run pages:dev                                    # http://localhost:8788
 ```
 
-## 🔥 Firebase backend
+> ### ⚠️ Ye ek DEMO BUILD hai
+> Official Physics Wallah Parent's App **nahi** hai, aur kisi coaching
+> organisation se affiliated nahi hai. Sign-in **koi SMS nahi bhejta**,
+> academic records **editable sample data** hain, aur app ke corner pe ek
+> `DEMO` badge rehta hai. Details: [`docs/FIREBASE.md` §7](docs/FIREBASE.md).
 
-Firebase ka scaffold ready hai — default **mock mode** (demo data, zero network),
-aur env vars bharne pe real Firebase Auth (phone OTP) + Firestore:
+## 🔥 Firebase backend — wired, ready to flip
+
+**Code poora likha ja chuka hai.** `src/App.tsx`, `src/lib/backend/` aur
+`src/lib/firebase/` wire ho gaye hain. Default **mock mode** (localStorage,
+zero network) — env vars bharne pe **Anonymous Auth + Firestore**:
 
 ```bash
 VITE_BACKEND_MODE=firebase
@@ -85,11 +92,13 @@ VITE_FIREBASE_PROJECT_ID=...
 VITE_FIREBASE_STORAGE_BUCKET=...
 VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
+VITE_USE_ANONYMOUS_AUTH=true
+VITE_ADMIN_PASSCODE=...
 ```
 
-Step-by-step setup, Firestore security rules, App Check, phone-OTP wiring aur
-Cloudflare Pages ke saath kya chalta hai / kya nahi →
-[`docs/FIREBASE.md`](docs/FIREBASE.md)
+Console me sirf 4 kaam: Firestore create (`asia-south1`) → **Anonymous Auth
+enable** → `firestore.rules` publish → Pages me env vars daal ke **Retry
+deployment**. Poora checklist → [`docs/FIREBASE.md`](docs/FIREBASE.md)
 
 UI sirf `src/lib/backend` se baat karti hai, isliye mode switch karne pe
 components change nahi karne padte:
@@ -97,35 +106,75 @@ components change nahi karne padte:
 ```ts
 import { getBackend } from './lib/backend';
 
-const backend = await getBackend();          // mock | firebase (env se decide)
-const children = await backend.getLinkedStudents();
-const sent     = await backend.sendOtp(phone);
-const result   = await backend.verifyOtp(code, sent);
+const backend  = await getBackend();          // mock | firebase (env se decide)
+const session  = await backend.signInWithPhone(phone);  // anonymous uid + phone as profile field
+const children = await backend.getLinkedStudents(session.uid);
+await backend.saveStudent({ ...child, attendance: '98%' });
 ```
+
+### Auth model: phone number credential KYUN nahi hai
+Phone/SMS OTP ke liye Firebase **Blaze (billing)** maangta hai — Spark pe
+`auth/billing-not-enabled`. Isliye app **Anonymous Auth** use karti hai
+(free, 50K MAU): user number type karta hai, ek stable `uid` silently ban
+jata hai, aur number `parents/{uid}.mobileNumber` me **profile field** ki
+tarah save hota hai. Rules us `uid` se har user ka data isolate karte hain.
+
+⚠️ Number **verify nahi hota** — isliye use kabhi bhi kisi bachche ke
+records ka lookup key mat banana. Lookup key hamesha `uid` hai.
+
+## 🛠️ Admin Panel
+
+Bottom-right ke `DEMO · <mode> · admin` badge pe click karo, ya `#admin`
+URL pe jao. Passcode: `pw-admin-demo` (`VITE_ADMIN_PASSCODE` se badlo).
+
+Edit kar sakte ho: students, **attendance, marks, tests (raw marks → derived
+percentages)**, DPPs, announcements, purchases. Plus **Seed demo data**
+(atomic) aur **Clear local demo store**.
+
+> ⚠️ Passcode ek **client-side gate** hai — Vite use public bundle me inline
+> kar deta hai. Real authorisation `firestore.rules` ke `admins/{uid}`
+> allow-list me hai (console-only, app khud ko promote nahi kar sakti).
+> Poora guide → [`docs/ADMIN_PANEL.md`](docs/ADMIN_PANEL.md)
+
+Derived fields (`testsCompleted`, `avgScorePercent`, `accuracyPercent`,
+per-test `scorePercent`) admin bharta nahi — `recomputeStudent()` har save pe
+calculate karta hai, taaki scorecard kabhi apne aap se contradict na kare.
+Ye invariant test-covered hai.
 
 ## 📁 Structure
 
 ```
 src/
-  components/          38 screens + modals (pure UI)
-  lib/config.ts        env parsing, validation, mock/firebase mode
-  lib/backend/         facade + mock dataset  ← UI yahi import kare
-  lib/firebase/        app / auth (phone OTP) / firestore helpers
+  components/          38 screens + modals (UI) + AdminPanelScreen + DemoBadge
+  App.tsx              screen router, backend wiring, #admin route
+  types.ts             shared domain types (StudentProfile, TestRecord, ...)
+  lib/config.ts        env parsing, validation, mock/firebase mode, demo flags
+  lib/admin.ts         passcode gate, marks maths, recomputeStudent()
+  lib/backend/         facade + mock dataset + demoStore  ← UI yahi import kare
+    index.ts             Backend interface + mock & firebase implementations
+    mockData.ts          shipped demo dataset
+    demoStore.ts         localStorage layer (mock mode persistence)
+  lib/firebase/        app / auth (ANONYMOUS) / firestore helpers + paths
   tests/               vitest + happy-dom + Testing Library
-  types.ts             shared domain types
+    env/               intentionally empty — keeps tests env-independent
 functions/             Cloudflare Pages Functions (optional, server-side)
   _middleware.ts       /api/* CORS + /api/health
   api/ai.ts            Gemini proxy (key server-side rehti hai)
 public/_headers        security + cache headers
 public/_redirects      redirect rules (SPA fallback Pages khud karta hai — 404.html mat banao)
+firestore.rules        Firestore security rules (owner-scoped + admins allow-list)
+firebase.json          rules pointer ONLY — no hosting (site Pages se deploy hoti hai)
 scripts/
   check-build-output.mjs   dist sanity + secret-leak scan
   doctor.mjs               deploy pre-flight
 .github/workflows/
-  ci.yml                       typecheck → test → build → validate
-  deploy-cloudflare-pages.yml  wrangler deploy (Option B)
-docs/                  CLOUDFLARE_PAGES · ENVIRONMENT · FIREBASE · TROUBLESHOOTING
+  ci.yml               typecheck → test → build → validate  (ONLY workflow)
+docs/                  CLOUDFLARE_PAGES · ENVIRONMENT · FIREBASE · ADMIN_PANEL · TROUBLESHOOTING
 ```
+
+> Deploy **Cloudflare Git integration** se hota hai (Option A). Isliye koi
+> `deploy-cloudflare-pages.yml` nahi hai — do workflows ek saath production
+> deployments compete karte. `npm run doctor` iska guard hai.
 
 ## 🧪 Scripts
 
@@ -135,7 +184,7 @@ docs/                  CLOUDFLARE_PAGES · ENVIRONMENT · FIREBASE · TROUBLESHO
 | `npm run build` | Production build → `dist/` |
 | `npm run preview` | `dist/` ko Vite preview pe serve karo (`:4173`) |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run test` | Vitest (12 tests, happy-dom) |
+| `npm run test` | Vitest (43 tests, happy-dom) |
 | `npm run test:watch` | Watch mode |
 | `npm run check:build` | `dist/` validation + secret-leak scan |
 | `npm run doctor` | Deploy pre-flight (lockfile, Node, configs, git hygiene) |
@@ -161,7 +210,8 @@ CI har build pe bundle scan karta hai — secret leak hone pe build **fail**.
 
 - [Cloudflare Pages deploy guide](docs/CLOUDFLARE_PAGES.md) — dashboard + CLI + Actions, verification, rollback
 - [Environment variables](docs/ENVIRONMENT.md) — precedence, har variable, copy-paste sets
-- [Firebase setup](docs/FIREBASE.md) — Auth/Firestore/rules/App Check + exact wiring steps
+- [Firebase setup](docs/FIREBASE.md) — anonymous auth, Firestore, rules, console checklist, troubleshooting
+- [Admin Panel](docs/ADMIN_PANEL.md) — passcode, editable fields, derived maths, honest limits
 - [Deployment troubleshooting](docs/DEPLOYMENT_TROUBLESHOOTING.md) — error-by-error fixes
 - [Contributing](docs/CONTRIBUTING.md)
 

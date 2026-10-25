@@ -4,12 +4,18 @@ import { PurchaseItem } from '../types';
 
 interface PurchasesScreenProps {
   onBack: () => void;
+  /**
+   * Optional data source (Backend facade -> Firestore / demo store).
+   * When omitted the built-in demo list below is used, so every existing
+   * call site keeps rendering exactly what it did before.
+   */
+  items?: PurchaseItem[];
 }
 
-export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack }) => {
+export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack, items }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'successful' | 'pending'>('all');
 
-  const purchases: PurchaseItem[] = [
+  const builtinPurchases: PurchaseItem[] = [
     {
       id: '1',
       title: 'MISSION 30 NEET 2026',
@@ -41,6 +47,9 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack }) => {
       imageBg: 'from-amber-600 to-rose-700',
     },
   ];
+
+  // Optional data source wins; otherwise render exactly what shipped before.
+  const purchases = items ?? builtinPurchases;
 
   const filteredPurchases = purchases.filter((p) => {
     if (activeFilter === 'successful') return p.status === 'successful';

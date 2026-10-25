@@ -1,0 +1,102 @@
+rules_version = '2';
+
+/**
+ * Firestore security rules — PW Parent's App (demo build).
+ *
+ * ── THE IDENTITY MODEL ─────────────────────────────────────────────────────
+ * Sign-in is Firebase **Anonymous Auth**, not phone OTP. Phone auth requires a
+ * Blaze (billing-enabled) project; anonymous auth is free up to 50,000 MAU and
+ * still gives every visitor a real, stable `request.auth.uid`.
+ *
+ * The phone number the user types is stored as a PROFILE FIELD at
+ * `parents/{uid}.mobileNumber`. It is never a credential and it is never
+ * verified — so do not use it to look up a child's records. The `uid` is the
+ * only thing these rules trust.
+ *
+ * ── ADMIN ──────────────────────────────────────────────────────────────────
+ * The in-app Admin Panel passcode is a CLIENT-SIDE gate only; anyone reading
+ * the JS bundle can find it. Real authorisation lives here: a uid must have a
+ * document at `admins/{uid}` to write the shared `announcements` feed.
+ * Create those documents by hand in the Firebase console — the app cannot
+ * promote itself, which is exactly the point.
+ *
+ * Deploy:  npx --yes firebase-tools deploy --only firestore:rules
+ * Or paste into: Console -> Firestore Database -> Rules
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── helpers ──────────────────────────────────────────────────────────
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    /** The uid in the path is the caller's own uid. */
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    /**
+     * True when `admins/{uid}` exists for the caller.
+     * `exists()` costs one read; it is only evaluated on writes to the shared
+     * feed, so the extra read is not on any hot path.
+     */
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    /** Keep documents small and free of keys a client should not invent. */
+    function profileIsValid() {
+      return request.resource.data.keys().hasAll(['mobileNumber'])
+        && request.resource.data.mobileNumber is string
+        && request.resource.data.mobileNumber.size() <= 20;
+    }
+
+    // ── parent profile ───────────────────────────────────────────────────
+    // parents/{uid} holds name, countryCode, mobileNumber, email, signInMethod.
+    match /parents/{uid} {
+      allow read:   if isOwner(uid);
+      allow create: if isOwner(uid) && profileIsValid();
+      allow update: if isOwner(uid);
+      // Deletion goes through the app's "delete profile" flow; hard delete is
+      // left to the console so a stray client bug cannot wipe an account.
+      allow delete: if false;
+
+      // ── children / academic record ─────────────────────────────────────
+      // StudentProfile + TestRecord[]. Written by the parent UI and by the
+      // Admin Panel, both of which act on the signed-in uid's own subtree.
+      match /children/{childId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // ── purchases ──────────────────────────────────────────────────────
+      match /purchases/{itemId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // ── shared announcement feed ─────────────────────────────────────────
+    // Any signed-in visitor (anonymous counts) can read it; only uids listed
+    // in `admins` can change it.
+    match /announcements/{announcementId} {
+      allow read:               if signedIn();
+      allow create, update:     if isAdmin();
+      allow delete:             if isAdmin();
+    }
+
+    // ── admin allow-list ─────────────────────────────────────────────────
+    // A user may confirm their own role, but nobody can promote themselves:
+    // writes are console-only.
+    match /admins/{uid} {
+      allow read:   if isOwner(uid) || isAdmin();
+      allow write:  if false;
+    }
+
+    // ── everything else ──────────────────────────────────────────────────
+    // Default deny. Adding a new collection must come with an explicit rule.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

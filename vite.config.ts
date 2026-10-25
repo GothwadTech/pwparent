@@ -23,6 +23,18 @@ export default defineConfig(() => {
     server: {
       host: '0.0.0.0',
       port: Number(process.env.PORT ?? 3000),
+      /**
+       * Allow the Arena/e2b live-preview proxy host so `npm run dev` can be
+       * viewed in a browser. Leading dot = all subdomains of e2b.app.
+       *
+       * Without this Vite answers the proxied request with
+       * `403 Blocked request. This host is not allowed.`
+       *
+       * DEV SERVER ONLY — production is static files served by Cloudflare
+       * Pages, so this setting never ships. Add your own domain here if you
+       * ever run the dev server behind a different tunnel.
+       */
+      allowedHosts: ['.e2b.app', ...(process.env.VITE_ALLOWED_HOSTS?.split(',').filter(Boolean) ?? [])],
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.

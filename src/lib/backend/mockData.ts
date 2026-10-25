@@ -15,6 +15,41 @@ export const mockStudents: StudentProfile[] = [
     testsCompleted: 18,
     dppsDone: 52,
     videoWatchRate: '91%',
+    testsTotal: 19,
+    avgScorePercent: 78,
+    accuracyPercent: 82,
+    tests: [
+      {
+        id: 't19',
+        title: 'MISSION 30 : Test 19',
+        date: '21-6-2026',
+        mode: 'Online',
+        status: 'ATTEMPTED',
+        marksObtained: 234,
+        marksTotal: 300,
+        scorePercent: 78,
+        accuracyPercent: 82,
+      },
+      {
+        id: 't18',
+        title: 'MISSION 30 : Test 18',
+        date: '19-6-2026',
+        mode: 'Online',
+        status: 'ATTEMPTED',
+        marksObtained: 198,
+        marksTotal: 300,
+        scorePercent: 66,
+        accuracyPercent: 74,
+      },
+      {
+        id: 't17',
+        title: 'MISSION 30 : Test 17',
+        date: '17-6-2026',
+        mode: 'Offline',
+        status: 'MISSED',
+        marksTotal: 300,
+      },
+    ],
   },
   {
     id: '2',
@@ -25,6 +60,22 @@ export const mockStudents: StudentProfile[] = [
     testsCompleted: 14,
     dppsDone: 46,
     videoWatchRate: '86%',
+    testsTotal: 17,
+    avgScorePercent: 64,
+    accuracyPercent: 71,
+    tests: [
+      {
+        id: 't14',
+        title: 'MISSION 30 : Test 14',
+        date: '13-6-2026',
+        mode: 'Online',
+        status: 'ATTEMPTED',
+        marksObtained: 192,
+        marksTotal: 300,
+        scorePercent: 64,
+        accuracyPercent: 71,
+      },
+    ],
   },
 ];
 
@@ -54,6 +105,10 @@ export const mockAnnouncements: AnnouncementItem[] = [
   },
 ];
 
+/**
+ * `imageBg` holds Tailwind gradient classes, NOT a hex colour —
+ * PurchasesScreen renders it as `bg-gradient-to-br ${item.imageBg}`.
+ */
 export const mockPurchases: PurchaseItem[] = [
   {
     id: 'p1',
@@ -63,7 +118,7 @@ export const mockPurchases: PurchaseItem[] = [
     totalItem: 1,
     price: '₹12,900',
     category: 'Course',
-    imageBg: '#005677',
+    imageBg: 'from-blue-600 to-indigo-700',
   },
   {
     id: 'p2',
@@ -73,7 +128,7 @@ export const mockPurchases: PurchaseItem[] = [
     totalItem: 1,
     price: '₹499',
     category: 'Material',
-    imageBg: '#8E75FF',
+    imageBg: 'from-amber-600 to-rose-700',
   },
 ];
 

@@ -68,7 +68,10 @@ Source of truth: `src/lib/config.ts` (+ types `src/vite-env.d.ts`).
 | `VITE_FIREBASE_APP_ID` | – | firebase ke liye | `1:<sender>:web:<hash>` |
 | `VITE_FIREBASE_MEASUREMENT_ID` | – | nahi | `G-XXXXXXXXXX`, sirf Analytics |
 | `VITE_FIREBASE_DATABASE_URL` | – | nahi | Sirf Realtime Database use karo to |
-| `VITE_RECAPTCHA_SITE_KEY` | – | nahi | Phone auth ka reCAPTCHA (App Check / Enterprise) |
+| `VITE_RECAPTCHA_SITE_KEY` | – | nahi | Ab unused — app Anonymous Auth pe hai, phone OTP pe nahi |
+| `VITE_USE_ANONYMOUS_AUTH` | `true` | nahi | Anonymous Auth on/off. Band karna sirf tab jab koi doosra provider wire karo. |
+| `VITE_DEMO_BUILD` | `true` | nahi | `DEMO` badge + OTP screen ka honest notice. `false` sirf tab jab saara sample data real integration se replace ho jaye. |
+| `VITE_ADMIN_PASSCODE` | `pw-admin-demo` | nahi | Admin Panel gate. ⚠️ **Public bundle me inline hota hai — real security nahi.** Asli authorisation `firestore.rules` ke `admins/{uid}` me. See `docs/ADMIN_PANEL.md`. |
 
 ### Fallback naming
 `src/lib/config.ts` pehle `VITE_<NAME>` padhta hai, na mile to `<NAME>`:
@@ -152,20 +155,39 @@ VITE_APP_URL=https://pwparent.pages.dev
 VITE_APP_VERSION=1.0.0
 VITE_BACKEND_MODE=firebase
 VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_AUTH_DOMAIN=pwparent.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=pwparent
-VITE_FIREBASE_STORAGE_BUCKET=pwparent.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:000000000000
-VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_FIREBASE_AUTH_DOMAIN=pwparentapp.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=pwparentapp
+VITE_FIREBASE_STORAGE_BUCKET=pwparentapp.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=543582188666
+VITE_FIREBASE_APP_ID=1:543582188666:web:fc0d4a1ee188fd4a97b7c3
+VITE_USE_ANONYMOUS_AUTH=true
+VITE_DEMO_BUILD=true
+VITE_ADMIN_PASSCODE=<apna passcode yahan>
 ```
-Plus secret: `GEMINI_API_KEY` (encrypted).
+Plus secret: `GEMINI_API_KEY` (encrypted) — sirf agar `functions/api/ai.ts` use karna ho.
+
+**Firebase side pe bhi 3 kaam zaroori hain** (warna app chup-chaap mock mode
+pe gir jayegi): Firestore create (`asia-south1`) · Authentication → Sign-in
+method → **Anonymous → Enable** · `firestore.rules` publish.
+Poora checklist → [`docs/FIREBASE.md` §2](FIREBASE.md).
+
+> `VITE_FIREBASE_MEASUREMENT_ID` optional hai (sirf Analytics). Is project me
+> set nahi hai — app use nahi karti.
+> `VITE_FIREBASE_DATABASE_URL` bhi optional hai. Config me ek Realtime
+> Database URL maujood hai par **ye app Firestore use karti hai, RTDB nahi**.
 
 ### `.env.local` (laptop)
 ```bash
 cp .env.example .env.local
 # VITE_BACKEND_MODE=mock rehne do — bina Firebase ke app poori chalti hai
+# (data localStorage me persist hota hai, Admin Panel bhi kaam karta hai)
 ```
+
+⚠️ **Tests `.env.local` ko ignore karte hain** — `vitest.config.ts` me `envDir`
+jaan-boojh ke `src/tests/env` (khali dir) pe set hai. Iske bina tumhare local
+Firebase values test suite ko `firebase` mode me dhakel dete aur
+`config.spec.ts` (jo mock-mode deploy safety assert karta hai) fail hone lagta.
+Details: `src/tests/env/README.md`.
 
 ---
 

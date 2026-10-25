@@ -4,9 +4,14 @@
  * Collection map (parent-scoped, so security rules are easy):
  *
  *   parents/{uid}                        -> ParentProfileData
- *   parents/{uid}/children/{childId}     -> StudentProfile
+ *   parents/{uid}/children/{childId}     -> StudentProfile (+ TestRecord[])
  *   parents/{uid}/purchases/{itemId}     -> PurchaseItem
  *   announcements/{id}                   -> AnnouncementItem (global feed)
+ *   admins/{uid}                         -> {role, grantedAt}  (allow-list)
+ *
+ * Every parent-scoped path starts with `parents/{uid}`, which lets the rules in
+ * `firestore.rules` lock a user to their own subtree with one line:
+ * `request.auth.uid == uid`.
  *
  * See docs/FIREBASE.md for ready-to-paste security rules.
  */
@@ -21,6 +26,7 @@ import {
   orderBy,
   query,
   setDoc,
+  writeBatch,
   type Firestore,
   type QueryConstraint,
   type Unsubscribe,
@@ -43,6 +49,9 @@ export const paths = {
   purchases: (uid: string) => `parents/${uid}/purchases`,
   purchase: (uid: string, itemId: string) => `parents/${uid}/purchases/${itemId}`,
   announcements: () => 'announcements',
+  announcement: (id: string) => `announcements/${id}`,
+  admins: () => 'admins',
+  admin: (uid: string) => `admins/${uid}`,
 };
 
 export async function readDoc<T>(path: string): Promise<T | null> {
@@ -75,3 +84,26 @@ export function subscribe<T>(path: string, onChange: (items: T[]) => void, ...co
 }
 
 export const byNewest = (field: string) => orderBy(field, 'desc');
+
+/**
+ * Replace an entire subcollection atomically.
+ *
+ * The Admin Panel uses this for "Seed demo data": wipe + rewrite in one batch
+ * so the UI never renders a half-written student list. Firestore batches cap
+ * at 500 writes, which is far above anything this demo produces.
+ */
+export async function replaceCollection<T extends Record<string, unknown>>(
+  path: string,
+  items: Record<string, T>,
+): Promise<void> {
+  const db = getDb();
+  const existing = await getDocs(collection(db, path));
+  const batch = writeBatch(db);
+
+  for (const snap of existing.docs) batch.delete(snap.ref);
+  for (const [id, data] of Object.entries(items)) {
+    batch.set(doc(db, path, id), data);
+  }
+
+  await batch.commit();
+}

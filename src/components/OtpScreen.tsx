@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppHeader } from './AppHeader';
-import { Pencil, CheckCircle2 } from 'lucide-react';
+import { Pencil, CheckCircle2, Info } from 'lucide-react';
+import { MOCK_OTP } from '../lib/backend';
 
 interface OtpScreenProps {
   phoneNumber: string;
   onEditPhone: () => void;
-  onVerifySuccess: () => void;
+  /**
+   * Receives the 4 digits the user typed. May be async — App.tsx performs the
+   * real (anonymous) sign-in here and throws/returns to signal failure.
+   */
+  onVerifySuccess: (code: string) => void | Promise<void>;
   onHowItWorks: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
+  /** Shown verbatim under the inputs, e.g. the backend's demo hint. */
+  hint?: string;
 }
 
 export const OtpScreen: React.FC<OtpScreenProps> = ({
@@ -18,10 +25,12 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   onHowItWorks,
   customLogoUrl,
   onOpenLogoCustomizer,
+  hint,
 }) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [timer, setTimer] = useState(26);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Format phone display
@@ -76,17 +85,27 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
     }
   };
 
-  const handleComplete = (code: string) => {
+  const handleComplete = async (code: string) => {
     setIsVerifying(true);
-    setTimeout(() => {
-      onVerifySuccess();
-    }, 700);
+    setVerifyError('');
+    try {
+      await onVerifySuccess(code);
+    } catch (error) {
+      setVerifyError(error instanceof Error ? error.message : 'Verification failed. Try again.');
+      setOtp(['', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
+  /**
+   * Demo convenience only. This app sends NO SMS — see the notice below the
+   * inputs. It fills the documented demo code and submits it.
+   */
   const handleAutoFill = () => {
-    const code = ['4', '2', '8', '6'];
-    setOtp(code);
-    handleComplete('4286');
+    setOtp(MOCK_OTP.split(''));
+    void handleComplete(MOCK_OTP);
   };
 
   return (
@@ -168,16 +187,29 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
           </div>
         </div>
 
-        {/* Auto-fill test shortcut button */}
-        <div className="mt-8">
+        {/* Demo notice — this build sends no SMS and reads no inbox. */}
+        <div className="mt-8 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-[#1a1710] border border-[#3d3419]">
+          <Info size={14} className="text-[#facc15] shrink-0 mt-0.5" />
+          <p className="text-[11px] text-neutral-400 leading-relaxed">
+            <span className="font-semibold text-neutral-200">Demo build.</span>{' '}
+            {hint ?? `No SMS is sent and nothing is read from your inbox. Enter ${MOCK_OTP} to continue.`}
+          </p>
+        </div>
+
+        {verifyError && (
+          <p className="mt-3 text-xs text-[#ff9bb3]">{verifyError}</p>
+        )}
+
+        {/* Demo convenience: fill the documented code and submit. */}
+        <div className="mt-5">
           <button
             type="button"
             onClick={handleAutoFill}
             disabled={isVerifying}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#181926] hover:bg-[#222436] text-xs text-[#c6b6fc] border border-[#2f3246] transition-all"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#181926] hover:bg-[#222436] text-xs text-[#c6b6fc] border border-[#2f3246] transition-all disabled:opacity-50"
           >
             <CheckCircle2 size={14} className="text-[#8E75FF]" />
-            <span>Simulate SMS auto-read (Fill 4286)</span>
+            <span>Fill demo code ({MOCK_OTP})</span>
           </button>
         </div>
       </div>

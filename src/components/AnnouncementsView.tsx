@@ -4,12 +4,19 @@ import { AnnouncementItem } from '../types';
 
 interface AnnouncementsViewProps {
   customLogoUrl?: string | null;
+  /**
+   * Optional data source (Backend facade -> Firestore / demo store).
+   * Omit it and the built-in demo feed below renders, so every existing
+   * call site is unaffected.
+   */
+  items?: AnnouncementItem[];
 }
 
 export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
   customLogoUrl,
+  items,
 }) => {
-  const announcements: AnnouncementItem[] = [
+  const builtinAnnouncements: AnnouncementItem[] = [
     {
       id: '1',
       author: 'Physics Wallah team',
@@ -29,6 +36,9 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
       videoLink: 'https://www.youtube.com/watch?v=VML7Mva43bY',
     },
   ];
+
+  // Optional data source wins; otherwise render exactly what shipped before.
+  const announcements = items ?? builtinAnnouncements;
 
   return (
     <div className="flex-1 px-4 pt-4 pb-8 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">

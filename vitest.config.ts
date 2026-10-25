@@ -10,6 +10,11 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, '.'),
     },
   },
+  // Keep tests deterministic: point Vite's env loader at an intentionally empty
+  // directory so a developer's local `.env` / `.env.local` cannot change what
+  // CI asserts. Each test stubs the variables it needs with `vi.stubEnv()`.
+  // See src/tests/env/README.md.
+  envDir: path.resolve(import.meta.dirname, 'src/tests/env'),
   test: {
     // happy-dom instead of jsdom: no native/optional peer deps (canvas),
     // so `npm ci` stays reliable on Cloudflare Pages + GitHub Actions runners.

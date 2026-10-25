@@ -17,12 +17,40 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 }) => {
   const [weekRange, setWeekRange] = useState('14 Sep-20 Sep');
 
-  const recentTests = [
-    { id: '17', name: 'MISSION 30 : Test 17', date: '19-6-2026', mode: 'Online', status: 'MISSED' },
-    { id: '16', name: 'MISSION 30 : Test 16', date: '17-6-2026', mode: 'Online', status: 'MISSED' },
-    { id: '15', name: 'MISSION 30 : Test 15', date: '15-6-2026', mode: 'Online', status: 'MISSED' },
-    { id: '14', name: 'MISSION 30 : Test 14', date: '13-6-2026', mode: 'Online', status: 'MISSED' },
+  // Fallback sample rows, used only when the backend has no test records for
+  // this student yet (first paint, or a student the Admin Panel hasn't filled in).
+  const fallbackTests = [
+    { id: '17', name: 'MISSION 30 : Test 17', date: '19-6-2026', mode: 'Online', status: 'MISSED', marks: '' },
+    { id: '16', name: 'MISSION 30 : Test 16', date: '17-6-2026', mode: 'Online', status: 'MISSED', marks: '' },
+    { id: '15', name: 'MISSION 30 : Test 15', date: '15-6-2026', mode: 'Online', status: 'MISSED', marks: '' },
+    { id: '14', name: 'MISSION 30 : Test 14', date: '13-6-2026', mode: 'Online', status: 'MISSED', marks: '' },
   ];
+
+  /** Real records from Firestore / the demo store, mapped to what this view renders. */
+  const recentTests =
+    student.tests && student.tests.length > 0
+      ? student.tests.map((t) => ({
+          id: t.id,
+          name: t.title,
+          date: t.date,
+          mode: t.mode,
+          status: t.status,
+          marks:
+            t.status === 'ATTEMPTED' && typeof t.marksObtained === 'number' && typeof t.marksTotal === 'number'
+              ? `${t.marksObtained}/${t.marksTotal}`
+              : typeof t.scorePercent === 'number'
+                ? `${t.scorePercent}%`
+                : '',
+        }))
+      : fallbackTests;
+
+  // Test scorecard figures. Derived by the Admin Panel (see src/lib/admin.ts
+  // recomputeStudent), so they can never contradict the list below.
+  const testsAttempted = student.testsCompleted;
+  const testsTotal = student.testsTotal ?? recentTests.length;
+  const testsProgress = testsTotal > 0 ? Math.min(100, Math.round((testsAttempted / testsTotal) * 100)) : 0;
+  const avgScore = student.avgScorePercent ?? 0;
+  const avgAccuracy = student.accuracyPercent ?? 0;
 
   return (
     <div className="flex-1 px-4 pt-3 pb-8 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
@@ -254,10 +282,16 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             <span className="text-xs font-medium text-neutral-300">
               Total Tests Attempted
             </span>
-            <span className="text-base font-bold text-white">0/17</span>
+            <span className="text-base font-bold text-white">
+              {testsAttempted}/{testsTotal}
+            </span>
           </div>
 
           <div className="relative w-full h-1 bg-[#1a1b2a] rounded-full my-3">
+            <div
+              className="h-full bg-[#8E75FF] rounded-full transition-all duration-500"
+              style={{ width: `${testsProgress}%` }}
+            />
             <div className="absolute right-0 -top-0.5 w-2 h-2 rounded-full bg-amber-400" />
           </div>
 
@@ -267,13 +301,13 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#353754]/50 text-center">
             <div className="pr-2 border-r border-[#353754]/50">
-              <div className="text-base font-bold text-white">0%</div>
+              <div className="text-base font-bold text-white">{avgScore}%</div>
               <div className="text-[11px] text-neutral-400 mt-0.5">
                 Avg. Score
               </div>
             </div>
             <div className="pl-2">
-              <div className="text-base font-bold text-white">0%</div>
+              <div className="text-base font-bold text-white">{avgAccuracy}%</div>
               <div className="text-[11px] text-neutral-400 mt-0.5">
                 Accuracy
               </div>
@@ -318,10 +352,17 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
                   </h4>
                   <p className="text-[11px] text-neutral-400 mt-0.5">
                     {test.date} &bull; {test.mode}
+                    {test.marks ? ` \u2022 ${test.marks}` : ''}
                   </p>
                 </div>
 
-                <span className="px-2.5 py-0.5 rounded-md bg-[#38161D] border border-red-900/40 text-[#FF7A7A] text-[10px] font-bold tracking-wider">
+                <span
+                  className={`px-2.5 py-0.5 rounded-md border text-[10px] font-bold tracking-wider ${
+                    test.status === 'ATTEMPTED'
+                      ? 'bg-[#12301f] border-green-900/40 text-[#7CE8A8]'
+                      : 'bg-[#38161D] border-red-900/40 text-[#FF7A7A]'
+                  }`}
+                >
                   {test.status}
                 </span>
               </div>
