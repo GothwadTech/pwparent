@@ -18,9 +18,12 @@ describe('computeFluidScale', () => {
     expect(computeFluidScale(120)).toBe(1);
   });
 
-  it('grows on a desktop viewport', () => {
-    expect(computeFluidScale(1080)).toBeGreaterThan(1);
-    expect(computeFluidScale(1440)).toBeGreaterThan(1);
+  it('never magnifies on a desktop viewport — the reference renders are 1:1', () => {
+    // Uniformly blowing the shell up to fill a tall window is exactly the
+    // "zoomed" feel the app must not have. Width goes fluid; height becomes
+    // scroll room. Scale stays 1 everywhere.
+    expect(computeFluidScale(1080)).toBe(1);
+    expect(computeFluidScale(1440)).toBe(1);
   });
 
   it('is capped so a huge monitor cannot turn the UI into a poster', () => {
@@ -60,14 +63,15 @@ describe('fluidShellStyle', () => {
     // 100%/1.25 then *1.25 == 100%: full bleed, no letterboxing, no scrollbars.
   });
 
-  it('emits a stable, parseable scale string', () => {
-    const style = fluidShellStyle(computeFluidScale(945));
-    expect(style.transform).toMatch(/^scale\(\d+(\.\d{1,3})?\)$/);
+  it('emits no transform at any real viewport, because scale is always 1', () => {
+    for (const height of [640, 844, 945, 1080, 1440, 2160]) {
+      expect(fluidShellStyle(computeFluidScale(height))).toEqual({width: '100%', height: '100%'});
+    }
   });
 
   it('design constants are the 430x880 the app was built for', () => {
     expect(DESIGN_HEIGHT).toBe(880);
-    expect(MAX_SCALE).toBeGreaterThan(1);
-    expect(MAX_SCALE).toBeLessThan(2);
+    // The cap IS the guarantee: magnification is forbidden, so the ceiling is 1.
+    expect(MAX_SCALE).toBe(1);
   });
 });

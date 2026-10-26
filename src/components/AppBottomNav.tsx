@@ -46,7 +46,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
           >
             <span className="relative">
               <Icon
-                size={15}
+                size={18}
                 strokeWidth={isActive ? 2.4 : 1.8}
                 style={{ color: isActive ? ACCENT : TEXT_SECONDARY }}
               />
@@ -58,7 +58,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
               )}
             </span>
             <span
-              className="text-[8px] tracking-tight"
+              className="text-[10px] tracking-tight"
               style={{
                 color: isActive ? ACCENT : TEXT_SECONDARY,
                 fontWeight: isActive ? 700 : 500,

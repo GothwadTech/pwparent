@@ -37,10 +37,10 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
         style={{ borderColor: CARD_BORDER }}
         title="Select Batch"
       >
-        <span className="text-[10px] font-semibold truncate" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[12px] font-semibold truncate" style={{ color: TEXT_PRIMARY }}>
           {selectedBatchName}
         </span>
-        <ChevronDown size={12} style={{ color: TEXT_PRIMARY }} className="shrink-0" />
+        <ChevronDown size={14} style={{ color: TEXT_PRIMARY }} className="shrink-0" />
       </button>
 
       {/* Student avatar + name */}
@@ -56,7 +56,7 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
         >
           <StudentAvatar type="boy" size={28} />
         </div>
-        <span className="text-[9px] mt-1" style={{ color: TEXT_SECONDARY }}>
+        <span className="text-[11px] mt-1" style={{ color: TEXT_SECONDARY }}>
           {activeStudent.name || 'No Name'}
         </span>
       </button>

@@ -32,9 +32,9 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
     <div className="w-full h-full flex flex-col select-none font-['Plus_Jakarta_Sans',sans-serif]" style={{ background: '#F4F5F7' }}>
       <header className="shrink-0 px-3 pt-3 pb-4 flex items-center space-x-4" style={{ background: HEADER_BG }}>
         <button type="button" onClick={onBack} aria-label="Back" className="p-1">
-          <ChevronLeft size={18} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />
+          <ChevronLeft size={22} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />
         </button>
-        <h1 className="text-[14px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+        <h1 className="text-[15px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           All Tests
         </h1>
       </header>
@@ -47,7 +47,7 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className="py-3.5 rounded-lg text-[10px] font-bold transition-colors"
+              className="py-3.5 rounded-lg text-[12px] font-bold transition-colors"
               style={
                 tab === t
                   ? { background: SEGMENT_ACTIVE, color: '#FFFFFF' }
@@ -59,14 +59,14 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
           ))}
         </div>
 
-        <p className="text-[10px]" style={{ color: TEXT_PRIMARY }}>
+        <p className="text-[12px]" style={{ color: TEXT_PRIMARY }}>
           *Results are shown on the basis of First Attempt.
         </p>
 
         {rows.length === 0 ? (
           <div className="rounded-xl px-4 py-12 flex flex-col items-center" style={{ background: INSET_BG }}>
             <NoTestsIllustration />
-            <p className="text-[11px] mt-6" style={{ color: TEXT_PRIMARY }}>No tests found</p>
+            <p className="text-[12px] mt-6" style={{ color: TEXT_PRIMARY }}>No tests found</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -75,18 +75,18 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
               return (
                 <div key={t.id} className="bg-white border rounded-xl p-3" style={{ borderColor: CARD_BORDER }}>
                   <div className="flex items-start justify-between">
-                    <span className="text-[12px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+                    <span className="text-[13px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
                       {t.name}
                     </span>
                     <span
-                      className="text-[8px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-md"
+                      className="text-[10px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-md"
                       style={{ background: pill.bg, color: pill.text }}
                     >
                       {t.status}
                     </span>
                   </div>
 
-                  <div className="flex items-center space-x-2 mt-1 text-[10px]" style={{ color: TEXT_SECONDARY }}>
+                  <div className="flex items-center space-x-2 mt-1 text-[12px]" style={{ color: TEXT_SECONDARY }}>
                     <span>{t.date}</span>
                     <span>•</span>
                     <span>{t.mode}</span>
@@ -95,25 +95,25 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
                   {t.status === 'ATTEMPTED' && (
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <div className="rounded-lg px-2.5 py-2.5" style={{ background: TILE_BG }}>
-                        <div className="text-[9px] font-semibold" style={{ color: TEXT_PRIMARY }}>Score</div>
-                        <div className="text-[12px] font-extrabold" style={{ color: FIGURE }}>
+                        <div className="text-[11px] font-semibold" style={{ color: TEXT_PRIMARY }}>Score</div>
+                        <div className="text-[13px] font-extrabold" style={{ color: FIGURE }}>
                           {t.marks}
                           {t.scorePercent && (
-                            <span className="text-[9px] font-bold ml-2" style={{ color: TEXT_PRIMARY }}>
+                            <span className="text-[11px] font-bold ml-2" style={{ color: TEXT_PRIMARY }}>
                               {t.scorePercent}
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="rounded-lg px-2.5 py-2.5" style={{ background: TILE_BG }}>
-                        <div className="text-[9px] font-semibold" style={{ color: TEXT_PRIMARY }}>Rank</div>
-                        <div className="text-[12px] font-extrabold" style={{ color: FIGURE }}>{t.rank || '—'}</div>
+                        <div className="text-[11px] font-semibold" style={{ color: TEXT_PRIMARY }}>Rank</div>
+                        <div className="text-[13px] font-extrabold" style={{ color: FIGURE }}>{t.rank || '—'}</div>
                       </div>
                     </div>
                   )}
 
                   {t.status === 'RESULT_AWAITING' && (
-                    <p className="text-[10px] mt-2" style={{ color: FIGURE }}>
+                    <p className="text-[12px] mt-2" style={{ color: FIGURE }}>
                       Result has not been announced yet
                     </p>
                   )}
@@ -124,8 +124,8 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
                       onClick={() => onOpenTest(t.id)}
                       className="w-full flex items-center justify-center space-x-2 mt-2 py-1"
                     >
-                      <span className="text-[10px]" style={{ color: TEXT_PRIMARY }}>View Details</span>
-                      <Play size={8} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
+                      <span className="text-[12px]" style={{ color: TEXT_PRIMARY }}>View Details</span>
+                      <Play size={10} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
                     </button>
                   )}
                 </div>

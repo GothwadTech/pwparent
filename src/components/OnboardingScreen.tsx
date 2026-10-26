@@ -68,7 +68,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
             {/* Content Text */}
             <div className="mt-8">
-              <h1 className="text-[26px] sm:text-[28px] font-bold text-[#17181C] tracking-tight leading-snug">
+              <h1 className="text-[20px] sm:text-[21px] font-bold text-[#17181C] tracking-tight leading-snug">
                 {slides[slide].title}
               </h1>
               <p className="mt-3 text-[#9ca3af] text-[15px] leading-relaxed max-w-[340px]">
