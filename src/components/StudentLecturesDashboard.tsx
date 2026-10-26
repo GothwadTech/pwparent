@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import {IconBook, IconClipboard} from './icons/AppIcons';
 
 interface StudentLecturesDashboardProps {
   onOpenSubjectDetails: () => void;
@@ -16,7 +17,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
       <div className="space-y-3.5">
         {/* Section Heading */}
         <div className="flex items-center space-x-2 text-[17px] font-bold text-[#17181C]">
-          <span>🪸</span>
+          <IconBook size={18} />
           <span>Lectures</span>
         </div>
 
@@ -141,7 +142,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
       <div className="space-y-3.5 pt-2">
         {/* Section Heading */}
         <div className="flex items-center space-x-2 text-[17px] font-bold text-[#17181C]">
-          <span>📋</span>
+          <IconClipboard size={18} />
           <span>Daily Practice Paper</span>
         </div>
 

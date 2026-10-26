@@ -1,3 +1,4 @@
+import {IconTestPaper} from './icons/AppIcons';
 import React from 'react';
 import { Play, ArrowRight, ArrowUpRight } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
     <div className="space-y-6 pt-2 pb-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Test Section Header */}
       <div className="flex items-center space-x-2 text-[17px] font-bold text-[#17181C]">
-        <span>📑</span>
+        <IconTestPaper size={18} />
         <span>Test</span>
       </div>
 
