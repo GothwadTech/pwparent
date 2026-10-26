@@ -350,7 +350,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
         {/* ── family login codes, right here in the child's details ──────── */}
         <div className="space-y-2">
           <button type="button" className={`${btnGhost} w-full`} onClick={() => setShowCodes((v) => !v)}>
-            {showCodes ? 'Hide login codes' : 'Show this family’s login codes'}
+            {showCodes ? 'Hide login numbers' : 'Show this student’s login numbers'}
           </button>
           {showCodes && (
             <LoginCodesTab
@@ -358,6 +358,11 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
               isFirebase={mode === 'firebase'}
               flash={flash}
               initialName={parentName || draft.name}
+              /* Scoped: this panel shows THIS child's numbers only, and any code
+                 issued here is bound to this child. That binding is what stops
+                 one student's number from logging in as another. */
+              studentId={draft.id}
+              parentUid={draft.parentUid}
             />
           )}
         </div>

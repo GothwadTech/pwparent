@@ -31,7 +31,6 @@ import {fluidShellStyle, useFluidScale} from './lib/layout';
 import {OnboardingScreen} from './components/OnboardingScreen';
 import {LoginScreen} from './components/LoginScreen';
 import {OtpScreen} from './components/OtpScreen';
-import {LinkedAccountsScreen} from './components/LinkedAccountsScreen';
 import {ChildDashboardScreen} from './components/ChildDashboardScreen';
 import {ProfileScreen} from './components/ProfileScreen';
 import {ParentProfileScreen} from './components/ParentProfileScreen';
@@ -134,22 +133,11 @@ export const App: React.FC = () => {
           />
         );
 
-      case 'linked_accounts':
-        return (
-          <LinkedAccountsScreen
-            students={students}
-            onSelectStudent={handleSelectStudent}
-            onOpenProfile={() => setScreen('profile')}
-            customLogoUrl={customLogoUrl}
-            onOpenLogoCustomizer={openLogoCustomizer}
-          />
-        );
-
       case 'dashboard':
         return activeStudent ? (
           <ChildDashboardScreen
             student={activeStudent}
-            onBack={() => setScreen('linked_accounts')}
+            onBack={() => setScreen('profile')}
             onOpenProfile={() => setScreen('profile')}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}

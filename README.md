@@ -282,6 +282,17 @@ context me khulta hai jisse aap andar aaye.
 Parent app me **Add Child nahi hai**. Bachcha admin banata hai (family chun ke),
 taki record placeholder numbers se shuru na ho.
 
+**Ek number = ek student.** Login ke baad parent app me chunne wali
+("Continue") screen nahi aati — number jis bachche se bound hai, seedha uska
+dashboard khulta hai. Binding `credentials/{phone}.studentId` pe hoti hai,
+isliye zaroori hai: anonymous auth ek hi browser me har number ko same uid deta
+hai, yaani uid se pata hi nahi chalta ki aap kis bachche ke liye aaye the.
+Doosre bachche ka number do, to wahi doosra bachcha khulega — dono nahi.
+
+Admin me login codes ek alag tab nahi hain: wo us bachche ke details me hain aur
+**sirf usi bachche ke numbers** dikhate hain. Pehle global list dikhti thi,
+isliye ek bachche ka code doosre ke screen pe bhi dikh jaata tha.
+
 **Splash screen bhi nahi hai** — pehla paint hi usable screen hota hai
 (pehli baar onboarding, uske baad seedha login). `src/lib/firstVisit.ts`.
 

@@ -248,11 +248,17 @@ credentials/{phone}                    phone ka login code — SIRF digest
   ├─ iterations                        210000
   ├─ hash                              base64, PBKDF2-SHA256 over "code|phone"
   ├─ createdAt                         ISO timestamp
-  └─ name                              (optional) kis family ka number hai
+  ├─ name                              (optional) kis family ka number hai
+  ├─ studentId                         (optional) ye number KIS EK bachche ka hai
+  └─ parentUid                         (optional) wo bachcha kis subtree me rehta hai
       ⚠️ `name` digest ka hissa NAHI hai — rename karne se code invalidate
-         nahi hota. Ek family ke kai numbers ho sakte hain (pita, mata,
-         bachche ka apna phone), isliye admin list sirf 10-digit numbers se
-         padhi nahi jaati. Isi naam se list group hoti hai.
+         nahi hota. Admin list isi naam se group hoti hai.
+      ⚠️ `studentId` ZAROORI hai, cosmetic nahi. Anonymous auth ek hi browser me
+         har number ko SAME uid deta hai (`ensureSession()` idempotent hai),
+         isliye uid se ye pata hi nahi chalta ki aap kis bachche ke liye aaye
+         the. Binding credential pe hoti hai — number bachcha decide karta hai,
+         browser nahi. Isi se "ek student ka code doosre ko mil gaya" wala bug
+         band hua. Rule: **ek number = ek student.**
       ⚠️ Plaintext code KAHI store nahi hota, isliye save karne ke baad wo
          dobara padha nahi ja sakta — issue karte waqt likh lo, ya replace
          kar do. Rules me `credentials/{phone}` `get`-only hai (list admin-only),

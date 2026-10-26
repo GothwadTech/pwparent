@@ -64,13 +64,46 @@ export interface StoredCredential {
   /**
    * Human label for whoever owns this number — a parent's or student's name.
    *
-   * One family routinely has several numbers (father, mother, the student's own
-   * phone), so a bare number is not enough to recognise an entry in the admin
-   * list. The name groups them. It is NOT part of the digest: renaming someone
-   * never invalidates their code, and the name is only ever read by admins
-   * (`list` on credentials is admin-only in the rules).
+   * It is NOT part of the digest: renaming someone never invalidates their code.
+   * Only admins can read it (`list` on credentials is admin-only in the rules).
    */
   name?: string;
+  /**
+   * THE ONE STUDENT THIS NUMBER LOGS IN AS.
+   *
+   * The product rule is one number -> one child. Anonymous auth cannot enforce
+   * that on its own, because `ensureSession()` hands the SAME uid to every
+   * number used in the same browser — so a device that logs in as the brother's
+   * number and then the sister's would otherwise land on the same `parents/{uid}`
+   * subtree and show both children. Binding the student id to the credential is
+   * what makes the number, not the browser, decide which child you get.
+   *
+   * Absent on codes issued before the binding existed; the app then falls back
+   * to the family's only child and says so rather than guessing silently.
+   */
+  studentId?: string;
+  /** Where that student's document lives, so the app knows which subtree to read. */
+  parentUid?: string;
+}
+
+/**
+ * Optional, non-secret context stored beside a credential digest.
+ *
+ * An options object rather than positional parameters: `createCredential` now
+ * carries four optional extras, and positional booleans/strings at that depth is
+ * how a studentId ends up written into the name field.
+ */
+export interface CredentialMeta {
+  name?: string;
+  studentId?: string;
+  parentUid?: string;
+  /**
+   * Explicitly allow moving a number that is ALREADY bound to a different
+   * child. Off by default, because silently re-pointing a number is how one
+   * student's code ends up logging in as another student. The admin has to opt
+   * in, from the new child's own screen.
+   */
+  rebind?: boolean;
 }
 
 function subtle(): SubtleCrypto {
@@ -139,22 +172,30 @@ async function derive(code: string, phone: string, saltB64: string, iterations: 
 }
 
 /** Build the record to write at `credentials/{phone}`. */
-export async function createCredential(code: string, phone: string, name?: string): Promise<StoredCredential> {
+export async function createCredential(
+  code: string,
+  phone: string,
+  meta: CredentialMeta = {},
+): Promise<StoredCredential> {
   if (!isValidCode(code)) throw new Error('Login code must be exactly 6 digits.');
   const normalized = normalizePhone(phone);
   if (normalized.length < 10) throw new Error('Phone number must be 10 digits.');
 
   const salt = randomSalt();
-  const label = name?.trim();
+  const label = meta.name?.trim();
+  const studentId = meta.studentId?.trim();
+  const parentUid = meta.parentUid?.trim();
   return {
     v: CREDENTIAL_VERSION,
     salt,
     iterations: PBKDF2_ITERATIONS,
     hash: await derive(code, normalized, salt, PBKDF2_ITERATIONS),
     createdAt: new Date().toISOString(),
-    // Omitted entirely rather than written as '' so old documents and new ones
-    // stay byte-identical when no name was supplied.
+    // Each key omitted entirely rather than written as '' so documents created
+    // before these fields existed stay byte-identical.
     ...(label ? {name: label} : {}),
+    ...(studentId ? {studentId} : {}),
+    ...(parentUid ? {parentUid} : {}),
   };
 }
 

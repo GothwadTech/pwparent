@@ -75,6 +75,34 @@ username + password:
 - the **phone number** is the username — stored as a profile field at
   `parents/{uid}.mobileNumber`, not as a credential
 - the **6-digit code** is the password — set per number by the administrator
+- **one number maps to exactly one student** — the credential carries
+  `studentId`, and the parent app has no picker screen, so logging in opens that
+  child and nobody else
+
+### Why the binding has to live on the credential
+
+Anonymous auth cannot tell two numbers apart on one device. `ensureSession()` is
+idempotent — it returns the existing anonymous user rather than minting a new one
+— so a parent who logs in as one child's number and then another's gets the SAME
+`uid`, and therefore the same `parents/{uid}` subtree with both children in it.
+
+That produced a real report: *"I gave one student a number and code, and the
+other student got it too."* Nothing was leaked between families; the app simply
+had no way to know which child the number was meant for, and fell back to
+showing all of them behind a picker.
+
+`credentials/{phone}.studentId` is that missing piece. `verifyOtp` returns it,
+`restoreSession` re-reads it, and `useAppData.hydrate` selects that child before
+any screen renders. The number decides; the browser does not.
+
+Re-pointing a number that is already bound to a different child is **refused**
+unless the caller passes `rebind: true` explicitly. Silent re-binding is exactly
+how one child's code ends up opening another child's record, so it has to be a
+deliberate act made from the new child's own screen.
+
+Codes issued before the binding existed have no `studentId`. They still verify,
+the app falls back to the family's only child, and the admin panel lists them as
+unbound so they can be attached rather than quietly ignored.
 
 ### Storage
 

@@ -32,7 +32,7 @@ const mockUidFor = (phone: string) => `demo-${phone || 'guest'}`;
  * union stays and `readCode()` normalises both shapes. Mock mode is test-only,
  * but a stale payload must not throw.
  */
-type CodeEntry = {code: string; name?: string};
+type CodeEntry = {code: string; name?: string; studentId?: string; parentUid?: string};
 type CodeMap = Record<string, CodeEntry | string>;
 
 function readCode(entry: CodeEntry | string | undefined): CodeEntry | null {
@@ -135,14 +135,27 @@ export const mockBackend: Backend = {
       return {ok: false, error: 'Incorrect code.'};
     }
     const session = await mockSignIn(digits);
-    return {ok: true, uid: session.uid};
+    // The bound child travels with the session, exactly like the firebase path.
+    return {ok: true, uid: session.uid, studentId: readCode(codes[digits])?.studentId ?? null};
   },
 
-  async setLoginCode(phone, code, name) {
+  async setLoginCode(phone, code, meta) {
     const digits = normalizePhone(phone);
     const codes = loadSlice<CodeMap>('codes', {});
-    const label = name?.trim();
-    saveSlice('codes', {...codes, [digits]: label ? {code: code.trim(), name: label} : {code: code.trim()}});
+    const previous = readCode(codes[digits]);
+
+    // Same one-number-one-child rule as the firebase backend, so the contract
+    // under test is the contract in production.
+    if (meta?.studentId && previous?.studentId && previous.studentId !== meta.studentId && !meta.rebind) {
+      throw new Error('This number is already bound to a different student.');
+    }
+
+    const entry: CodeEntry = {code: code.trim()};
+    const label = meta?.name?.trim();
+    if (label) entry.name = label;
+    if (meta?.studentId) entry.studentId = meta.studentId;
+    if (meta?.parentUid) entry.parentUid = meta.parentUid;
+    saveSlice('codes', {...codes, [digits]: entry});
   },
 
   async deleteLoginCode(phone) {
@@ -154,11 +167,17 @@ export const mockBackend: Backend = {
 
   async listLoginCodes() {
     const codes = loadSlice<CodeMap>('codes', {});
-    return Object.keys(codes).map<LoginCodeInfo>((phone) => ({
-      phone,
-      createdAt: '',
-      currentVersion: true,
-    }));
+    return Object.keys(codes).map<LoginCodeInfo>((phone) => {
+      const entry = readCode(codes[phone]);
+      return {
+        phone,
+        createdAt: '',
+        currentVersion: true,
+        name: entry?.name,
+        studentId: entry?.studentId,
+        parentUid: entry?.parentUid,
+      };
+    });
   },
 
   async getParentProfile() {

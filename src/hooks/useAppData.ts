@@ -106,8 +106,21 @@ export function useAppData(): AppData {
     setAdmin(await currentAdmin());
   }, []);
 
-  /** Pull every collection for one uid. One network round trip, all cached. */
-  const hydrate = useCallback(async (instance: Backend, targetUid: string | null | undefined) => {
+  /**
+   * Pull every collection for one uid. One network round trip, all cached.
+   *
+   * `boundStudentId` is the child this LOGIN NUMBER is bound to. It decides
+   * which dashboard opens, because the rule is one number -> one student and
+   * there is no picker screen to fall back on. Anonymous auth cannot supply it:
+   * `ensureSession()` hands the same uid to every number used in one browser, so
+   * the credential — not the uid — is the only thing that knows which child you
+   * meant. Legacy codes have no binding, hence the optional.
+   */
+  const hydrate = useCallback(async (
+    instance: Backend,
+    targetUid: string | null | undefined,
+    boundStudentId?: string | null,
+  ) => {
     const key = targetUid ?? '';
     sessionRef.current = key;
     const stale = () => sessionRef.current !== key;
@@ -125,7 +138,17 @@ export function useAppData(): AppData {
       setAnnouncements(notes);
       setPurchases(orders);
       setParentProfile(profile);
-      setActiveStudent((prev) => kids.find((s) => s.id === prev?.id) ?? kids[0] ?? null);
+      // The bound child wins. Then whatever was already open (so a background
+      // refresh cannot switch the child under the parent's thumb). Then the only
+      // child there is. `kids[0]` on a multi-child legacy account is a fallback
+      // of last resort, not a choice being made for the user.
+      setActiveStudent(
+        (prev) =>
+          (boundStudentId ? kids.find((s) => s.id === boundStudentId) : undefined) ??
+          kids.find((s) => s.id === prev?.id) ??
+          kids[0] ??
+          null,
+      );
       if (profile.mobileNumber) setPhoneNumber(profile.mobileNumber);
     } catch (error) {
       console.error('[app] hydration failed:', error);
@@ -147,8 +170,9 @@ export function useAppData(): AppData {
       if (restored) {
         setUid(restored.uid);
         setPhoneNumber(restored.phone);
-        await hydrate(instance, restored.uid);
-        if (!cancelled) setScreen('linked_accounts');
+        await hydrate(instance, restored.uid, restored.studentId ?? null);
+        // Straight to the child. No picker: one number is one student.
+        if (!cancelled) setScreen('dashboard');
       }
       void refreshAdmin();
     };
@@ -213,8 +237,9 @@ export function useAppData(): AppData {
       if (!result.ok) throw new Error(result.error ?? 'Verification failed.');
 
       setUid(result.uid ?? null);
-      await hydrate(backend, result.uid);
-      setScreen('linked_accounts');
+      await hydrate(backend, result.uid, result.studentId ?? null);
+      // The number decided the child, so there is nothing left to pick.
+      setScreen('dashboard');
     },
     [backend, otpResult, hydrate],
   );
@@ -326,7 +351,8 @@ export function useAppData(): AppData {
     refreshAdmin,
     students,
     // ChildDashboardScreen expects a non-null student; it is only rendered
-    // from linked_accounts after one has been selected.
+    // The bound child is already selected during hydration; this only keeps a
+    // later refresh from clearing it.
     activeStudent: (activeStudent ?? students[0] ?? null) as StudentProfile,
     announcements,
     purchases,
