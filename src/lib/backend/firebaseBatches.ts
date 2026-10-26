@@ -25,6 +25,8 @@ import type {
   Batch,
   BatchMember,
   BatchTest,
+  ParentDirectoryEntry,
+  ParentProfileData,
   StudentProfile,
   TestResult,
 } from '../../types';
@@ -58,6 +60,7 @@ function invalidateBatch(batchId: string): void {
   invalidate(`results:${batchId}:`);
   invalidate('batchesFor:');
   invalidate('allStudents');
+  invalidate('allParents');
 }
 
 export interface FirebaseBatchDeps {
@@ -141,7 +144,10 @@ export function createFirebaseBatchOps(deps: FirebaseBatchDeps): BatchOps {
               cachedRead(keys.one(id), () => orEmpty(`read batch ${id}`, () => readDoc<Batch>(paths.batch(id)), null), DEFAULT_TTL_MS),
             ),
           );
-          return batches.filter((b): b is Batch => b !== null && b.active !== false);
+          // No `active`/draft filter: allotment is the only visibility control.
+          // A parent reaches this list via the batchIds on their own children,
+          // so an unallotted batch can never appear here anyway.
+          return batches.filter((b): b is Batch => b !== null);
         },
         DEFAULT_TTL_MS,
       );
@@ -229,13 +235,37 @@ export function createFirebaseBatchOps(deps: FirebaseBatchDeps): BatchOps {
       invalidateBatch(batchId);
     },
 
-    async removeAllotment(batchId, parentUid) {
-      await cachedWrite(keys.members(batchId), () => removeDoc(paths.batchMember(batchId, parentUid)));
+    async removeAllotment(batchId, parentUid, studentId) {
+      // Read the current membership FIRST. Without it there is no way to remove
+      // one child without also dropping their siblings from the same document.
+      // Deliberately not cached: a stale member doc here would lose an allotment.
+      const existing = await orEmpty<BatchMember | null>(
+        `read member ${parentUid}`,
+        () => readDoc<BatchMember>(paths.batchMember(batchId, parentUid)),
+        null,
+      );
+      const current = existing?.studentIds ?? [];
+      const remaining = studentId ? current.filter((id) => id !== studentId) : [];
+      const affected = studentId ? [studentId] : current;
+
+      await cachedWrite(keys.members(batchId), () =>
+        remaining.length === 0
+          ? removeDoc(paths.batchMember(batchId, parentUid))
+          : writeDoc(
+              paths.batchMember(batchId, parentUid),
+              {
+                id: parentUid,
+                parentUid,
+                studentIds: remaining,
+                joinedAt: existing?.joinedAt ?? new Date().toISOString(),
+              } as unknown as Record<string, unknown>,
+            ),
+      );
 
       const students = await getLinkedStudents(parentUid);
       await Promise.all(
         students
-          .filter((s) => (s.batchIds ?? []).includes(batchId))
+          .filter((s) => affected.includes(s.id) && (s.batchIds ?? []).includes(batchId))
           .map((s) => saveStudent({...s, batchIds: (s.batchIds ?? []).filter((id) => id !== batchId)}, parentUid)),
       );
 
@@ -265,6 +295,42 @@ export function createFirebaseBatchOps(deps: FirebaseBatchDeps): BatchOps {
             ),
           );
           return groups.flat();
+        },
+        DEFAULT_TTL_MS,
+      );
+    },
+
+    async listAllParents() {
+      // Admin-only: the rules deny `list` on parents/ for anyone else, so a
+      // non-admin gets [] and the picker renders empty rather than erroring.
+      if (!(await isAdmin())) return [];
+
+      return cachedRead(
+        'allParents',
+        async () => {
+          const parents = await orEmpty(
+            'list parents',
+            () => readCollection<ParentProfileData & {id: string}>(paths.parents()),
+            [],
+          );
+          // childCount costs one read per parent, but it is what tells the admin
+          // which families already have children — without it the picker cannot
+          // explain why a student is "missing".
+          const counts = await Promise.all(
+            parents.map((parent) =>
+              orEmpty(
+                `count children of ${parent.id}`,
+                () => readCollection<StudentProfile>(paths.children(parent.id)),
+                [],
+              ).then((kids) => kids.length),
+            ),
+          );
+          return parents.map<ParentDirectoryEntry>((parent, i) => ({
+            uid: parent.id,
+            name: parent.name ?? '',
+            mobileNumber: parent.mobileNumber ?? '',
+            childCount: counts[i],
+          }));
         },
         DEFAULT_TTL_MS,
       );

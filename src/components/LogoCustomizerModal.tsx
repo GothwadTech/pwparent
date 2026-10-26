@@ -60,7 +60,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
         </div>
 
         <p className="mt-3 text-xs text-neutral-300 leading-relaxed">
-          Upload your custom logo anytime. It will instantly appear on the splash screen and app navigation bars.
+          Upload your custom logo anytime. It will instantly appear on the app header and navigation bars.
         </p>
 
         {/* Live Preview */}

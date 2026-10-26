@@ -19,7 +19,6 @@ interface DataTabProps {
   mode: 'mock' | 'firebase';
   uid: string | null;
   admin: AdminIdentity | null;
-  studentCount: number;
   announcementCount: number;
   configError: string | null;
   flash: (message: string) => void;
@@ -37,7 +36,6 @@ export const DataTab: React.FC<DataTabProps> = ({
   mode,
   uid,
   admin,
-  studentCount,
   announcementCount,
   configError,
   flash,
@@ -60,7 +58,6 @@ export const DataTab: React.FC<DataTabProps> = ({
           <Row label="Backend mode" value={mode} />
           <Row label="Admin" value={admin ? admin.username : mode === 'firebase' ? '—' : 'passcode (local)'} />
           <Row label="uid" value={uid ?? '— (not signed in)'} mono />
-          <Row label="Students" value={studentCount} />
           <Row label="Announcements" value={announcementCount} />
         </dl>
       </div>

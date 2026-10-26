@@ -11,26 +11,32 @@
  *   BatchAttendancePanel.tsx  day-wise P/A/L per student
  *   BatchTestsPanel.tsx       test CRUD + structured syllabus
  *   TestResultsPanel.tsx      per-student marks on one test
- *   StudentsTab.tsx      per-child academic record
- *   LoginCodesTab.tsx    per-phone 6-digit login codes (replaces SMS OTP)
+ *   StudentDetailView.tsx     ONE child: record + batches + family login codes
+ *   StudentCreatePanel.tsx    new child: parent picker + batch picker
+ *   LoginCodesTab.tsx    per-phone 6-digit codes, embedded in a child's details
  *   AnnouncementsTab.tsx shared feed
  *   DataTab.tsx          session, Firestore read budget, cache control
  *   ui.tsx               shared primitives
+ *
+ * THE PANEL IS A DRILL-DOWN, NOT A ROW OF FLAT TABS. There is no top-level
+ * "Students" tab and no top-level "Login codes" tab. You go Batches → one batch
+ * → Students → one child, and that child's screen holds their academic record,
+ * their batch memberships and their family's login codes together. A flat
+ * Students tab could only ever show the children of whoever was signed in,
+ * which is how an allotted child went "missing".
  */
 import React, {useState} from 'react';
-import {ArrowLeft, KeyRound, Lock, Megaphone, Database, Layers, Users} from 'lucide-react';
-import type {AnnouncementItem, StudentProfile} from '../../types';
+import {ArrowLeft, Lock, Megaphone, Database, Layers} from 'lucide-react';
+import type {AnnouncementItem} from '../../types';
 import type {Backend} from '../../lib/backend';
 import type {AdminIdentity} from '../../lib/adminAuth';
 import {AdminGate} from './AdminGate';
-import {StudentsTab} from './StudentsTab';
-import {LoginCodesTab} from './LoginCodesTab';
 import {BatchesTab} from './BatchesTab';
 import {AnnouncementsTab} from './AnnouncementsTab';
 import {DataTab} from './DataTab';
 import {Flash, useFlash} from './ui';
 
-type TabId = 'batches' | 'students' | 'codes' | 'announcements' | 'data';
+type TabId = 'batches' | 'announcements' | 'data';
 
 interface AdminPanelScreenProps {
   backend: Backend | null;
@@ -38,10 +44,7 @@ interface AdminPanelScreenProps {
   uid: string | null;
   admin: AdminIdentity | null;
   configError: string | null;
-  students: StudentProfile[];
   announcements: AnnouncementItem[];
-  onSaveStudent: (student: StudentProfile) => void;
-  onDeleteStudent: (studentId: string) => void;
   onSaveAnnouncement: (item: AnnouncementItem) => void;
   onDeleteAnnouncement: (id: string) => void;
   onBack: () => void;
@@ -53,10 +56,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
   uid,
   admin,
   configError,
-  students,
   announcements,
-  onSaveStudent,
-  onDeleteStudent,
   onSaveAnnouncement,
   onDeleteAnnouncement,
   onBack,
@@ -80,8 +80,6 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
 
   const tabs: {id: TabId; label: string; icon: React.ReactNode}[] = [
     {id: 'batches', label: 'Batches', icon: <Layers size={14} />},
-    {id: 'students', label: 'Students', icon: <Users size={14} />},
-    {id: 'codes', label: 'Login codes', icon: <KeyRound size={14} />},
     {id: 'announcements', label: 'Announcements', icon: <Megaphone size={14} />},
     {id: 'data', label: 'Data', icon: <Database size={14} />},
   ];
@@ -130,20 +128,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
       <Flash message={notice} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
-        {tab === 'batches' && backend && <BatchesTab backend={backend} flash={flash} />}
-
-        {tab === 'students' && (
-          <StudentsTab
-            students={students}
-            onSaveStudent={onSaveStudent}
-            onDeleteStudent={onDeleteStudent}
-            flash={flash}
-          />
-        )}
-
-        {tab === 'codes' && backend && (
-          <LoginCodesTab backend={backend} isFirebase={mode === 'firebase'} flash={flash} />
-        )}
+        {tab === 'batches' && backend && <BatchesTab backend={backend} mode={mode} flash={flash} />}
 
         {tab === 'announcements' && (
           <AnnouncementsTab
@@ -160,7 +145,6 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
             mode={mode}
             uid={uid}
             admin={admin}
-            studentCount={students.length}
             announcementCount={announcements.length}
             configError={configError}
             flash={flash}

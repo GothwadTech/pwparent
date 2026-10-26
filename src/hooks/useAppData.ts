@@ -26,6 +26,7 @@ import {
   type SendOtpResult,
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
+import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
 import {currentAdmin, type AdminIdentity} from '../lib/adminAuth';
 
 /** Where "back" from the Admin Panel should land. */
@@ -64,7 +65,7 @@ export interface AppData {
   handleDeleteParentProfile: () => void;
 
   // ── mutations ────────────────────────────────────────────────────────────
-  handleAddChild: (student: StudentProfile) => void;
+  completeOnboarding: () => void;
   handleSaveStudent: (student: StudentProfile) => void;
   handleDeleteStudent: (studentId: string) => void;
   handleSaveAnnouncement: (item: AnnouncementItem) => void;
@@ -78,7 +79,14 @@ export function useAppData(): AppData {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [admin, setAdmin] = useState<AdminIdentity | null>(null);
 
-  const [screen, setScreen] = useState<ScreenId>('splash');
+  /**
+   * First paint is already the right screen: onboarding on a genuine first
+   * visit, login on every visit after that. Read synchronously from
+   * localStorage inside the initializer so there is no flash and no delay.
+   */
+  const [screen, setScreen] = useState<ScreenId>(() =>
+    hasSeenOnboarding() ? 'login' : 'onboarding1',
+  );
   const [previousScreen, setPreviousScreen] = useState<ScreenId>(ADMIN_RETURN_SCREEN);
 
   const [students, setStudents] = useState<StudentProfile[]>([]);
@@ -157,7 +165,7 @@ export function useAppData(): AppData {
       if (window.location.hash.replace(/^#/, '') !== 'admin') return;
       setScreen((current) => {
         if (current === 'admin') return current;
-        setPreviousScreen(current === 'splash' ? ADMIN_RETURN_SCREEN : current);
+        setPreviousScreen(current);
         return 'admin';
       });
     };
@@ -242,17 +250,17 @@ export function useAppData(): AppData {
     setScreen('login');
   }, [backend]);
 
-  // ── mutations ──────────────────────────────────────────────────────────────
+  /**
+   * Onboarding complete — remember it so the next open goes straight to login.
+   * The write happens BEFORE the navigation so a reload mid-transition cannot
+   * show the slides a second time.
+   */
+  const completeOnboarding = useCallback(() => {
+    markOnboarded();
+    setScreen('login');
+  }, []);
 
-  const handleAddChild = useCallback(
-    (student: StudentProfile) => {
-      const next = recomputeStudent(student);
-      setStudents((prev) => [...prev, next]);
-      setActiveStudent(next);
-      void backend?.saveStudent(next, uid).catch((error) => console.warn('[app] saveStudent failed:', error));
-    },
-    [backend, uid],
-  );
+  // ── mutations ──────────────────────────────────────────────────────────────
 
   const handleSaveStudent = useCallback(
     (student: StudentProfile) => {
@@ -334,7 +342,7 @@ export function useAppData(): AppData {
     handleLogout,
     handleSwitchNumber,
     handleDeleteParentProfile,
-    handleAddChild,
+    completeOnboarding,
     handleSaveStudent,
     handleDeleteStudent,
     handleSaveAnnouncement,

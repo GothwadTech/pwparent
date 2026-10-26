@@ -15,6 +15,28 @@ import {
  * the password, and only a PBKDF2 digest is ever persisted — so the round trip
  * and the negative cases are the security-critical part of the app.
  */
+describe('credentials: the name label', () => {
+  it('stores a name alongside the digest without changing verification', async () => {
+    const record = await createCredential('246810', '9876543210', 'Ananya Sharma');
+    expect(record.name).toBe('Ananya Sharma');
+    expect(isStoredCredential(record)).toBe(true);
+    // The name is a label, not part of the secret: the same code still verifies
+    // and a different name would not have changed the digest inputs.
+    expect(await verifyCredential('246810', '9876543210', record)).toBe(true);
+    expect(await verifyCredential('111111', '9876543210', record)).toBe(false);
+  });
+
+  it('omits the key entirely when no name is given, so old docs stay identical', async () => {
+    const record = await createCredential('246810', '9876543210');
+    expect('name' in record).toBe(false);
+  });
+
+  it('trims the name and treats whitespace-only as absent', async () => {
+    expect((await createCredential('246810', '9876543210', '  Ananya  ')).name).toBe('Ananya');
+    expect('name' in (await createCredential('246810', '9876543210', '   '))).toBe(false);
+  });
+});
+
 describe('credentials: normalisation', () => {
   it('reducePhone strips every non-digit and any +91 / 91 / 0 prefix', () => {
     expect(normalizePhone('98765 43210')).toBe('9876543210');

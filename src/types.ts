@@ -1,5 +1,10 @@
+/**
+ * There is deliberately NO 'splash' entry. The app used to open on a 2.8-second
+ * branded splash screen; that was pure delay, so it is gone. The initial screen
+ * is decided synchronously in `useAppData` (onboarding once, then login), so the
+ * first paint is already a usable screen.
+ */
 export type ScreenId =
-  | 'splash'
   | 'onboarding1'
   | 'onboarding2'
   | 'login'
@@ -52,17 +57,42 @@ export interface AnnouncementItem {
 /** Day-wise attendance mark. `L` = late, counted as present in the percentage. */
 export type AttendanceMark = 'P' | 'A' | 'L';
 
+/**
+ * A batch. Deliberately minimal.
+ *
+ * `course`, `startDate` and `active` were REMOVED:
+ *   • course   — duplicated the name and meant nothing on its own; the batch
+ *                name is what shows everywhere now.
+ *   • startDate— nothing derives from it, so it was a field to get wrong.
+ *   • active   — a "visible to parents" toggle is meaningless here: a parent
+ *                only ever sees batches they have been allotted to, so
+ *                allotment IS the visibility control. A draft toggle that
+ *                hides a batch nobody was allotted to yet changes nothing.
+ *
+ * `batchType` stays because it is functional, not cosmetic — it decides whether
+ * the parent dashboard renders the offline/centre view or the online view.
+ */
 export interface Batch {
   id: string;
   name: string;
-  course: string;
   batchType: 'online' | 'offline';
-  /** ISO date, `YYYY-MM-DD`. */
-  startDate: string;
-  /** Hidden from parents when false; admins always see it. */
-  active: boolean;
   createdAt?: string;
   createdBy?: string;
+}
+
+/**
+ * One row in the admin's parent directory.
+ *
+ * Students live under `parents/{uid}/children`, so an administrator who wants
+ * to create a student has to choose WHICH parent owns it first. This is that
+ * choice, reduced to what the picker needs to show.
+ */
+export interface ParentDirectoryEntry {
+  uid: string;
+  name: string;
+  mobileNumber: string;
+  /** How many children this parent already has. */
+  childCount: number;
 }
 
 /**

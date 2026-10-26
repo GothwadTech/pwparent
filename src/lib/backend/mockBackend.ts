@@ -27,7 +27,18 @@ const delay = (ms = 180) => new Promise<void>((resolve) => setTimeout(resolve, m
 
 const mockUidFor = (phone: string) => `demo-${phone || 'guest'}`;
 
-type CodeMap = Record<string, string>;
+/**
+ * phone → entry. Older localStorage payloads stored a bare code string, so the
+ * union stays and `readCode()` normalises both shapes. Mock mode is test-only,
+ * but a stale payload must not throw.
+ */
+type CodeEntry = {code: string; name?: string};
+type CodeMap = Record<string, CodeEntry | string>;
+
+function readCode(entry: CodeEntry | string | undefined): CodeEntry | null {
+  if (!entry) return null;
+  return typeof entry === 'string' ? {code: entry} : entry;
+}
 
 function upsert<T extends {id: string}>(list: T[], item: T, prepend = false): T[] {
   return list.some((x) => x.id === item.id)
@@ -118,7 +129,7 @@ export const mockBackend: Backend = {
     await delay(180);
     const digits = sendResult?.phone ?? loadSlice<string>('phone', '');
     const codes = loadSlice<CodeMap>('codes', {});
-    const expected = codes[digits] ?? MOCK_OTP;
+    const expected = readCode(codes[digits])?.code ?? MOCK_OTP;
 
     if (code.trim() !== expected) {
       return {ok: false, error: 'Incorrect code.'};
@@ -127,10 +138,11 @@ export const mockBackend: Backend = {
     return {ok: true, uid: session.uid};
   },
 
-  async setLoginCode(phone, code) {
+  async setLoginCode(phone, code, name) {
     const digits = normalizePhone(phone);
     const codes = loadSlice<CodeMap>('codes', {});
-    saveSlice('codes', {...codes, [digits]: code.trim()});
+    const label = name?.trim();
+    saveSlice('codes', {...codes, [digits]: label ? {code: code.trim(), name: label} : {code: code.trim()}});
   },
 
   async deleteLoginCode(phone) {

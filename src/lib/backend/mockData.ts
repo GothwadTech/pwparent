@@ -79,10 +79,19 @@ export const mockStudents: StudentProfile[] = [
   },
 ];
 
+/**
+ * MOCK MODE ONLY. Never reaches the Firebase path — `emptyProfile()` returns
+ * blank fields there.
+ *
+ * The number is an obvious placeholder (9000000000) rather than a real-looking
+ * one, so a stray demo value can never be mistaken for somebody's actual
+ * number. `backend.spec.ts` only asserts the shape (`/^\d{10}$/`), not the
+ * digits.
+ */
 export const mockParentProfile: ParentProfileData = {
-  name: 'Ayush',
+  name: 'Demo Parent',
   countryCode: 'IN +91',
-  mobileNumber: '9335010032',
+  mobileNumber: '9000000000',
   email: 'parent@example.com',
 };
 

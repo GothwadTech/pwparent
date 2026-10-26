@@ -7,7 +7,6 @@ import { User } from 'lucide-react';
 interface LinkedAccountsScreenProps {
   students: StudentProfile[];
   onSelectStudent: (student: StudentProfile) => void;
-  onAddChild: () => void;
   onOpenProfile?: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
@@ -16,7 +15,6 @@ interface LinkedAccountsScreenProps {
 export const LinkedAccountsScreen: React.FC<LinkedAccountsScreenProps> = ({
   students,
   onSelectStudent,
-  onAddChild,
   onOpenProfile,
   customLogoUrl,
   onOpenLogoCustomizer,
@@ -47,12 +45,18 @@ export const LinkedAccountsScreen: React.FC<LinkedAccountsScreenProps> = ({
       <div className="flex-1 px-5 pt-7 pb-10 flex flex-col overflow-y-auto">
         {/* Title */}
         <h1 className="text-[27px] sm:text-[29px] font-bold text-white tracking-tight leading-snug">
-          Student account already linked to this number!
+          {students.length > 0
+            ? 'Student account already linked to this number!'
+            : 'No student is linked to this number yet'}
         </h1>
 
-        {/* Subtitle */}
+        {/* Subtitle — honest about who adds a child. Parents cannot self-add:
+            a child is created by the centre's admin, who also picks the batch,
+            so the record starts from real data instead of placeholder marks. */}
         <p className="mt-3 text-[#9ca3af] text-[14.5px] leading-relaxed">
-          You can continue using this number, and if you'd like, you can also add another child profile.
+          {students.length > 0
+            ? 'Choose a student to continue. Children are added by your centre’s administrator.'
+            : 'Your centre’s administrator adds students and allots them to a batch. Once that is done, the child appears here — nothing to fill in on this device.'}
         </p>
 
         {/* 2-Column Grid of Linked Profiles & Add Child */}
@@ -88,27 +92,6 @@ export const LinkedAccountsScreen: React.FC<LinkedAccountsScreenProps> = ({
             </div>
           ))}
 
-          {/* Add Child Card */}
-          <div
-            onClick={onAddChild}
-            className="bg-[#11121c] border border-[#1e202e] hover:border-[#383c56] rounded-2xl p-4 flex flex-col items-center text-center justify-between cursor-pointer group transition-all duration-200"
-          >
-            <div className="mt-1 flex flex-col items-center">
-              <StudentAvatar type="add" size={68} />
-            </div>
-
-            {/* Add Child Action Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddChild();
-              }}
-              className="mt-6 w-fit py-1.5 px-4 rounded-lg border border-[#7C5CFC]/80 group-hover:border-[#9E86FF] bg-[#161826] hover:bg-[#202336] text-neutral-100 font-medium text-[12.5px] transition-all"
-            >
-              Add Child
-            </button>
-          </div>
         </div>
       </div>
     </div>

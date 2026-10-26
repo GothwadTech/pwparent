@@ -20,6 +20,7 @@ import type {
   Batch,
   BatchMember,
   BatchTest,
+  ParentDirectoryEntry,
   StudentProfile,
   TestResult,
 } from '../../types';
@@ -58,10 +59,7 @@ function ensure(tree: BatchTree, batchId: string): BatchRecord {
       batch: {
         id: batchId,
         name: '',
-        course: '',
         batchType: 'online',
-        startDate: new Date().toISOString().slice(0, 10),
-        active: true,
       },
       members: {},
       attendance: {},
@@ -113,7 +111,7 @@ export function createMockBatchOps(deps: MockBatchDeps): BatchOps {
       // Mock mode has no rules engine, so membership is filtered by hand to
       // keep behaviour aligned with the Firebase path.
       const mine = all.filter((b) => readTree()[b.id]?.members?.[uid]);
-      return mine.length > 0 ? mine : all.filter((b) => b.active);
+      return mine.length > 0 ? mine : all;
     },
 
     async listAllBatches() {
@@ -170,16 +168,24 @@ export function createMockBatchOps(deps: MockBatchDeps): BatchOps {
       );
     },
 
-    async removeAllotment(batchId, parentUid) {
+    async removeAllotment(batchId, parentUid, studentId) {
       await delay(90);
       const tree = readTree();
-      if (tree[batchId]) delete tree[batchId].members[parentUid];
+      const record = tree[batchId];
+      const current = record?.members[parentUid]?.studentIds ?? [];
+      const remaining = studentId ? current.filter((id) => id !== studentId) : [];
+      const affected = studentId ? [studentId] : current;
+
+      if (record) {
+        if (remaining.length === 0) delete record.members[parentUid];
+        else record.members[parentUid] = {...record.members[parentUid], studentIds: remaining};
+      }
       writeTree(tree);
 
       const students = await getLinkedStudents(parentUid);
       await Promise.all(
         students
-          .filter((s) => (s.batchIds ?? []).includes(batchId))
+          .filter((s) => affected.includes(s.id) && (s.batchIds ?? []).includes(batchId))
           .map((s) => saveStudent({...s, batchIds: (s.batchIds ?? []).filter((id) => id !== batchId)}, parentUid)),
       );
     },
@@ -191,6 +197,22 @@ export function createMockBatchOps(deps: MockBatchDeps): BatchOps {
       const owner = currentUid() ?? 'demo-guest';
       const all = await getLinkedStudents(owner);
       return all.map<AllotableStudent>((s) => ({...s, parentUid: owner}));
+    },
+
+    async listAllParents() {
+      await delay(70);
+      // Mock mode has exactly one signed-in parent holding the flat student
+      // list, so the directory is one row.
+      const owner = currentUid();
+      if (!owner) return [];
+      const kids = await getLinkedStudents(owner);
+      const entry: ParentDirectoryEntry = {
+        uid: owner,
+        name: 'Demo Parent',
+        mobileNumber: loadSlice<string>('phone', ''),
+        childCount: kids.length,
+      };
+      return [entry];
     },
 
     async listBatchStudents(batchId) {
