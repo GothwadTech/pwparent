@@ -88,26 +88,55 @@ export function missingFirebaseKeys(): (keyof FirebaseWebConfig)[] {
 export const isFirebaseConfigured: boolean = missingFirebaseKeys().length === 0;
 
 /**
- * Which data source the app should use.
- * `VITE_BACKEND_MODE=firebase` only takes effect when Firebase is fully configured,
- * so a half-filled env can never white-screen the app.
+ * What the operator ASKED for. Defaults to `firebase` — this app ships
+ * Firestore-only, there is no demo dataset behind it.
+ *
+ * Set `VITE_BACKEND_MODE=mock` explicitly to run against localStorage
+ * (offline development and the test suite).
  */
-export const backendMode: BackendMode = (() => {
-  const requested = (read('BACKEND_MODE') ?? 'mock').toLowerCase();
-  if (requested === 'firebase') return isFirebaseConfigured ? 'firebase' : 'mock';
-  return 'mock';
-})();
+export const requestedBackendMode: string = (read('BACKEND_MODE') ?? 'firebase').toLowerCase();
+
+/**
+ * Which data source the app should use.
+ *
+ * `firebase` only takes effect when Firebase is fully configured, so a
+ * half-filled env can never white-screen the app. When the intent was
+ * `firebase` but the config is incomplete, `isMisconfiguredFirebase` is true
+ * and the backend facade renders an explicit setup error instead of quietly
+ * inventing data.
+ */
+export const backendMode: BackendMode =
+  requestedBackendMode === 'firebase' ? (isFirebaseConfigured ? 'firebase' : 'mock') : 'mock';
 
 export const isFirebaseEnabled: boolean = backendMode === 'firebase';
+
+/** Asked for Firebase, did not supply a complete config. Shown to the user. */
+export const isMisconfiguredFirebase: boolean =
+  requestedBackendMode === 'firebase' && !isFirebaseConfigured;
 
 /** reCAPTCHA v3 site key (optional; Firebase phone auth on web may require it). */
 export const recaptchaSiteKey = read('RECAPTCHA_SITE_KEY');
 
-if (!isFirebaseConfigured) {
-  const missing = missingFirebaseKeys().map((k) => `VITE_${k.replace(/[A-Z]/g, (m) => `_${m}`).toUpperCase()}`);
+/**
+ * Admin Panel gate — MOCK MODE ONLY.
+ *
+ * In firebase mode the panel uses real username + password auth
+ * (`src/lib/adminAuth.ts`) and this value is never read.
+ *
+ * ⚠️ HONEST LIMITATION: Vite inlines this into the public JS bundle, so anyone
+ * can read it out. It is UI friction for offline development, not security.
+ * See docs/SECURITY.md §5.
+ */
+export const ADMIN_PASSCODE: string = read('ADMIN_PASSCODE') ?? 'pw-admin-demo';
+
+/** Anonymous Auth gives every visitor a real `uid`, which is what Firestore rules key on. */
+export const USE_ANONYMOUS_AUTH: boolean = (read('USE_ANONYMOUS_AUTH') ?? 'true').toLowerCase() !== 'false';
+
+if (isMisconfiguredFirebase) {
+  const missing = missingFirebaseKeys().map((k) => FIREBASE_ENV_NAMES[k] ?? k);
   // eslint-disable-next-line no-console
-  console.info(
-    `[config] Running in MOCK mode. Set these to enable Firebase: ${missing.join(', ')}` +
-      ` (and VITE_BACKEND_MODE=firebase). See docs/FIREBASE.md.`,
+  console.error(
+    `[config] VITE_BACKEND_MODE=firebase but these are missing: ${missing.join(', ')}. ` +
+      `The app will show a setup error rather than fall back to sample data. See docs/FIREBASE.md.`,
   );
 }

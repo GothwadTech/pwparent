@@ -27,7 +27,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLogout,
 }) => {
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top App Bar matching Screenshot_20260918_180819.jpg */}
       <div className="w-full px-4 pt-4 pb-3 flex items-center bg-[#0d0e15] border-b border-[#1c1d29]/40 z-20">
         <button

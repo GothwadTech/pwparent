@@ -1,171 +1,143 @@
 /**
- * Backend facade.
+ * Backend facade — the ONLY module UI code should import for data.
  *
- * The UI should import from here (`@/src/lib/backend`) and never from
- * `firebase/*` directly. That keeps every screen working in MOCK mode while
- * you set up Firebase, and flipping `VITE_BACKEND_MODE=firebase` switches the
- * data source without touching components.
+ *     import {getBackend} from './lib/backend';
  *
- * Wiring guide: docs/FIREBASE.md
+ * Resolution:
+ *
+ *   VITE_BACKEND_MODE=firebase + complete config  -> Firestore (production path)
+ *   VITE_BACKEND_MODE=firebase + incomplete config -> UNCONFIGURED (empty + a
+ *                                                   visible setup error, never
+ *                                                   invented data)
+ *   VITE_BACKEND_MODE=mock                       -> localStorage (dev + tests)
+ *
+ * The third state matters: this app has no demo dataset, so a half-filled env
+ * must say "Firebase is not configured" rather than quietly rendering fake
+ * marks. `backendConfigError` carries that message to the UI.
  */
 import type {AnnouncementItem, ParentProfileData, PurchaseItem, StudentProfile} from '../../types';
-import {backendMode, isFirebaseEnabled} from '../config';
-import {
-  MOCK_OTP,
-  mockAnnouncements,
-  mockParentProfile,
-  mockPurchases,
-  mockStudents,
-} from './mockData';
+import {isFirebaseEnabled, isMisconfiguredFirebase, missingFirebaseKeys, FIREBASE_ENV_NAMES} from '../config';
+import type {Backend, BackendMode, LoginCodeInfo, SendOtpResult, Session} from './types';
+import {emptyProfile} from './types';
+import {mockBackend} from './mockBackend';
+import {cacheStats, resetCache} from './readCache';
 
-export interface SendOtpResult {
-  mode: 'mock' | 'firebase';
-  /** Present only in firebase mode; needed by verifyOtp(). */
-  confirmation?: unknown;
-  /** Hint shown in dev when running on mock data. */
-  mockHint?: string;
-}
+export type {Backend, BackendMode, LoginCodeInfo, SendOtpResult, Session};
+export {emptyProfile};
+export {cacheStats, resetCache};
 
-export interface Backend {
-  readonly mode: 'mock' | 'firebase';
-  getLinkedStudents(parentUid?: string | null): Promise<StudentProfile[]>;
-  getAnnouncements(): Promise<AnnouncementItem[]>;
-  getPurchases(parentUid?: string | null): Promise<PurchaseItem[]>;
-  getParentProfile(parentUid?: string | null): Promise<ParentProfileData>;
-  saveParentProfile(data: ParentProfileData, parentUid?: string | null): Promise<void>;
-  sendOtp(phone: string): Promise<SendOtpResult>;
-  verifyOtp(code: string, sendResult?: SendOtpResult): Promise<{ok: boolean; uid?: string | null; error?: string}>;
-  signOut(): Promise<void>;
-}
+/** Non-null when Firebase was requested but the env is incomplete. */
+export const backendConfigError: string | null = isMisconfiguredFirebase
+  ? `Firebase is not configured. Missing: ${missingFirebaseKeys()
+      .map((k) => FIREBASE_ENV_NAMES[k] ?? k)
+      .join(', ')}. Add them in Cloudflare Pages → Settings → Environment variables, then retry the deployment.`
+  : null;
 
-/** Small delay so loading states are visible in mock mode. */
-const delay = (ms = 250) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-export const mockBackend: Backend = {
+/**
+ * Returned when the env asked for Firebase but cannot deliver it.
+ *
+ * Every read resolves empty and every write fails loudly, so the UI shows
+ * empty states + the setup banner instead of pretending to work.
+ */
+const unconfiguredBackend: Backend = {
   mode: 'mock',
 
-  async getLinkedStudents() {
-    await delay();
-    return mockStudents;
+  async signInWithPhone(): Promise<Session> {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
+  },
+  async restoreSession(): Promise<Session | null> {
+    return null;
+  },
+  async signOut() {},
+  currentUid: () => null,
+
+  async sendOtp(): Promise<SendOtpResult> {
+    return {mode: 'mock', phone: '', registered: false, notice: backendConfigError ?? undefined};
+  },
+  async verifyOtp() {
+    return {ok: false, error: backendConfigError ?? 'Firebase is not configured.'};
   },
 
-  async getAnnouncements() {
-    await delay();
-    return mockAnnouncements;
+  async setLoginCode() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
+  },
+  async deleteLoginCode() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
+  },
+  async listLoginCodes(): Promise<LoginCodeInfo[]> {
+    return [];
   },
 
-  async getPurchases() {
-    await delay();
-    return mockPurchases;
+  async getParentProfile(): Promise<ParentProfileData> {
+    return emptyProfile();
+  },
+  async saveParentProfile() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
   },
 
-  async getParentProfile() {
-    await delay();
-    return mockParentProfile;
+  async getLinkedStudents(): Promise<StudentProfile[]> {
+    return [];
+  },
+  async saveStudent() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
+  },
+  async deleteStudent() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
   },
 
-  async saveParentProfile(data) {
-    await delay();
-    // Mock mode is stateless: callers keep this in React state.
-    return void data;
+  async getAnnouncements(): Promise<AnnouncementItem[]> {
+    return [];
+  },
+  async saveAnnouncement() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
+  },
+  async deleteAnnouncement() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
   },
 
-  async sendOtp(phone) {
-    await delay(400);
-    return {
-      mode: 'mock',
-      mockHint: `Mock mode: OTP is ${MOCK_OTP} for ${phone}. Set VITE_BACKEND_MODE=firebase for real SMS.`,
-    };
+  async getPurchases(): Promise<PurchaseItem[]> {
+    return [];
+  },
+  async savePurchase() {
+    throw new Error(backendConfigError ?? 'Firebase is not configured.');
   },
 
-  async verifyOtp(code) {
-    await delay(400);
-    if (code.trim() === MOCK_OTP) return {ok: true, uid: 'mock-parent'};
-    return {ok: false, error: `Invalid OTP. Use ${MOCK_OTP} in mock mode.`};
-  },
-
-  async signOut() {
-    await delay(100);
+  clearCache() {
+    resetCache();
   },
 };
 
-/**
- * Firebase-backed implementation. Imported lazily so the Firebase SDK stays out
- * of the main bundle while you are running in mock mode.
- */
-async function firebaseBackend(): Promise<Backend> {
-  const [{paths, readCollection, readDoc, writeDoc}, auth] = await Promise.all([
-    import('../firebase/firestore'),
-    import('../firebase/auth'),
-  ]);
-
-  const uid = () => auth.currentUserId();
-
-  return {
-    mode: 'firebase',
-
-    async getLinkedStudents(parentUid) {
-      const id = parentUid ?? uid();
-      if (!id) return [];
-      return readCollection<StudentProfile>(paths.children(id));
-    },
-
-    async getAnnouncements() {
-      return readCollection<AnnouncementItem>(paths.announcements());
-    },
-
-    async getPurchases(parentUid) {
-      const id = parentUid ?? uid();
-      if (!id) return [];
-      return readCollection<PurchaseItem>(paths.purchases(id));
-    },
-
-    async getParentProfile(parentUid) {
-      const id = parentUid ?? uid();
-      if (!id) return mockParentProfile;
-      const stored = await readDoc<ParentProfileData>(paths.parent(id));
-      return stored ?? {...mockParentProfile, name: 'Parent'};
-    },
-
-    async saveParentProfile(data, parentUid) {
-      const id = parentUid ?? uid();
-      if (!id) throw new Error('Not signed in');
-      await writeDoc(paths.parent(id), {...data} as unknown as Record<string, unknown>);
-    },
-
-    async sendOtp(phone) {
-      const confirmation = await auth.sendPhoneOtp(auth.toE164(phone));
-      return {mode: 'firebase', confirmation};
-    },
-
-    async verifyOtp(code, sendResult) {
-      const confirmation = sendResult?.confirmation as never;
-      if (!confirmation) return {ok: false, error: 'Call sendOtp() first.'};
-      try {
-        const user = await auth.confirmPhoneOtp(confirmation, code);
-        return {ok: true, uid: user.uid};
-      } catch (error) {
-        return {ok: false, error: error instanceof Error ? error.message : 'OTP verification failed'};
-      }
-    },
-
-    async signOut() {
-      await auth.signOut();
-    },
-  };
-}
-
 let cached: Backend | null = null;
 
-/** Resolve the active backend (mock by default, Firebase when enabled). */
+/**
+ * Resolve the active backend.
+ *
+ * The Firebase implementation is imported lazily so its ~450 kB chunk stays out
+ * of the bundle path until it is actually needed.
+ */
 export async function getBackend(): Promise<Backend> {
   if (cached) return cached;
-  cached = isFirebaseEnabled ? await firebaseBackend() : mockBackend;
+
+  if (isMisconfiguredFirebase) {
+    cached = unconfiguredBackend;
+  } else if (isFirebaseEnabled) {
+    const {createFirebaseBackend} = await import('./firebaseBackend');
+    cached = createFirebaseBackend();
+  } else {
+    cached = mockBackend;
+  }
+
   return cached;
 }
 
-/** Sync accessor for components that just need the mode badge. */
-export const activeBackendMode = backendMode;
+/** Which mode the app resolved to — for the Settings sheet badge. */
+export const activeBackendMode: BackendMode = isMisconfiguredFirebase
+  ? 'mock'
+  : isFirebaseEnabled
+    ? 'firebase'
+    : 'mock';
+
 export const usingMockData = !isFirebaseEnabled;
 
-export {MOCK_OTP, mockStudents, mockParentProfile, mockAnnouncements, mockPurchases};
+// Re-exported so existing imports (`from '../lib/backend'`) keep working.
+export {MOCK_OTP, CODE_LENGTH, mockStudents, mockParentProfile, mockAnnouncements, mockPurchases} from './mockData';

@@ -69,6 +69,10 @@ describe('src/lib/config', () => {
     for (const [key, value] of Object.entries(REQUIRED)) {
       vi.stubEnv(key.replace(/^VITE_/, ''), value);
     }
+    // Blank the VITE_-prefixed name: read() checks VITE_<KEY> first and treats
+    // an empty string as unset, so this is what actually exercises the
+    // unprefixed fallback (vitest.config.ts pins VITE_BACKEND_MODE=mock).
+    vi.stubEnv('VITE_BACKEND_MODE', '');
     vi.stubEnv('BACKEND_MODE', 'firebase');
     vi.resetModules();
 

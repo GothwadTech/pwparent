@@ -22,7 +22,7 @@ export const LinkedAccountsScreen: React.FC<LinkedAccountsScreenProps> = ({
   onOpenLogoCustomizer,
 }) => {
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
       {/* Header with PW Logo */}
       <div className="w-full flex items-center justify-between pr-4 bg-[#0a0b10]">
         <div className="flex-1">

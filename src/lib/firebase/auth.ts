@@ -1,22 +1,30 @@
 /**
- * Firebase Auth — phone/OTP flow used by LoginScreen + OtpScreen.
+ * Firebase Auth — anonymous session used by the whole app.
  *
- * Web phone auth needs a reCAPTCHA verifier. Two options:
- *   1. `RecaptchaVerifier` (visible/invisible widget) — used below.
- *   2. App Check with reCAPTCHA Enterprise — see docs/FIREBASE.md.
+ * WHY ANONYMOUS AND NOT PHONE OTP
+ * -------------------------------
+ * Firebase Phone Auth (SMS) requires a linked Cloud Billing account (Blaze)
+ * since 2024-09-01. On the free Spark plan it fails with
+ * `auth/billing-not-enabled`. So this app does NOT send SMS.
  *
- * Everything here is a no-op that throws a clear error when Firebase is not
- * configured, so the UI can fall back to mock mode.
+ * Instead we call `signInAnonymously()`, which is free up to 50,000 MAU and
+ * — crucially — hands us a real, stable `uid`. That `uid` is what Firestore
+ * security rules key on (`request.auth.uid`), so every parent's data stays
+ * isolated even though the phone number itself is never verified.
+ *
+ * The phone number the user types is stored as a PROFILE FIELD at
+ * `parents/{uid}.mobileNumber`, not as a credential. See docs/FIREBASE.md.
+ *
+ * Every export below is a safe no-op that throws a clear error when Firebase
+ * is not configured, so the UI falls back to mock mode instead of crashing.
  */
 import {
-  type ConfirmationResult,
-  getAuth,
-  onAuthStateChanged,
-  signInWithPhoneNumber,
-  signOut as fbSignOut,
-  RecaptchaVerifier,
   type Auth,
   type User,
+  getAuth,
+  onAuthStateChanged,
+  signInAnonymously,
+  signOut as fbSignOut,
 } from 'firebase/auth';
 import {firebaseApp, isFirebaseReady} from './app';
 
@@ -31,7 +39,6 @@ export class FirebaseNotConfiguredError extends Error {
 }
 
 let auth: Auth | null = null;
-let verifier: RecaptchaVerifier | null = null;
 
 export function getFirebaseAuth(): Auth {
   if (!isFirebaseReady || !firebaseApp) throw new FirebaseNotConfiguredError();
@@ -39,7 +46,10 @@ export function getFirebaseAuth(): Auth {
   return auth;
 }
 
-/** Normalises "9335010032" / "+91 9335010032" -> "+919335010032". */
+/**
+ * Normalises "9335010032" / "+91 9335010032" / "+91-93350-10032" -> "+919335010032".
+ * Used only to store a tidy value — it is not a credential.
+ */
 export function toE164(rawPhone: string, defaultCountryCode = '+91'): string {
   const digits = (rawPhone ?? '').replace(/\D/g, '');
   if (!digits) return '';
@@ -48,29 +58,23 @@ export function toE164(rawPhone: string, defaultCountryCode = '+91'): string {
   return `+${digits}`;
 }
 
-function getVerifier(): RecaptchaVerifier {
-  if (!isFirebaseReady) throw new FirebaseNotConfiguredError();
-  if (!verifier) {
-    verifier = new RecaptchaVerifier(getFirebaseAuth(), 'recaptcha-container', {
-      size: 'invisible',
-    });
-  }
-  return verifier;
+/** Strips everything but digits and caps at 10 — what the login field collects. */
+export function toLocalDigits(rawPhone: string): string {
+  return (rawPhone ?? '').replace(/\D/g, '').slice(-10);
 }
 
-/** Step 1 — send the OTP. Returns a ConfirmationResult for step 2. */
-export async function sendPhoneOtp(phoneE164: string): Promise<ConfirmationResult> {
-  const authInstance = getFirebaseAuth();
-  return signInWithPhoneNumber(authInstance, phoneE164, getVerifier());
-}
-
-/** Step 2 — verify the 6-digit OTP. */
-export async function confirmPhoneOtp(
-  confirmation: ConfirmationResult,
-  code: string,
-): Promise<User> {
-  const result = await confirmation.confirm(code.trim());
-  return result.user;
+/**
+ * Return the current user, signing in anonymously if there isn't one yet.
+ *
+ * Anonymous sign-in is idempotent: Firebase persists the session in
+ * IndexedDB/localStorage, so a returning visitor keeps the SAME uid and
+ * therefore keeps their data.
+ */
+export async function ensureSession(): Promise<User> {
+  const instance = getFirebaseAuth();
+  if (instance.currentUser) return instance.currentUser;
+  const credential = await signInAnonymously(instance);
+  return credential.user;
 }
 
 export function onAuthChange(callback: (user: User | null) => void): () => void {

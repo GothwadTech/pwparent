@@ -1,383 +1,439 @@
-# Firebase Backend — Setup & Wiring Guide
+# Firebase Backend — Setup Guide
 
-Repo me Firebase ka **poora scaffold ready hai**. Default pe app **mock mode** me
-chalti hai (koi network nahi, demo data), aur jaise hi tum env vars bharte ho,
-`VITE_BACKEND_MODE=firebase` se real backend on ho jata hai — components change
-karne ki zaroorat nahi.
-
-```
-src/lib/config.ts               env parsing + validation + mode decide
-src/lib/firebase/app.ts         initializeApp (safe: config missing -> null)
-src/lib/firebase/auth.ts        phone OTP (send/verify), signOut, toE164()
-src/lib/firebase/firestore.ts   db helpers + collection paths
-src/lib/backend/index.ts        facade: mockBackend | firebaseBackend  ← UI yahi import kare
-src/lib/backend/mockData.ts     demo dataset
-```
-
-Dependency `firebase@^12` `package.json` me already hai.
+> **TL;DR — code already likha ja chuka hai.** `src/App.tsx`, `src/lib/backend/`,
+> `src/lib/firebase/` sab wire ho gaye hain. Tumhe sirf **Firebase console me 4
+> kaam** karne hain aur **Cloudflare Pages me 8 env vars** daalne hain.
+> Neeche §2 checklist hai.
 
 ---
 
-## 1. Firebase project banao
+## 1. Architecture — pehle samajh lo
 
-1. https://console.firebase.google.com → **Add project** → naam `pwparent`.
-2. Project → **⚙ Project settings → General → Your apps → Web (`</>`)**.
-3. App nickname: `PW Parent's App (Web)` → Register.
-4. SDK setup snippet copy karo — usse 6 values milti hain:
-
-```js
-const firebaseConfig = {
-  apiKey: "AIza...",
-  authDomain: "pwparent.firebaseapp.com",
-  projectId: "pwparent",
-  storageBucket: "pwparent.firebasestorage.app",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abc123",
-  measurementId: "G-XXXXXXXXXX"
-};
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Browser (React SPA on Cloudflare Pages)                        │
+│                                                                 │
+│  LoginScreen  ──phone──▶  OtpScreen  ──demo code──▶  App.tsx    │
+│                                                          │      │
+│                                              getBackend()│      │
+│                                                          ▼      │
+│                              ┌────────────────────────────────┐ │
+│                              │ src/lib/backend/index.ts       │ │
+│                              │  (facade — UI sirf isi se      │ │
+│                              │   baat karti hai)              │ │
+│                              └───────────┬────────────────────┘ │
+│                     VITE_BACKEND_MODE    │                      │
+│                 ┌────────────────────────┴──────────────────┐   │
+│                 ▼                                           ▼   │
+│        ┌─────────────────┐                        ┌────────────┐│
+│        │ mock            │                        │ firebase   ││
+│        │ localStorage    │                        │ Anonymous  ││
+│        │ (zero setup)    │                        │ Auth +     ││
+│        └─────────────────┘                        │ Firestore  ││
+│                                                   └────────────┘│
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-> Ye values **public** hain — browser me jana inka design hai. Security
-> §5 (rules) aur §7 (App Check) se aati hai.
+**Components kabhi `firebase/*` import nahi karte.** Sirf `src/lib/backend`.
+Isliye `VITE_BACKEND_MODE` flip karne se poora data source badal jata hai
+bina ek bhi screen chhede.
 
 ---
 
-## 2. Authentication (phone OTP) enable karo
+## 2. Console checklist — 6 kaam
 
-1. **Build → Authentication → Get started → Sign-in method**.
-2. **Phone** → Enable → Save.
-3. Testing ke liye: **Sign-in method → Phone numbers for testing** → apna number
-   + fixed 6-digit code add karo. (Free tier me real SMS quota limited hoti hai.)
+Project: **`pwparentapp`**
 
-### reCAPTCHA / domain authorization — Cloudflare Pages ke liye zaroori
+### ① Firestore Database banao
+Console → **Build → Firestore Database → Create database**
 
-Web phone auth reCAPTCHA verifier use karta hai. Iske liye:
+- **Region: `asia-south1` (Mumbai)** — India ke liye sabse low latency.
+  ⚠️ **Region create ke baad KABHI change nahi hota.** Sochke select karna.
+- Mode: **Production mode** (rules hum publish karenge, §4). Test mode bhi
+  chalega dev ke liye par 30 din baad auto-lock ho jata hai.
 
-1. **Authentication → Settings → Authorized domains** me apna Pages domain add karo:
-   - `pwparent.pages.dev`
-   - `*.pages.dev` (preview URLs ke liye — ya har preview domain individually)
-   - apna custom domain, e.g. `app.yourdomain.com`
-   - `localhost` already hota hai
-2. Agar Firebase console bole ki **App Check** chahiye, to §7 follow karo.
+> ⚠️ **Zaroori:** tumhare config me `databaseURL` dikh raha hai
+> (`pwparentapp-default-rtdb.asia-southeast1...`) — wo **Realtime Database**
+> hai, ek *alag* product. **Firestore separately banana padega.** Ye app
+> Firestore use karti hai, Realtime Database nahi.
 
-`src/lib/firebase/auth.ts` invisible `RecaptchaVerifier` use karta hai, jisko ek
-DOM element chahiye. Apne login screen me ye div add karo (sirf firebase mode me
-render ho, warna empty div harmless hai):
+### ② Anonymous Auth enable karo
+Console → **Build → Authentication → Sign-in method → Anonymous → Enable → Save**
 
-```tsx
-import { isFirebaseEnabled } from './lib/config';
+Ye **zaroori** hai. Iske bina `signInAnonymously()` fail hoga (`auth/operation-not-allowed`) aur
+app khaali reh jayegi — **koi demo data fallback nahi hai** (neeche §7).
 
-{isFirebaseEnabled && <div id="recaptcha-container" />}
+**Phone/SMS OTP enable mat karna** — wo Spark plan pe chalta hi nahi
+(`auth/billing-not-enabled`). Neeche §3 me poora reason hai.
+
+### ②b Email/Password Auth enable karo
+Console → **Build → Authentication → Sign-in method → Email/Password → Enable → Save**
+
+Admin Panel ke username + password ke liye zaroori. Password **sirf yahin**
+rehta hai — Firestore me uska koi trace nahi jaata. Username ek synthetic
+address ban jata hai: `<username>@admin.pwparent.local` (local domain, koi mail
+nahi jaata).
+
+> ⚠️ **Pehla register karne wala hi admin banega — permanently.** Deploy ke
+> turant baad khud register karo. Details [`ADMIN_PANEL.md §2`](./ADMIN_PANEL.md).
+
+### ③ Rules publish karo
+Console → **Firestore Database → Rules** → repo ka `firestore.rules` paste karo → **Publish**
+
+Ya CLI se:
+```bash
+npx --yes firebase-tools login
+npx --yes firebase-tools deploy --only firestore:rules --project pwparentapp
 ```
+
+### ④ Env vars Cloudflare Pages me daalo
+Dashboard → **pwparent → Settings → Environment variables** → neeche §5 ki
+8 values **Production aur Preview dono** me add karo → phir
+**Deployments → latest → Retry deployment**.
+
+Vite env vars ko **build time** pe inline karta hai, isliye sirf save karna
+kaafi nahi — **rebuild zaroori hai**.
+
+### ⑤ Authorized domains me Pages host daalo
+Console → **Authentication → Settings → Authorized domains** →
+`pwparent.pages.dev` add karo (aur har preview host jo use karna ho).
+
+Iske bina `signInAnonymously()` us origin se `auth/unauthorized-domain` dega.
+`*.pages.dev` wildcard support nahi hota — exact host chahiye.
+
+### ⑥ Admin code issue karo, phir test karo
+App kholo → Settings dock → **Admin Panel** → register karo → **Login codes**
+tab → apne number ka 6-digit code set karo → logout → us number + code se login
+karke dekho.
+
+Jab tak koi code exist nahi karta, **koi login nahi kar sakta**. Peeche koi demo
+dataset nahi hai — ye intentional hai.
 
 ---
 
-## 3. Firestore enable karo
+## 3. Auth model — phone number credential KYUN nahi hai
 
-1. **Build → Firestore Database → Create database**.
-2. Location: `asia-south1` (Mumbai) — India users ke liye best latency.
-3. Mode: **Production mode** (locked rules) → phir §5 ke rules paste karo.
+Tumhara original idea tha: *number daalo, number hi username aur password.*
+Problem ye thi ki **koi bhi kisi ka bhi number daal ke andar aa jata**, aur
+bina authenticated identity ke **Firestore rules kuch protect hi nahi kar
+sakte** (rules `request.auth.uid` pe chalte hain).
 
-### Data model (jo `src/lib/firebase/firestore.ts` expect karta hai)
+### Jo ab hota hai
+
+Ye **username + password** hai, SMS OTP nahi. Number username hai; admin ke
+diye hue 6-digit code password hain.
+
+| Step | Kya hota hai |
+|---|---|
+| 1 | User 10-digit number type karta hai |
+| 2 | `sendOtp()` sirf **check** karta hai ki `credentials/{phone}` exist karta hai — kuch bhejta nahi |
+| 3 | Number registered nahi hai to screen saaf bol deti hai: *"An administrator must set a login code for it first."* |
+| 4 | Registered hai to 6 boxes khulte hain. Typed code PBKDF2 digest se **constant-time** verify hota hai |
+| 5 | Verify hone par `ensureSession()` → `signInAnonymously()` → ek **real, stable `uid`** |
+| 6 | Number **profile field** ki tarah `parents/{uid}.mobileNumber` me save hota hai |
+| 7 | Rules us `uid` se har user ka data isolate kar dete hain |
+
+**Result:**
+- ✅ Free (Anonymous Auth + Email/Password, Spark plan pe 50,000 MAU tak)
+- ✅ **₹0 SMS cost** — koi message bhejta hi nahi, koi inbox padhta hi nahi
+- ✅ Number **ab actually gate karta hai** — bina admin-set code ke andar nahi aa sakte
+- ✅ Session reload pe bhi rehta hai (`restoreSession()` bina likhe resume karta hai)
+- ✅ Har user ka data rules se locked
+- ⚠️ Verification **browser me** hoti hai — 6-digit code strong password nahi hai.
+  Poora analysis [`SECURITY.md §2`](./SECURITY.md).
+- ⚠️ Number ko kisi bachche ke records ka **lookup key mat banana**. Lookup key
+  hamesha `uid` hai — number badal sakta hai, uid nahi.
+
+### Phone OTP kyun nahi
+Firebase Phone Auth (SMS) ke liye **1 September 2024 se linked Cloud Billing
+account (Blaze plan) zaroori hai**. Spark plan pe `auth/billing-not-enabled`
+error aata hai. Pricing table me Phone Auth ke against Spark column me
+"**Not applicable**" likha hai. Blaze pe pehle 10 SMS/day free, phir
+per-SMS billing — aur SMS-pumping se bill ka risk.
+
+Isliye ye app SMS use hi nahi karti. **₹0 cost.**
+
+---
+
+## 4. Data model
+
+`src/lib/firebase/firestore.ts` → `paths` object yahi layout expect karta hai:
 
 ```
 parents/{uid}                          ParentProfileData
-  ├─ name, countryCode, mobileNumber, email
-  └─ children/{childId}                StudentProfile
-        name, batch, course, attendance, testsCompleted, dppsDone, videoWatchRate
-  └─ purchases/{itemId}                PurchaseItem
-        title, date, status, totalItem, price, category, imageBg
+  ├─ name                              string
+  ├─ countryCode                       "IN +91"
+  ├─ mobileNumber                      "9876543210"   ← profile field, credential nahi
+  ├─ email                             string
+  ├─ signInMethod                      "anonymous+login-code"
+  └─ lastLoginAt                       ISO timestamp
 
-announcements/{id}                     AnnouncementItem (global feed)
-  author, timeAgo, isNew, content, videoLink
+parents/{uid}/children/{childId}       StudentProfile
+  ├─ name, batch, course               string
+  ├─ attendance                        "96%"   (display string)
+  ├─ testsCompleted                    number  ← derived
+  ├─ testsTotal                        number
+  ├─ avgScorePercent                   number  ← derived
+  ├─ accuracyPercent                   number  ← derived
+  ├─ dppsDone                          number
+  ├─ videoWatchRate                    "91%"
+  └─ tests[]                           TestRecord[]
+       ├─ id, title, date, mode        "Online" | "Offline"
+       ├─ status                       "ATTEMPTED" | "MISSED"
+       ├─ marksObtained, marksTotal    number
+       └─ scorePercent, accuracyPercent number ← derived
+
+parents/{uid}/purchases/{itemId}       PurchaseItem
+  └─ imageBg                           Tailwind gradient classes, hex NAHI
+                                       ("from-blue-600 to-indigo-700")
+
+announcements/{id}                     AnnouncementItem (shared feed)
+
+admins/{uid}                           role marker — admin allow-list
+  ├─ username                          "a-z0-9._-", 3-30 chars
+  ├─ role                              "owner"
+  └─ createdAt                         ISO timestamp
+                                       ⚠️ password YAHAN NAHI hai (Firebase Auth me hai)
+
+adminConfig/singleton                  registration permanently band karta hai
+  ├─ closedAt                          ISO timestamp
+  └─ reason                            string
+                                       ⚠️ username YAHAN NAHI — ye doc world-readable
+                                       hai (login screen ko pata hona chahiye ki
+                                       registration open hai ya nahi)
+
+credentials/{phone}                    phone ka login code — SIRF digest
+  ├─ v                                 1  (CREDENTIAL_VERSION)
+  ├─ salt                              base64, 16 random bytes
+  ├─ iterations                        210000
+  ├─ hash                              base64, PBKDF2-SHA256 over "code|phone"
+  └─ createdAt                         ISO timestamp
 ```
 
-`uid` = Firebase Auth ka user id (phone auth ke baad `user.uid`).
+**Har parent-scoped path `parents/{uid}` se shuru hota hai** — isse rules me
+ek line me poora subtree lock ho jata hai.
 
-Seed data chahiye to Firestore console → **Import/export** ya ek chhota Node
-script; `src/lib/backend/mockData.ts` me ready JSON-shaped objects hain jo tum
-direct copy kar sakte ho.
+### Derived fields
+`testsCompleted`, `avgScorePercent`, `accuracyPercent` aur har test ka
+`scorePercent` **Admin Panel khud calculate karta hai** (`recomputeStudent()`
+in `src/lib/admin.ts`). Admin sirf raw marks bharta hai; percentages kabhi
+directly set nahi hote, taaki scorecard apne aap se contradict na kare.
 
 ---
 
-## 4. Env vars bhartna
+## 5. Env vars
 
-### Local
+### Local development
 ```bash
-cp .env.example .env.local
+cp .env.example .env.local      # phir values bharo
+npm run dev
 ```
-```bash
-VITE_BACKEND_MODE=firebase
-VITE_FIREBASE_API_KEY="AIza..."
-VITE_FIREBASE_AUTH_DOMAIN="pwparent.firebaseapp.com"
-VITE_FIREBASE_PROJECT_ID="pwparent"
-VITE_FIREBASE_STORAGE_BUCKET="pwparent.firebasestorage.app"
-VITE_FIREBASE_MESSAGING_SENDER_ID="1234567890"
-VITE_FIREBASE_APP_ID="1:1234567890:web:abc123"
-VITE_FIREBASE_MEASUREMENT_ID="G-XXXXXXXXXX"
-```
+`.env.local` gitignored hai — real values kabhi commit nahi hote.
 
 ### Cloudflare Pages
-Pages → **Settings → Environment variables** → upar wale saare vars
-**Production + Preview** dono me → **Retry deployment**.
+Dashboard → Settings → Environment variables → **Production + Preview dono**:
 
-> ⚠️ Env change ke baad rebuild zaroori hai (Vite build-time inline karta hai).
+```
+VITE_APP_ENV=production
+VITE_APP_URL=https://pwparent.pages.dev
+VITE_BACKEND_MODE=firebase
+VITE_FIREBASE_API_KEY=AIza...
+VITE_FIREBASE_AUTH_DOMAIN=pwparentapp.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=pwparentapp
+VITE_FIREBASE_STORAGE_BUCKET=pwparentapp.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=543582188666
+VITE_FIREBASE_APP_ID=1:543582188666:web:fc0d4a1ee188fd4a97b7c3
+VITE_USE_ANONYMOUS_AUTH=true
+VITE_ADMIN_PASSCODE=<apna passcode>
+```
+
+Add karne ke baad **Retry deployment** zaroori hai.
+
+### Firebase API key secret nahi hai
+Ye sabse common confusion hai. Firebase **web config** public hone ke liye hi
+bana hai — wo har browser ko JS bundle me jaata hai. Tumhara data
+`firestore.rules` se protect hota hai, in strings se nahi.
+
+Phir bhi repo me commit mat karo — taaki project swap/rotate bina commit ke
+ho sake. `npm run check:build` bundle me `AIza...` dekh ke **warning** deta
+hai; Firebase key ke liye wo expected hai.
 
 ### Safety net
-Agar 6 me se koi bhi required var missing/blank/`MY_*` placeholder hai, to
-`VITE_BACKEND_MODE=firebase` **ignore** ho jata hai aur app mock mode pe chalti
-reh-ti hai. Console me exact list mil jati hai:
+`src/lib/config.ts` me `VITE_BACKEND_MODE=firebase` **sirf tab** effect karta
+hai jab saare 6 required Firebase vars maujood hon. Adhura env = automatic
+mock mode fallback. Isliye half-configured deploy kabhi white-screen nahi karta.
 
-```
-[config] Running in MOCK mode. Set these to enable Firebase: VITE_FIREBASE_API_KEY, ...
-```
-
-Tests is behaviour ko lock karte hain: `src/tests/config.spec.ts`.
-
----
-
-## 5. Firestore security rules
-
-Firestore → **Rules** → paste → Publish. Ye rules is app ke data model ke liye
-hain: parent sirf apna data padh/sakta hai, announcements sab padh sakte hain.
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    function signedIn() {
-      return request.auth != null;
-    }
-    function isOwner(uid) {
-      return signedIn() && request.auth.uid == uid;
-    }
-
-    // Parent profile + everything nested under it (children, purchases)
-    match /parents/{uid} {
-      allow read:   if isOwner(uid);
-      allow write:  if isOwner(uid);
-
-      match /{document=**} {
-        allow read, write: if isOwner(uid);
-      }
-    }
-
-    // Global announcements feed: read for signed-in parents, write only for staff
-    match /announcements/{id} {
-      allow read:  if signedIn();
-      allow write: if signedIn() && request.auth.token.staff == true;
-    }
-
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
-```
-
-**Staff/admin** ke liye: Firebase Auth → user → **Custom claims** me
-`staff: true` set karo (Admin SDK se), ya rules me ek alag `admins/{uid}`
-collection check karo.
-
-Testing: Firestore → Rules → **Rules Playground** me
-`request.auth = {uid: "test"}` simulate karke verify karo.
+Aur `src/lib/backend/index.ts` me `withFallback()` har Firestore read ko wrap
+karta hai — database bana hi na ho, region galat ho, rules locked hon, ya
+visitor offline ho — to console me warning aati hai aur UI demo data pe chalta
+rehta hai.
 
 ---
 
-## 6. UI me wire karna (exact steps)
+## 6. Security rules — kya karte hain
 
-Backend facade already ready hai — bas 3 jagah connect karna hai.
+`firestore.rules` (repo root) ka summary:
 
-### 6a. `src/App.tsx` — data load
-
-```tsx
-import { useEffect, useState } from 'react';
-import { getBackend } from './lib/backend';
-import { mockStudents, mockParentProfile } from './lib/backend';
-
-const [students, setStudents] = useState<StudentProfile[]>(mockStudents);
-const [parentProfile, setParentProfile] = useState<ParentProfileData>(mockParentProfile);
-
-useEffect(() => {
-  let alive = true;
-  getBackend().then(async (backend) => {
-    const [linked, profile] = await Promise.all([
-      backend.getLinkedStudents(),
-      backend.getParentProfile(),
-    ]);
-    if (!alive) return;
-    if (linked.length) setStudents(linked);        // mock fallback already set
-    setParentProfile(profile);
-    if (linked[0]) setActiveStudent(linked[0]);
-  });
-  return () => { alive = false; };
-}, []);
-```
-
-### 6b. `src/App.tsx` — OTP bhejna (LoginScreen submit)
-
-```tsx
-import { useRef } from 'react';
-import type { SendOtpResult } from './lib/backend';
-
-const otpFlow = useRef<SendOtpResult | undefined>(undefined);
-
-const handleLoginSubmit = async (phone: string) => {
-  const backend = await getBackend();
-  const sent = await backend.sendOtp(phone);        // mock: instant, firebase: real SMS
-  otpFlow.current = sent;
-  setPhoneNumber(phone);
-  setParentProfile((p) => ({ ...p, mobileNumber: phone }));
-  setCurrentScreen('otp');
-};
-```
-
-`otpFlow` ko `OtpScreen` ko prop ki tarah bhejo.
-
-### 6c. `src/components/OtpScreen.tsx` — OTP verify
-
-Abhi `handleComplete` ek fake `setTimeout` hai. Real banao:
-
-```tsx
-interface OtpScreenProps {
-  phoneNumber: string;
-  sendResult?: SendOtpResult;                 // ← naya prop
-  onEditPhone: () => void;
-  onVerifySuccess: (uid?: string | null) => void;
-  onVerifyError: (message: string) => void;   // ← naya prop
-  onHowItWorks: () => void;
-  customLogoUrl?: string | null;
-  onOpenLogoCustomizer: () => void;
-}
-
-const handleComplete = async (code: string) => {
-  setIsVerifying(true);
-  const backend = await getBackend();
-  const result = await backend.verifyOtp(code, sendResult);
-  setIsVerifying(false);
-  if (result.ok) onVerifySuccess(result.uid);
-  else onVerifyError(result.error ?? 'Invalid OTP');
-};
-```
-
-Mock mode me OTP = `1234` (`MOCK_OTP`), firebase mode me real SMS code.
-UI ka baaki hissa (timer, auto-focus, paste) waise ka waisa chalega.
-
-### 6d. Write operations
-
-```tsx
-const backend = await getBackend();
-await backend.saveParentProfile({ ...parentProfile, name: newName });
-```
-
-Firestore me direct write karna ho to `src/lib/firebase/firestore.ts` ke helpers
-(`writeDoc`, `readCollection`, `subscribe`) use karo — paths helper se path
-banao taaki rules ke saath consistent rahe.
-
-Live updates chahiye (announcement feed):
-```tsx
-subscribe<AnnouncementItem>(paths.announcements(), setAnnouncements);
-```
-
----
-
-## 7. App Check (recommended for phone auth)
-
-Firebase phone auth abuse (SMS pumping) rokne ke liye App Check on karo:
-
-1. **Project settings → App Check → Apps → your web app → Register**.
-2. Provider: **reCAPTCHA v3** (simplest on Cloudflare Pages) → site key copy karo.
-3. Env: `VITE_RECAPTCHA_SITE_KEY=6Lf...` (client, public) — aur site secret
-   ko Pages secret me daalo agar server-side verify karna ho.
-4. `src/lib/firebase/app.ts` me init ke baad:
-
-```ts
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
-initializeAppCheck(app, { provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY!), isTokenAutoRefreshEnabled: true });
-```
-
-5. App Check → **APIs → Firestore / Authentication → Enforce** (pehle staging me).
-
-Note: `*.pages.dev` wildcard domain App Check me allowed domains me add karna
-zaroori hai, warna preview URLs pe token issue hoga.
-
----
-
-## 8. Cloudflare Pages + Firebase: kya chalta hai, kya nahi
-
-| Chahiye | Chalega? | Kaise |
+| Path | Read | Write |
 |---|---|---|
-| Client-side Firebase SDK (Auth, Firestore, Storage) | ✅ | Normal — SPA me `firebase/*` import |
-| Phone OTP | ✅ | `signInWithPhoneNumber` + `RecaptchaVerifier` (§2) |
-| Firestore reads/writes from browser | ✅ | Rules ke saath (§5) |
-| Server-side admin (custom claims, user delete, send email) | ⚠️ | Pages Functions me `firebase-admin` **directly nahi** chalta (Workers runtime). Do options: (a) Identity Toolkit / Firestore **REST API** ko `fetch` se call karo, service-account key Pages secret me; (b) **Cloud Functions for Firebase** (Node) banao aur Pages Function se usko call karo. |
-| FCM push | ⚠️ | Web push browser me chalta hai; bhejne wala hissa REST API/Cloud Function se |
-| Firebase Hosting | – | Zaroorat nahi — Cloudflare Pages hi host kar raha hai. Firebase project sirf Auth/Firestore ke liye. |
+| `parents/{uid}` + subcollections | owner **ya admin** | owner **ya admin** (delete: sirf console) |
+| `announcements/{id}` | koi bhi signed-in | sirf `isAdmin()` |
+| `admins/{uid}` | owner ya admin | **create**: sirf jab slot khula ho; update/delete ❌ |
+| `adminConfig/singleton` | **koi bhi** (jaan-boojh ke) | **create**: ek hi baar; update/delete ❌ |
+| `credentials/{phone}` | **get**: koi bhi · **list**: sirf admin | sirf `isAdmin()` |
+| baaki sab | ❌ | ❌ |
 
-**Cost:** Firebase free (Spark) tier me Firestore 1 GiB storage + 50k reads/day,
-phone auth ke liye limited SMS quota. Pages free tier: 500 builds/month,
-unlimited requests, 100k Functions requests/day. Dono hobby project ke liye
-kaafi hain.
+**Default deny** — nayi collection bina explicit rule ke kaam nahi karegi.
+Root-level `match /{document=**}` catch-all deliberately nahi hai: Firestore
+pehle se har unmatched path deny karta hai, aur recursive wildcard upar ke
+matches se overlap karta.
+
+Teen design decisions jo surprising lag sakte hain:
+
+1. **`adminConfig/singleton` world-readable hai** — login screen ko
+   authenticate hone se *pehle* pata hona chahiye ki registration open hai ya
+   nahi. Isliye usme username ya koi sensitive cheez **nahi** hai.
+2. **`credentials/{phone}` pe `get: if true`** — browser ko digest fetch karke
+   typed code check karna padta hai, koi server nahi jo ye kaam kare. `list`
+   admin-only hai, isliye collection enumerate karke registered numbers pata
+   nahi chal sakte.
+3. **`admins/{uid}` ka create `!exists(adminConfig/singleton)` pe gated hai** —
+   aur `registerAdmin()` dono documents ek atomic batch me likhta hai. Rule ke
+   andar `exists()` **pre-batch** state dekhta hai, isliye pehla admin bante hi
+   window permanently band. App se doosra admin kabhi nahi ban sakta.
+
+Admin ko `parents/{uid}` subtree ka access isliye hai kyunki Admin Panel ka
+kaam hi doosron ka academic record manage karna hai.
 
 ---
 
-## 9. Local Firebase Emulator (optional, best for dev)
+## 7. Koi demo data nahi — jo honest limitations hain
 
-Bina quota jalaye test karne ke liye:
+1. **Login code browser me verify hota hai.** `credentials/{phone}` ka digest
+   client pe download hota hai aur PBKDF2 se check hota hai. 210 000 rounds +
+   per-code salt + phone pepper se offline brute force mehnga padta hai, par
+   6-digit code strong password nahi hai. Sahi fix: verification ko Cloudflare
+   Pages Function me le jao (Admin SDK ke saath) aur rules me
+   `credentials/{phone}` ko `read, write: if false` kar do.
+   Poora analysis [`SECURITY.md §2`](./SECURITY.md).
+2. **Phone number ownership prove nahi hota.** SMS nahi jaata, isliye ye
+   confirm nahi hota ki number type karne wala uska malik hai. Gate ye hai ki
+   admin ne us number ke liye code issue kiya hai — jo effectively ek
+   allow-list hai.
+3. **Firebase mode me koi demo data nahi hai.** Adhoore env pe app khaali
+   dikhegi aur `backendConfigError` missing vars naam se batayega — nakli
+   marks invent nahi karegi. Mock mode (`VITE_BACKEND_MODE=mock`) sirf dev +
+   tests ke liye hai; uska passcode bundle me inline hota hai, security nahi.
+4. **Kuch views me abhi bhi sample numbers hardcoded hain.**
+   Wired: student name/batch (LinkedAccounts, Profile), test scorecard +
+   recent tests + marks (`StudentDashboardView`), announcements
+   (`AnnouncementsView`), purchases (`PurchasesScreen`).
+   Abhi hardcoded: `OfflineAttendanceDashboardView` ka attendance calendar,
+   `SubjectDetailsModal` ke subject-wise DPP counts, lectures section.
+   Ye deliberately chhoda gaya — 38 components ka risky refactor avoid karne
+   ke liye. Follow-up me wire kiya ja sakta hai.
+5. **8 components original AI Studio export se unused (orphan) hain**:
+   `AnnouncementsScreen`, `BottomNavBar`, `ContactSupportModal`,
+   `MainAppHeader`, `StatusBar`, `StudentLecturesDashboard`,
+   `StudentTestsDashboard`, `SupportScreen`. Inhe chheda nahi gaya.
+
+App ke bottom-right pe ek chhota **Settings dock** rehta hai
+(`src/components/SettingsDock.tsx`) jo live backend mode dikhata hai — 🟢
+`firebase`, 🟡 `mock`, 🔴 `setup` (env adhoora). Wahi se Admin Panel khulta
+hai, doosre number se login hota hai, aur Firestore read budget dikhta hai.
+
+---
+
+## 8. Cloudflare Pages + Firebase — kya chalta hai
+
+| | Status |
+|---|---|
+| Firestore reads/writes from the browser | ✅ chalta hai |
+| Anonymous Auth from the browser | ✅ chalta hai |
+| `pages.dev` domain ko Firebase Auth me allow karna | ⚠️ zaroori hai, neeche dekho |
+| Cloud Functions for Firebase | ❌ Blaze-only — isliye hum Cloudflare Pages Functions use karte hain |
+| Firebase Hosting | ❌ use mat karo — site Pages se deploy hoti hai (double deploy) |
+
+### Authorized domains
+Console → **Authentication → Settings → Authorized domains** →
+`pwparent.pages.dev` add karo. Preview deployments ke liye
+`*.pwparent.pages.dev` kaam nahi karta — har preview URL separately add karna
+padta hai, ya sirf production domain use karo.
+
+Ye na karne pe error aata hai: `auth/unauthorized-domain`.
+
+---
+
+## 9. Local Firebase Emulator (optional, dev ke liye best)
+
+Real project ko gande kiye bina test karna ho to:
 
 ```bash
-npm i -g firebase-tools
-firebase login
-firebase init emulators     # Auth + Firestore select karo
-firebase emulators:start
+npx --yes firebase-tools emulators:start --only auth,firestore --project pwparentapp
 ```
 
-Phir `.env.local` me:
-```bash
-VITE_BACKEND_MODE=firebase
-VITE_FIREBASE_PROJECT_ID=demo-pwparent     # "demo-" prefix = no GCP calls
-```
-
-Emulator connect karna ho to `src/lib/firebase/firestore.ts` me dev-only:
+Phir app ko emulator pe point karo (dev-only code):
 ```ts
-if (import.meta.env.DEV) connectFirestoreEmulator(getDb(), 'localhost', 8080);
+import {connectFirestoreEmulator} from 'firebase/firestore';
+import {connectAuthEmulator} from 'firebase/auth';
+if (import.meta.env.DEV) {
+  connectFirestoreEmulator(getDb(), {host: '127.0.0.1', port: 8080});
+  connectAuthEmulator(getFirebaseAuth(), 'http://127.0.0.1:9099');
+}
 ```
+
+⚠️ Ye snippet abhi repo me **nahi** hai — jaan-boojh ke, taaki production
+bundle me emulator code na jaye. Chahiye to `if (import.meta.env.DEV)` guard
+ke saath add karna.
 
 ---
 
 ## 10. Tests
 
-Firebase scaffold pehle se tested hai (mock mode default):
-
 ```bash
-npm run test          # 12 tests
-npm run typecheck
+npm test              # 43 tests
+npm run verify        # typecheck + test + build + check:build
 ```
 
-- `src/tests/config.spec.ts` — env parsing, placeholder safety, partial-config → mock fallback, unprefixed `FIREBASE_*` support
-- `src/tests/backend.spec.ts` — mock backend ka data + OTP contract (wahi interface jo firebase backend implement karta hai)
-- `src/tests/login.spec.tsx` — phone validation
-- `src/tests/app.spec.tsx` — app mount smoke test
+| File | Kya cover karta hai |
+|---|---|
+| `src/tests/config.spec.ts` | Adhura env kabhi firebase mode enable na kare (deploy safety) |
+| `src/tests/backend.spec.ts` | Facade defaults, OTP demo codes, caching |
+| `src/tests/backend-session.spec.ts` | Phone → session, profile persistence, admin writes round-trip |
+| `src/tests/admin.spec.ts` | Passcode gate, marks maths, `recomputeStudent` consistency |
+| `src/tests/login.spec.tsx` | LoginScreen validation |
+| `src/tests/app.spec.tsx` | App mount smoke test |
 
-Firebase enable karne ke baad bhi ye tests pass rahenge, kyunki CI me
-`VITE_FIREBASE_*` set nahi hote → mock mode. Real Firebase integration test
-chahiye to emulator (§9) + ek alag `test:integration` script add karo.
+**Note:** `vitest.config.ts` me `envDir` jaan-boojh ke `src/tests/env` (khali
+directory) pe set hai. Iske bina tumhara local `.env.local` tests me leak ho
+jata aur `config.spec.ts` fail hone lagta. Details: `src/tests/env/README.md`.
 
 ---
 
-## 11. Checklist
+## 11. Troubleshooting
 
-- [ ] Firebase project banaya, web app register kiya
-- [ ] Authentication → Phone enable + test numbers add
-- [ ] Authorized domains me `*.pages.dev` + custom domain
-- [ ] Firestore create (asia-south1) + rules publish (§5)
-- [ ] 6 `VITE_FIREBASE_*` vars Pages me (Production **aur** Preview)
-- [ ] `VITE_BACKEND_MODE=firebase`
-- [ ] Deployment retry kiya (env build-time inline hota hai)
-- [ ] §6 ke 3 wiring steps App.tsx / OtpScreen.tsx me lagaye
-- [ ] `#recaptcha-container` div login screen me
-- [ ] App Check on (recommended)
-- [ ] Browser console me `[config] Running in MOCK mode` **nahi** aa raha
-- [ ] `npm run verify` green
+| Symptom | Reason | Fix |
+|---|---|---|
+| Console: `[config] Running in MOCK mode` | Env vars missing | §5 ke 8 vars Pages me daalo + **Retry deployment** |
+| Console: `[backend] read children failed` | Firestore bana nahi / region galat / rules locked | §2 ① aur ③ |
+| `auth/operation-not-allowed` | Anonymous sign-in disabled | §2 ② |
+| `auth/unauthorized-domain` | `pages.dev` authorized nahi | §8 → Authorized domains |
+| `permission-denied` on announcements | `admins/{uid}` doc nahi hai | Console me `admins/<uid>` banao |
+| Deploy ke baad bhi purana behaviour | Vite build-time inline karta hai | **Retry deployment** (sirf save kaafi nahi) |
+| Data reload pe chala gaya | Mock mode ka store clear ho gaya (`clearDemoStore`) | Ye mock mode ka behaviour hai; firebase mode me data Firestore me rehta hai |
+
+---
+
+## 12. Final checklist
+
+- [ ] Firestore Database create — region `asia-south1`
+- [ ] Authentication → Sign-in method → **Anonymous → Enable**
+- [ ] Firestore → Rules → `firestore.rules` paste → **Publish**
+- [ ] Authentication → Settings → **Authorized domains** → `pwparent.pages.dev`
+- [ ] Cloudflare Pages → Environment variables → 8 values (**Production + Preview**)
+- [ ] Cloudflare Pages → Deployments → **Retry deployment**
+- [ ] `npm run doctor` locally pass
+- [ ] `npm run verify` locally pass
+- [ ] App kholo → bottom-right badge pe **`firebase`** dikhna chahiye (yellow `mock` nahi)
+- [ ] Login karo → Firebase Console → Firestore → `parents/{uid}` doc dikhe
+- [ ] Authentication → Users → ek anonymous user dikhe

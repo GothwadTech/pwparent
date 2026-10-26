@@ -22,7 +22,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   return (
     <div
       onClick={onContinue}
-      className="relative w-full h-full min-h-screen bg-[#005677] flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer"
+      className="relative w-full h-full min-h-full bg-[#005677] flex flex-col items-center justify-center overflow-hidden select-none cursor-pointer"
     >
       {/* Main Center Content: PW Emblem + Family Silhouette */}
       <motion.div

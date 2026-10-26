@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudentProfile, MainTabId, BatchOption } from '../types';
+import { StudentProfile, MainTabId, BatchOption, AnnouncementItem } from '../types';
 import { MainTopBar } from './MainTopBar';
 import { AppBottomNav } from './AppBottomNav';
 import { StudentDashboardView } from './StudentDashboardView';
@@ -16,6 +16,11 @@ interface ChildDashboardScreenProps {
   onOpenProfile: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
+  /**
+   * Optional announcement feed from the Backend facade. When omitted,
+   * AnnouncementsView renders its own built-in demo list.
+   */
+  announcements?: AnnouncementItem[];
 }
 
 export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
@@ -24,6 +29,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
   onOpenProfile,
   customLogoUrl,
   onOpenLogoCustomizer,
+  announcements,
 }) => {
   const [activeTab, setActiveTab] = useState<MainTabId>('dashboard');
 
@@ -76,7 +82,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
         )}
 
         {activeTab === 'announcements' && (
-          <AnnouncementsView customLogoUrl={customLogoUrl} />
+          <AnnouncementsView customLogoUrl={customLogoUrl} items={announcements} />
         )}
 
         {activeTab === 'support' && (

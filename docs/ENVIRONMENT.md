@@ -59,7 +59,7 @@ Source of truth: `src/lib/config.ts` (+ types `src/vite-env.d.ts`).
 | `VITE_APP_ENV` | `development` / `production` (mode se) | nahi | `development` \| `staging` \| `production` |
 | `VITE_APP_URL` | `window.location.origin` | nahi | Self links, callbacks, share URLs |
 | `VITE_APP_VERSION` | `1.0.0` | nahi | UI me version badge |
-| `VITE_BACKEND_MODE` | `mock` | **haan (intent ke liye)** | `mock` \| `firebase`. `firebase` tabhi effective jab saare 6 Firebase vars set hon. |
+| `VITE_BACKEND_MODE` | `firebase` | **haan (intent ke liye)** | `firebase` \| `mock`. Default **`firebase`** — app me koi demo dataset nahi. `firebase` tabhi effective jab saare 6 Firebase vars set hon; warna `isMisconfiguredFirebase` aur UI me setup error. `mock` sirf dev + tests ke liye. |
 | `VITE_FIREBASE_API_KEY` | – | firebase ke liye | Firebase console → Project settings → Your apps → SDK setup |
 | `VITE_FIREBASE_AUTH_DOMAIN` | – | firebase ke liye | `yourproj.firebaseapp.com` |
 | `VITE_FIREBASE_PROJECT_ID` | – | firebase ke liye | |
@@ -68,7 +68,9 @@ Source of truth: `src/lib/config.ts` (+ types `src/vite-env.d.ts`).
 | `VITE_FIREBASE_APP_ID` | – | firebase ke liye | `1:<sender>:web:<hash>` |
 | `VITE_FIREBASE_MEASUREMENT_ID` | – | nahi | `G-XXXXXXXXXX`, sirf Analytics |
 | `VITE_FIREBASE_DATABASE_URL` | – | nahi | Sirf Realtime Database use karo to |
-| `VITE_RECAPTCHA_SITE_KEY` | – | nahi | Phone auth ka reCAPTCHA (App Check / Enterprise) |
+| `VITE_RECAPTCHA_SITE_KEY` | – | nahi | Ab unused — app Anonymous Auth pe hai, phone OTP pe nahi |
+| `VITE_USE_ANONYMOUS_AUTH` | `true` | nahi | Anonymous Auth on/off. Band karna sirf tab jab koi doosra provider wire karo. |
+| `VITE_ADMIN_PASSCODE` | `pw-admin-demo` | nahi | Admin Panel gate — **sirf mock mode me padha jata hai**. Firebase mode me username + password chalta hai. ⚠️ Public bundle me inline hota hai, security nahi. See `docs/SECURITY.md` §5. |
 
 ### Fallback naming
 `src/lib/config.ts` pehle `VITE_<NAME>` padhta hai, na mile to `<NAME>`:
@@ -88,7 +90,9 @@ FIREBASE_API_KEY="AIza..."               # bhi chalega
 ### Placeholder safety
 `MY_` se shuru hone wali values (`MY_FIREBASE_API_KEY`, `MY_APP_URL`, …) ko code
 **"not set"** maanta hai, aur `""` / `"undefined"` / `"null"` bhi. Isse `.env.example`
-galti se production me chala jaye to app crash nahi hoti — mock mode pe chali jati hai.
+galti se production me chala jaye to app crash nahi hoti — Firebase
+"configured" nahi maana jata, aur UI me saaf setup error dikhta hai (nakli data
+invent nahi hota).
 
 ---
 
@@ -135,16 +139,7 @@ Workers runtime pe directly support nahi hota. Details: `docs/FIREBASE.md` §8.
 
 ## 5. Copy-paste ready sets
 
-### Cloudflare Pages — Production (mock/demo mode)
-```
-NODE_VERSION=22
-VITE_APP_ENV=production
-VITE_APP_URL=https://pwparent.pages.dev
-VITE_APP_VERSION=1.0.0
-VITE_BACKEND_MODE=mock
-```
-
-### Cloudflare Pages — Production (Firebase live)
+### Cloudflare Pages — Production (ye hi real config hai)
 ```
 NODE_VERSION=22
 VITE_APP_ENV=production
@@ -152,20 +147,49 @@ VITE_APP_URL=https://pwparent.pages.dev
 VITE_APP_VERSION=1.0.0
 VITE_BACKEND_MODE=firebase
 VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_AUTH_DOMAIN=pwparent.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=pwparent
-VITE_FIREBASE_STORAGE_BUCKET=pwparent.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:000000000000
-VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_FIREBASE_AUTH_DOMAIN=pwparentapp.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=pwparentapp
+VITE_FIREBASE_STORAGE_BUCKET=pwparentapp.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=543582188666
+VITE_FIREBASE_APP_ID=1:543582188666:web:fc0d4a1ee188fd4a97b7c3
+VITE_USE_ANONYMOUS_AUTH=true
 ```
-Plus secret: `GEMINI_API_KEY` (encrypted).
+Plus secret: `GEMINI_API_KEY` (encrypted) — sirf agar `functions/api/ai.ts` use karna ho.
+
+> `VITE_ADMIN_PASSCODE` production me **nahi** chahiye — firebase mode me admin
+> login Firebase Auth se hota hai.
+
+**Firebase side pe bhi 6 kaam zaroori hain** (warna app khaali khulegi aur setup
+error dikhegi): Firestore create (`asia-south1`) · **Anonymous** enable ·
+**Email/Password** enable · `firestore.rules` publish · `pwparent.pages.dev`
+Authorized domains me · admin register karke apne number ka login code issue
+karo. Poora checklist → [`docs/FIREBASE.md` §2](FIREBASE.md).
+
+### Cloudflare Pages — Preview (mock, bina Firebase ke)
+```
+NODE_VERSION=22
+VITE_APP_ENV=staging
+VITE_BACKEND_MODE=mock
+```
+Sirf UI dekhne ke liye. Data is browser ke localStorage me rehta hai.
+
+> `VITE_FIREBASE_MEASUREMENT_ID` optional hai (sirf Analytics). Is project me
+> set nahi hai — app use nahi karti.
+> `VITE_FIREBASE_DATABASE_URL` bhi optional hai. Config me ek Realtime
+> Database URL maujood hai par **ye app Firestore use karti hai, RTDB nahi**.
 
 ### `.env.local` (laptop)
 ```bash
 cp .env.example .env.local
 # VITE_BACKEND_MODE=mock rehne do — bina Firebase ke app poori chalti hai
+# (data localStorage me persist hota hai, Admin Panel bhi kaam karta hai)
 ```
+
+⚠️ **Tests `.env.local` ko ignore karte hain** — `vitest.config.ts` me `envDir`
+jaan-boojh ke `src/tests/env` (khali dir) pe set hai. Iske bina tumhare local
+Firebase values test suite ko `firebase` mode me dhakel dete aur
+`config.spec.ts` (jo mock-mode deploy safety assert karta hai) fail hone lagta.
+Details: `src/tests/env/README.md`.
 
 ---
 
@@ -183,5 +207,6 @@ Verify:
 curl -s https://pwparent.pages.dev/assets/index-*.js | grep -o "pwparent.firebaseapp.com" | head -1
 ```
 
-Aur browser console me app khud bata deta hai:
-`[config] Running in MOCK mode. Set these to enable Firebase: ...`
+Aur browser console me app khud bata deta hai. Adhoora config ho to:
+`[config] VITE_BACKEND_MODE=firebase but these are missing: VITE_FIREBASE_..., ...`
+— aur UI me Settings dock 🔴 `setup` dikhata hai.

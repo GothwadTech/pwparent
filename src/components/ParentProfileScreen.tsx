@@ -41,7 +41,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Bar matching Screenshot_20260918_180825.jpg */}
       <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#0d0e15] border-b border-[#1c1d29]/40 z-20">
         <div className="flex items-center">
