@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AppHeader } from './AppHeader';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 interface LoginScreenProps {
   initialPhoneNumber?: string;
@@ -28,10 +28,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     if (isValid) {
       onSubmit(cleanPhone);
     }
-  };
-
-  const handleQuickFill = () => {
-    setPhoneNumber('9335010032');
   };
 
   return (
@@ -97,21 +93,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </div>
 
           {/* Subtext below input */}
+          {/* HONEST copy. This app sends no SMS: the 6-digit code is set per
+              number by an administrator and verified locally against a stored
+              digest. Claiming "we will send a code by SMS" would be a lie the
+              user can disprove the moment they wait for a message that never
+              arrives — so the text says what actually happens. */}
           <p className="mt-3 text-[13px] text-[#9ca3af] leading-normal font-normal">
-            We will send a code by SMS to confirm this number
+            No SMS is sent. You will need the 6-digit code set for this number.
           </p>
-
-          {/* Quick-fill helper for convenience matching screenshot's number */}
-          {phoneNumber !== '9335010032' && (
-            <button
-              type="button"
-              onClick={handleQuickFill}
-              className="mt-4 flex items-center space-x-1.5 text-xs text-[#8E75FF] hover:text-[#a78bfa] transition-colors py-1 px-2 rounded-md bg-[#8E75FF]/10 w-fit"
-            >
-              <Sparkles size={12} />
-              <span>Use screenshot number: +91 9335010032</span>
-            </button>
-          )}
         </div>
       </div>
 

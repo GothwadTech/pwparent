@@ -19,6 +19,7 @@ import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from '
 
 interface BatchesTabProps {
   backend: Backend;
+  mode: 'mock' | 'firebase';
   flash: (message: string) => void;
 }
 
@@ -26,10 +27,7 @@ function blankBatch(): Batch {
   return {
     id: newBatchId(),
     name: '',
-    course: '',
-    batchType: 'online',
-    startDate: new Date().toISOString().slice(0, 10),
-    active: true,
+    batchType: 'offline',
   };
 }
 
@@ -41,32 +39,17 @@ const BatchForm: React.FC<{
   busy: boolean;
 }> = ({batch, onChange, onSave, onCancel, busy}) => (
   <div className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
-    <div className="grid grid-cols-2 gap-2.5">
-      <Field label="Batch name" htmlFor="batch-name" className="col-span-2">
+    {/* Only two fields, on purpose. Course duplicated the name, start date
+        drove nothing, and "visible to parents" was meaningless — allotment is
+        already the only thing that makes a batch visible to a parent. */}
+    <div className="space-y-2.5">
+      <Field label="Batch name" htmlFor="batch-name">
         <input
           id="batch-name"
           className={inputCls}
           value={batch.name}
           placeholder="MISSION 30 NEET 2026"
           onChange={(e) => onChange({...batch, name: e.target.value})}
-        />
-      </Field>
-      <Field label="Course" htmlFor="batch-course">
-        <input
-          id="batch-course"
-          className={inputCls}
-          value={batch.course}
-          placeholder="NEET / JEE / Foundation"
-          onChange={(e) => onChange({...batch, course: e.target.value})}
-        />
-      </Field>
-      <Field label="Start date" htmlFor="batch-start">
-        <input
-          id="batch-start"
-          type="date"
-          className={inputCls}
-          value={batch.startDate}
-          onChange={(e) => onChange({...batch, startDate: e.target.value})}
         />
       </Field>
       <Field label="Type" htmlFor="batch-type">
@@ -76,19 +59,8 @@ const BatchForm: React.FC<{
           value={batch.batchType}
           onChange={(e) => onChange({...batch, batchType: e.target.value as Batch['batchType']})}
         >
+          <option value="offline">Offline (centre / attendance)</option>
           <option value="online">Online</option>
-          <option value="offline">Offline</option>
-        </select>
-      </Field>
-      <Field label="Visible to parents" htmlFor="batch-active">
-        <select
-          id="batch-active"
-          className={inputCls}
-          value={batch.active ? 'yes' : 'no'}
-          onChange={(e) => onChange({...batch, active: e.target.value === 'yes'})}
-        >
-          <option value="yes">Yes</option>
-          <option value="no">No (draft)</option>
         </select>
       </Field>
     </div>
@@ -104,7 +76,7 @@ const BatchForm: React.FC<{
   </div>
 );
 
-export const BatchesTab: React.FC<BatchesTabProps> = ({backend, flash}) => {
+export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -165,7 +137,9 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, flash}) => {
     return (
       <BatchDetailView
         backend={backend}
+        mode={mode}
         batch={opened}
+        batches={batches}
         flash={flash}
         onBack={() => {
           setOpenedId(null);
@@ -233,8 +207,7 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, flash}) => {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate">{batch.name}</p>
               <p className="text-[11px] text-neutral-500 truncate">
-                {[batch.course, batch.batchType, batch.startDate].filter(Boolean).join(' · ')}
-                {batch.active === false && ' · draft'}
+                {batch.batchType === 'offline' ? 'Offline (centre)' : 'Online'}
               </p>
             </div>
             <ChevronRight size={15} className="text-neutral-500 shrink-0" />

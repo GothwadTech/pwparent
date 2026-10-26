@@ -14,24 +14,39 @@
  * needs the owner uid alongside each name (`AllotableStudent`).
  */
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Plus, RefreshCw, Search, Trash2, UserCheck, Users} from 'lucide-react';
+import {ChevronRight, Plus, RefreshCw, Search, ShieldAlert, Trash2, UserCheck, UserPlus, Users} from 'lucide-react';
 import type {AllotableStudent, Batch} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {btnDanger, btnGhost, btnPrimary, inputCls, labelCls, Note} from './ui';
+import {StudentCreatePanel} from './StudentCreatePanel';
 
 interface BatchMembersPanelProps {
   backend: Backend;
   batch: Batch;
+  /** Every batch, so the new-student form offers a real picker. */
+  batches: Batch[];
   flash: (message: string) => void;
+  /** Drill down into one child's details (record, batches, family login codes). */
+  onOpenStudent: (student: AllotableStudent, parentName: string) => void;
 }
 
 interface MemberRow {
   parentUid: string;
   students: AllotableStudent[];
+  /**
+   * Student ids that ARE allotted here but whose profile could not be read.
+   *
+   * These used to be dropped by a `.filter(Boolean)`, which is exactly how the
+   * panel came to show one child when two were allotted: the membership
+   * document still listed both ids, but one profile was unreadable, so the row
+   * vanished and the batch silently looked short. An allotment that cannot be
+   * resolved is a thing an admin must SEE, not a thing to hide.
+   */
+  missing: string[];
   joinedAt: string;
 }
 
-export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, batch, flash}) => {
+export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, batch, batches, flash, onOpenStudent}) => {
   const [pool, setPool] = useState<AllotableStudent[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,33 +54,46 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  /** uid → family name, so a row can say whose child it is instead of a hash. */
+  const [parentNames, setParentNames] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [allStudents, batchStudents, memberDocs] = await Promise.all([
+      const [allStudents, batchStudents, memberDocs, allParents] = await Promise.all([
         backend.listAllStudents(),
         backend.listBatchStudents(batch.id),
         backend.listBatchMembers(batch.id),
+        // Names are cosmetic, so a denial here must not blank the whole panel.
+        backend.listAllParents().catch(() => []),
       ]);
+
+      setParentNames(
+        Object.fromEntries(allParents.map((parent) => [parent.uid, (parent.name || '').trim()])),
+      );
 
       setPool(allStudents);
       setMembers(
-        memberDocs.map((doc) => ({
-          parentUid: doc.parentUid,
-          joinedAt: doc.joinedAt,
-          students: (doc.studentIds ?? [])
-            .map((id) => {
-              const found = allStudents.find((s) => s.id === id && s.parentUid === doc.parentUid);
-              return found ?? batchStudents.find((s) => s.id === id);
-              // Falls back to the batch's own student list so an allotment still
-              // renders even if the wider `listAllStudents` query was denied.
-            })
-            .filter((s): s is AllotableStudent => Boolean(s))
-            .map((s) => ({...s, parentUid: s.parentUid || doc.parentUid})),
-        })),
+        memberDocs.map((doc) => {
+          const resolved: AllotableStudent[] = [];
+          const missing: string[] = [];
+          for (const id of doc.studentIds ?? []) {
+            // Falls back to the batch's own student list so an allotment still
+            // renders even if the wider `listAllStudents` query was denied.
+            const found =
+              allStudents.find((s) => s.id === id && s.parentUid === doc.parentUid) ??
+              batchStudents.find((s) => s.id === id);
+            // `doc.parentUid` is the authoritative owner: the membership document
+            // IS keyed by parent uid, so it is correct even when the profile came
+            // from the batch's own list (which carries no parentUid).
+            if (found) resolved.push({...found, parentUid: doc.parentUid});
+            else missing.push(id);
+          }
+          return {parentUid: doc.parentUid, joinedAt: doc.joinedAt, students: resolved, missing};
+        }),
       );
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Could not load batch members.');
@@ -122,9 +150,9 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
   const unallot = async (row: MemberRow, studentId: string) => {
     setBusy(true);
     try {
-      const remaining = row.students.map((s) => s.id).filter((id) => id !== studentId);
-      if (remaining.length === 0) await backend.removeAllotment(batch.id, row.parentUid);
-      else await backend.allotStudents(batch.id, row.parentUid, remaining);
+      // One call, and it removes ONLY this child — the backend keeps any
+      // siblings in the family's membership document intact.
+      await backend.removeAllotment(batch.id, row.parentUid, studentId);
       flash('Student removed from this batch.');
       await load();
     } catch (removeError) {
@@ -142,7 +170,10 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
       return next;
     });
 
-  const totalStudents = members.reduce((n, m) => n + m.students.length, 0);
+  // Missing ids count towards the total: the batch really does have that many
+  // allotments, and understating it is what made the discrepancy invisible.
+  const totalStudents = members.reduce((n, m) => n + m.students.length + m.missing.length, 0);
+  const missingCount = members.reduce((n, m) => n + m.missing.length, 0);
 
   return (
     <>
@@ -163,7 +194,7 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
 
       {loading && <p className="text-xs text-neutral-500 text-center py-6">Loading…</p>}
 
-      {!loading && totalStudents === 0 && !adding && (
+      {!loading && totalStudents === 0 && !adding && !creating && (
         <Note>
           Nobody is allotted to this batch yet. Until you allot students, its tests have no result rows and its
           attendance grid is empty — parents allotted here are the only ones who can see this batch at all.
@@ -171,39 +202,72 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
       )}
 
       {members.map((row) =>
-        row.students.map((student) => (
-          <div
-            key={`${row.parentUid}:${student.id}`}
-            className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 flex items-center gap-3"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center shrink-0">
-              <UserCheck size={14} className="text-[#8E75FF]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{student.name || '(unnamed)'}</p>
-              <p className="text-[11px] text-neutral-500 truncate font-mono">
-                parent {row.parentUid.slice(0, 12)}…
-                {student.course ? ` · ${student.course}` : ''}
-              </p>
-            </div>
-            <button
-              type="button"
-              className={btnDanger}
-              disabled={busy}
-              onClick={() => void unallot(row, student.id)}
-              aria-label={`Remove ${student.name} from ${batch.name}`}
+        row.students.map((student) => {
+          const family = parentNames[row.parentUid] || '';
+          return (
+            <div
+              key={`${row.parentUid}:${student.id}`}
+              className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 flex items-center gap-3"
             >
-              <Trash2 size={12} />
-            </button>
-          </div>
-        )),
+              {/* The whole row drills into this child: record, batches, and the
+                  family's login codes. Nothing about a student lives on a
+                  separate top-level tab any more. */}
+              <button
+                type="button"
+                onClick={() => onOpenStudent(student, family)}
+                className="flex-1 min-w-0 flex items-center gap-3 text-left"
+                aria-label={`Open ${student.name || 'this student'}'s details`}
+              >
+                <span className="w-8 h-8 rounded-lg bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center shrink-0">
+                  <UserCheck size={14} className="text-[#8E75FF]" />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-bold truncate">{student.name || '(unnamed)'}</span>
+                  <span className="block text-[11px] text-neutral-500 truncate">
+                    {family || `parent ${row.parentUid.slice(0, 12)}…`}
+                  </span>
+                </span>
+                <ChevronRight size={15} className="text-neutral-600 shrink-0" />
+              </button>
+              <button
+                type="button"
+                className={btnDanger}
+                disabled={busy}
+                onClick={() => void unallot(row, student.id)}
+                aria-label={`Remove ${student.name} from ${batch.name}`}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          );
+        }),
       )}
 
-      {!adding ? (
-        <button type="button" className={`${btnPrimary} w-full py-2.5`} onClick={() => setAdding(true)}>
-          <Plus size={13} /> Allot students
-        </button>
-      ) : (
+      {creating && (
+        <StudentCreatePanel
+          backend={backend}
+          batches={batches}
+          currentBatch={batch}
+          flash={flash}
+          onCreated={() => {
+            setCreating(false);
+            void load();
+          }}
+        />
+      )}
+
+      {!adding && !creating && (
+        <div className="flex gap-2">
+          <button type="button" className={`${btnPrimary} flex-1 py-2.5`} onClick={() => setCreating(true)}>
+            <UserPlus size={13} /> New student
+          </button>
+          <button type="button" className={`${btnGhost} flex-1 py-2.5`} onClick={() => setAdding(true)}>
+            <Plus size={13} /> Allot existing
+          </button>
+        </div>
+      )}
+
+      {adding && (
         <div className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
           <p className="text-xs font-bold flex items-center gap-1.5">
             <Users size={13} className="text-[#8E75FF]" /> Pick students to allot

@@ -3,14 +3,14 @@ import {describe, expect, it} from 'vitest';
 import App from '../App';
 
 describe('App (build smoke test)', () => {
-  it('mounts and renders the splash screen without crashing', () => {
+  it('mounts and renders a usable first screen without crashing', () => {
     const {container, unmount} = render(<App />);
 
     expect(container.firstElementChild).not.toBeNull();
     expect(container.innerHTML.length).toBeGreaterThan(200);
 
-    // The splash screen auto-advances after 2.8s — unmount immediately so no
-    // setState lands after the test finishes.
+    // There is no splash screen any more: the first paint is already onboarding
+    // or login, and nothing auto-advances on a timer.
     unmount();
   });
 

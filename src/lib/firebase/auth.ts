@@ -47,7 +47,7 @@ export function getFirebaseAuth(): Auth {
 }
 
 /**
- * Normalises "9335010032" / "+91 9335010032" / "+91-93350-10032" -> "+919335010032".
+ * Normalises "9000000000" / "+91 9000000000" / "+91-90000-00000" -> "+919000000000".
  * Used only to store a tidy value — it is not a credential.
  */
 export function toE164(rawPhone: string, defaultCountryCode = '+91'): string {

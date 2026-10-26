@@ -46,6 +46,7 @@ export const unconfiguredBatchOps: BatchOps = {
   removeAllotment: blockedWrite('removeAllotment'),
   listBatchStudents: emptyRead([]),
   listAllStudents: emptyRead([]),
+  listAllParents: emptyRead([]),
 
   // Resolves to an EMPTY record rather than null, so the calendar UI renders
   // "nothing marked yet" instead of crashing on a missing shape.

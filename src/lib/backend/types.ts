@@ -37,6 +37,11 @@ export interface LoginCodeInfo {
   createdAt: string;
   /** Whether the stored hash uses the current algorithm/iteration count. */
   currentVersion: boolean;
+  /**
+   * Human label for the person/family this number belongs to. Several numbers
+   * may share one name — that is how the admin list groups them.
+   */
+  name?: string;
 }
 
 export type BackendMode = 'mock' | 'firebase';
@@ -71,7 +76,7 @@ export interface Backend extends BatchOps {
   verifyOtp(code: string, sendResult?: SendOtpResult): Promise<{ok: boolean; uid?: string | null; error?: string}>;
 
   // ── admin: manage login codes ────────────────────────────────────────────
-  setLoginCode(phone: string, code: string): Promise<void>;
+  setLoginCode(phone: string, code: string, name?: string): Promise<void>;
   deleteLoginCode(phone: string): Promise<void>;
   listLoginCodes(): Promise<LoginCodeInfo[]>;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, LogOut, Plus, Check, ChevronLeft } from 'lucide-react';
+import { ChevronRight, LogOut, Check, ChevronLeft } from 'lucide-react';
 import { StudentProfile } from '../types';
 import { StudentAvatar } from './StudentAvatar';
 
@@ -7,7 +7,6 @@ interface ProfileScreenProps {
   students: StudentProfile[];
   activeStudent: StudentProfile;
   onSelectStudent: (student: StudentProfile) => void;
-  onAddChild: () => void;
   onBack: () => void;
   onOpenPurchases: () => void;
   onOpenParentProfile: () => void;
@@ -19,7 +18,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   students,
   activeStudent,
   onSelectStudent,
-  onAddChild,
   onBack,
   onOpenPurchases,
   onOpenParentProfile,
@@ -93,19 +91,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               );
             })}
 
-            {/* Add Child Button */}
-            <button
-              type="button"
-              onClick={onAddChild}
-              className="flex flex-col items-center group focus:outline-none"
-            >
-              <div className="w-15 h-15 rounded-full border border-dashed border-[#34374c] bg-[#161724]/70 hover:bg-[#1f2133] hover:border-[#7C63FF]/60 flex items-center justify-center text-neutral-400 hover:text-white transition-all">
-                <Plus size={22} strokeWidth={2} />
-              </div>
-              <span className="mt-2 text-xs font-medium text-neutral-400">
-                Add
-              </span>
-            </button>
           </div>
         </div>
 

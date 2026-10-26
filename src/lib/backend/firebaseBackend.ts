@@ -223,10 +223,10 @@ export function createFirebaseBackend(): Backend {
       return {ok: true, uid: session.uid};
     },
 
-    async setLoginCode(phone, code) {
+    async setLoginCode(phone, code, name) {
       const digits = normalizePhone(phone);
       if (!uid()) throw new Error('Sign in as admin first.');
-      const record = await createCredential(code, digits);
+      const record = await createCredential(code, digits, name);
       await cachedWrite(keys.credential(digits), () =>
         writeDoc(paths.credential(digits), record as unknown as Record<string, unknown>, false),
       );
@@ -248,6 +248,7 @@ export function createFirebaseBackend(): Backend {
         phone: String(row.id ?? ''),
         createdAt: typeof row.createdAt === 'string' ? row.createdAt : '',
         currentVersion: row.v === CREDENTIAL_VERSION,
+        name: typeof row.name === 'string' && row.name.trim() ? row.name.trim() : undefined,
       }));
     },
 

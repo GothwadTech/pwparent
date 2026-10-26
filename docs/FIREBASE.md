@@ -188,11 +188,16 @@ parents/{uid}/purchases/{itemId}       PurchaseItem
                                        ("from-blue-600 to-indigo-700")
 
 batches/{batchId}                      Batch — admin banata hai
-  ├─ name, course                      string
+  ├─ name                              string ← har jagah yahi dikhta hai
   ├─ batchType                         "online" | "offline"
-  ├─ startDate                         "YYYY-MM-DD"
-  ├─ active                            boolean (false = draft, parents ko nahi dikhta)
   └─ createdAt, createdBy
+      ⚠️ `course`, `startDate` aur `active` HATA diye gaye:
+         course  — naam ko hi duplicate karta tha, akela kuch matlab nahi rakhta
+         startDate — koi cheez usse derive nahi hoti thi
+         active  — "visible to parents" toggle bekar tha: parent ko sirf wahi
+                   batch dikhta hai jisme wo ALLOT hai, yaani allotment hi
+                   visibility control hai. Bina allot kiya batch waise bhi
+                   kisi ko nahi dikhta.
 
 batches/{batchId}/members/{parentUid}  allotment — PARENT uid se keyed
   ├─ studentIds[]                      is parent ke kaun se bachche is batch me hain
@@ -242,7 +247,16 @@ credentials/{phone}                    phone ka login code — SIRF digest
   ├─ salt                              base64, 16 random bytes
   ├─ iterations                        210000
   ├─ hash                              base64, PBKDF2-SHA256 over "code|phone"
-  └─ createdAt                         ISO timestamp
+  ├─ createdAt                         ISO timestamp
+  └─ name                              (optional) kis family ka number hai
+      ⚠️ `name` digest ka hissa NAHI hai — rename karne se code invalidate
+         nahi hota. Ek family ke kai numbers ho sakte hain (pita, mata,
+         bachche ka apna phone), isliye admin list sirf 10-digit numbers se
+         padhi nahi jaati. Isi naam se list group hoti hai.
+      ⚠️ Plaintext code KAHI store nahi hota, isliye save karne ke baad wo
+         dobara padha nahi ja sakta — issue karte waqt likh lo, ya replace
+         kar do. Rules me `credentials/{phone}` `get`-only hai (list admin-only),
+         isliye plaintext rakhna hi leak hota.
 ```
 
 **Har parent-scoped path `parents/{uid}` se shuru hota hai** — isse rules me

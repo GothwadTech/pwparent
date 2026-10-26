@@ -20,6 +20,7 @@ import type {
   BatchTest,
   MonthMarks,
   AllotableStudent,
+  ParentDirectoryEntry,
   StudentProfile,
   SyllabusTopic,
   TestResult,
@@ -47,7 +48,15 @@ export interface BatchOps {
    * parent uid and keeps `StudentProfile.batchIds` in sync.
    */
   allotStudents(batchId: string, parentUid: string, studentIds: string[]): Promise<void>;
-  removeAllotment(batchId: string, parentUid: string): Promise<void>;
+  /**
+   * Drop a parent's membership of a batch.
+   *
+   * `studentId` removes ONE child and leaves their siblings in the batch. Omit
+   * it to drop the whole family. This distinction matters: membership is one
+   * document per parent holding `studentIds[]`, so a naive "delete the member
+   * document" silently un-enrols every other child in that family.
+   */
+  removeAllotment(batchId: string, parentUid: string, studentId?: string): Promise<void>;
   /**
    * The students in a batch, resolved to profiles so the admin UI can show
    * names without a second round of reads.
@@ -64,6 +73,20 @@ export interface BatchOps {
    * picker, not an error screen.
    */
   listAllStudents(): Promise<AllotableStudent[]>;
+  /**
+   * Admin-only: every registered parent, so the Admin Panel can choose which
+   * parent OWNS a newly created student.
+   *
+   * This exists because a student cannot be created in the abstract — it lives
+   * at `parents/{uid}/children/{childId}`, and the uid has to come from
+   * somewhere. Without this the admin could only ever create students under
+   * their own uid, which is how a student ends up invisible to the family it
+   * belongs to.
+   *
+   * Returns `[]` for a non-admin (the rules deny the query) rather than
+   * throwing, so the picker renders empty instead of erroring.
+   */
+  listAllParents(): Promise<ParentDirectoryEntry[]>;
 
   /* ── attendance ─────────────────────────────────────────────────────────── */
   /**

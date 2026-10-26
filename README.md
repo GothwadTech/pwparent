@@ -262,6 +262,29 @@ nahi.
 ⚠️ Plugin `dist/404.html` emit **nahi** karta — wo Pages ko SPA mode se bahar
 nikaal deta. `npm run check:build` iska guard hai.
 
+## 🧭 Admin Panel drill-down
+
+Admin Panel flat tabs ka row **nahi** hai — ye ek drill-down hai:
+
+```
+Batches → ek batch → Students → ek bachcha
+                                     ├─ academic record (edit)
+                                     ├─ batches (jo actually exist karte hain, picker)
+                                     └─ us family ke login codes (name + numbers)
+```
+
+Top-level sirf **Batches · Announcements · Data** bache hain. "Students" aur
+"Login codes" alag tabs the hi nahi chahiye: ek flat Students tab hamesha
+sirf *signed-in admin ke apne* bachche dikhata tha, isliye batch me 2 bachche
+allot hone ke baad bhi list me 1 dikhta tha. Ab bachcha hamesha us batch ke
+context me khulta hai jisse aap andar aaye.
+
+Parent app me **Add Child nahi hai**. Bachcha admin banata hai (family chun ke),
+taki record placeholder numbers se shuru na ho.
+
+**Splash screen bhi nahi hai** — pehla paint hi usable screen hota hai
+(pehli baar onboarding, uske baad seedha login). `src/lib/firstVisit.ts`.
+
 ## 📁 Structure
 
 ```
@@ -270,7 +293,8 @@ src/
     admin/             AdminPanelScreen · AdminGate · BatchesTab ·
                        BatchDetailView · BatchMembersPanel ·
                        BatchAttendancePanel · BatchTestsPanel ·
-                       TestResultsPanel · StudentsTab · LoginCodesTab ·
+                       TestResultsPanel · StudentDetailView ·
+                       StudentCreatePanel · LoginCodesTab ·
                        AnnouncementsTab · DataTab · ui
   App.tsx              layout shell + screen router + #admin route
   hooks/useAppData.ts  saara state + saare data calls

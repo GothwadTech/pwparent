@@ -294,7 +294,48 @@ attendance % hai. Details upar.
 
 ---
 
-## 7. Files
+## 7. Drill-down, flat tabs nahi
+
+Panel me top-level sirf **Batches · Announcements · Data** hain. "Students" aur
+"Login codes" alag tabs the hi nahi chahiye — dono batch ke andar, us particular
+bachche ke details me hain:
+
+```
+Batches → ek batch → Students → ek bachcha
+                                     ├─ academic record (edit + save)
+                                     ├─ Batches  — jo batches actually exist karte
+                                     │             hain unka picker (free text nahi)
+                                     └─ Login codes — us family ke saare numbers,
+                                                      NAAM se grouped
+```
+
+**Flat Students tab ek bug tha, sirf UI choice nahi.** Wo tab `app.students`
+render karta tha, yaani *signed-in admin ke apne* bachche (`parents/{adminUid}/
+children`). Doosri family ka bachcha batch me allot hone ke baad bhi wahan kabhi
+nahi dikhta — isliye "2 allot kiye, 1 dikha". Ab bachche `listAllStudents()` se
+aate hain, jo `parents/` collection ko cross-parent padhta hai.
+
+**Unresolved allotments ab chhupte nahi.** `BatchMembersPanel` pehle
+`.filter(Boolean)` se un student ids ko chup-chaap gira deta tha jinka profile
+padha nahi ja saka. Wahi "batch me hai, list me nahi" ka doosra half tha. Ab wo
+ids ek warn row me dikhte hain (id + family) aur hataye ja sakte hain. Ye tab
+hota hai jab bachcha mock mode (`localStorage`) me bana ho aur Firestore tak
+pahuncha hi na ho.
+
+**Naya bachcha banane ka tareeka.** `StudentCreatePanel` do cheezein enforce
+karta hai: family ek **picker** se chunni jaati hai (`listAllParents()` — naam,
+number, existing child count ke saath), aur batch ek **dropdown** se aata hai jo
+real batches se banta hai. Free-text batch naam se aisa bachcha banta tha jo
+kisi batch document se match hi na kare — parent ko dikhe na, attendance lage
+na. Create + allot ek hi action hai, kyunki bina batch ka bachcha parent app me
+kahin nahi dikhta aur wo data-loss jaisa lagta hai.
+
+**Parent app me Add Child nahi hai.** `AddChildModal.tsx` delete ho gaya — wo
+`attendance: '92%'`, `testsCompleted: 14`, `dppsDone: 48`, `videoWatchRate:
+'88%'` jaisi invented values likhta tha. Ab record zero se shuru hota hai aur
+batch panels se bhara jaata hai.
+
+## 8. Files
 
 ```
 src/components/admin/
@@ -306,8 +347,9 @@ src/components/admin/
   BatchAttendancePanel.tsx day-wise P/A/L calendar per student
   BatchTestsPanel.tsx      test CRUD + structured syllabus editor
   TestResultsPanel.tsx     per-student marks on one test
-  StudentsTab.tsx          per-child academic record
-  LoginCodesTab.tsx        per-phone 6-digit codes
+  StudentDetailView.tsx    ONE child: record + batch picker + family codes
+  StudentCreatePanel.tsx   new child: parent picker + batch picker
+  LoginCodesTab.tsx        per-phone 6-digit codes (child details me embedded)
   AnnouncementsTab.tsx     shared feed
   DataTab.tsx              session, read budget, cache
   ui.tsx                   shared primitives

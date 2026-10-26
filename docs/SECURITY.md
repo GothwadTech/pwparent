@@ -86,9 +86,19 @@ Only a digest is written to Firestore, at `credentials/{phone}`:
   "salt": "<base64, 16 random bytes>",
   "iterations": 210000,
   "hash": "<base64, PBKDF2-SHA256>",
-  "createdAt": "2026-10-26T12:00:00.000Z"
+  "createdAt": "2026-10-26T12:00:00.000Z",
+  "name": "Ananya Sharma"
 }
 ```
+
+`name` is optional and is a **label, not a secret input**. It is not mixed into
+the derived key, so renaming someone never invalidates their code. It exists
+because one family routinely has several numbers (father, mother, the student's
+own phone) and a list of bare 10-digit numbers is unreadable at that point — the
+admin list groups by name. `name` is omitted entirely rather than written as
+`""`, so documents created before the field existed stay byte-identical. It is
+only ever readable by an admin, because `list` on `credentials/` is admin-only
+in the rules.
 
 - **PBKDF2-SHA256, 210 000 iterations** via Web Crypto (`crypto.subtle`),
   implemented in `src/lib/credentials.ts`.
@@ -101,6 +111,21 @@ Only a digest is written to Firestore, at `credentials/{phone}`:
   wrong code cannot be detected by timing.
 - The plaintext code is **never** written anywhere — not to Firestore, not to
   `localStorage`, not to the console.
+
+### A saved code cannot be read back — by anyone
+
+PBKDF2 is one-way, so once a code is stored there is no way to recover the six
+digits. Not from the app, not from the Firebase console, not by an admin, and
+not by an attacker who steals the document. This is the point of hashing, but it
+has a UI consequence that reads like a bug if nobody says so:
+
+**The admin panel shows a code exactly once**, in a banner immediately after
+saving it. Every later view shows `••••••` with an **Edit** button that
+generates a fresh code. Storing the plaintext to make the list "complete" would
+undo the entire scheme above — and because `credentials/{phone}` is `get`-able by
+anyone (see the limitation below), a plaintext code would be readable by any
+signed-in visitor who knows the number. So: write the code down when you issue
+it, or replace it.
 
 ### The limitation you must understand
 

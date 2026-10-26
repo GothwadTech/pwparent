@@ -28,7 +28,6 @@ import React, {useState} from 'react';
 import {useAppData} from './hooks/useAppData';
 import {useBatchView} from './hooks/useBatchView';
 import {fluidShellStyle, useFluidScale} from './lib/layout';
-import {SplashScreen} from './components/SplashScreen';
 import {OnboardingScreen} from './components/OnboardingScreen';
 import {LoginScreen} from './components/LoginScreen';
 import {OtpScreen} from './components/OtpScreen';
@@ -40,7 +39,6 @@ import {PurchasesScreen} from './components/PurchasesScreen';
 import {AdminPanelScreen} from './components/admin/AdminPanelScreen';
 import {SettingsDock} from './components/SettingsDock';
 import {HowItWorksModal} from './components/HowItWorksModal';
-import {AddChildModal} from './components/AddChildModal';
 import {LogoCustomizerModal} from './components/LogoCustomizerModal';
 
 /** Ambient wash. Outside the scaled shell so it always covers the window. */
@@ -64,7 +62,6 @@ export const App: React.FC = () => {
 
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>('/assets/ic_launcher_round.webp');
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
-  const [isAddChildOpen, setIsAddChildOpen] = useState(false);
   const [isLogoCustomizerOpen, setIsLogoCustomizerOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
 
@@ -91,9 +88,7 @@ export const App: React.FC = () => {
     handleLogout,
     handleSwitchNumber,
     handleDeleteParentProfile,
-    handleAddChild,
-    handleSaveStudent,
-    handleDeleteStudent,
+    completeOnboarding,
     handleSaveAnnouncement,
     handleDeleteAnnouncement,
     handleSaveProfile,
@@ -103,21 +98,12 @@ export const App: React.FC = () => {
 
   const renderCurrentScreen = () => {
     switch (screen) {
-      case 'splash':
-        return (
-          <SplashScreen
-            onContinue={() => setScreen('onboarding1')}
-            customLogoUrl={customLogoUrl}
-            onOpenLogoCustomizer={openLogoCustomizer}
-          />
-        );
-
       case 'onboarding1':
       case 'onboarding2':
         return (
           <OnboardingScreen
             initialSlide={screen === 'onboarding2' ? 1 : 0}
-            onComplete={() => setScreen('login')}
+            onComplete={completeOnboarding}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
           />
@@ -153,7 +139,6 @@ export const App: React.FC = () => {
           <LinkedAccountsScreen
             students={students}
             onSelectStudent={handleSelectStudent}
-            onAddChild={() => setIsAddChildOpen(true)}
             onOpenProfile={() => setScreen('profile')}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
@@ -189,7 +174,6 @@ export const App: React.FC = () => {
             students={students}
             activeStudent={activeStudent}
             onSelectStudent={handleSelectStudent}
-            onAddChild={() => setIsAddChildOpen(true)}
             onBack={() => setScreen('dashboard')}
             onOpenPurchases={() => setScreen('purchases')}
             onOpenParentProfile={() => setScreen('parent_profile')}
@@ -219,10 +203,7 @@ export const App: React.FC = () => {
             uid={uid}
             admin={admin}
             configError={configError}
-            students={students}
             announcements={announcements}
-            onSaveStudent={handleSaveStudent}
-            onDeleteStudent={handleDeleteStudent}
             onSaveAnnouncement={handleSaveAnnouncement}
             onDeleteAnnouncement={handleDeleteAnnouncement}
             onBack={closeAdmin}
@@ -263,15 +244,6 @@ export const App: React.FC = () => {
       />
 
       <HowItWorksModal isOpen={isHowItWorksOpen} onClose={() => setIsHowItWorksOpen(false)} />
-
-      <AddChildModal
-        isOpen={isAddChildOpen}
-        onClose={() => setIsAddChildOpen(false)}
-        onAdd={(student) => {
-          handleAddChild(student);
-          setIsAddChildOpen(false);
-        }}
-      />
 
       <LogoCustomizerModal
         isOpen={isLogoCustomizerOpen}

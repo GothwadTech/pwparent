@@ -61,6 +61,16 @@ export interface StoredCredential {
   hash: string;
   /** ISO timestamp, for the admin UI */
   createdAt: string;
+  /**
+   * Human label for whoever owns this number — a parent's or student's name.
+   *
+   * One family routinely has several numbers (father, mother, the student's own
+   * phone), so a bare number is not enough to recognise an entry in the admin
+   * list. The name groups them. It is NOT part of the digest: renaming someone
+   * never invalidates their code, and the name is only ever read by admins
+   * (`list` on credentials is admin-only in the rules).
+   */
+  name?: string;
 }
 
 function subtle(): SubtleCrypto {
@@ -129,18 +139,22 @@ async function derive(code: string, phone: string, saltB64: string, iterations: 
 }
 
 /** Build the record to write at `credentials/{phone}`. */
-export async function createCredential(code: string, phone: string): Promise<StoredCredential> {
+export async function createCredential(code: string, phone: string, name?: string): Promise<StoredCredential> {
   if (!isValidCode(code)) throw new Error('Login code must be exactly 6 digits.');
   const normalized = normalizePhone(phone);
   if (normalized.length < 10) throw new Error('Phone number must be 10 digits.');
 
   const salt = randomSalt();
+  const label = name?.trim();
   return {
     v: CREDENTIAL_VERSION,
     salt,
     iterations: PBKDF2_ITERATIONS,
     hash: await derive(code, normalized, salt, PBKDF2_ITERATIONS),
     createdAt: new Date().toISOString(),
+    // Omitted entirely rather than written as '' so old documents and new ones
+    // stay byte-identical when no name was supplied.
+    ...(label ? {name: label} : {}),
   };
 }
 
