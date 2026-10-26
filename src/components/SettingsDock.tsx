@@ -104,7 +104,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
     <>
       {(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs">
-          <div className="w-full sm:max-w-sm max-h-[88dvh] overflow-y-auto bg-[#F4F5F7] border border-[#E4E6EB] sm:rounded-2xl rounded-t-2xl p-5 text-[#17181C] shadow-2xl">
+          <div className="w-full sm:max-w-sm max-h-[88dvh] overflow-y-auto bg-[#FFFFFF] border border-[#E4E6EB] sm:rounded-2xl rounded-t-2xl p-5 text-[#17181C] shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold">Settings</h2>
               <button

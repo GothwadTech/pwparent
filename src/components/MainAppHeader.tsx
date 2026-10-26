@@ -16,7 +16,7 @@ export const MainAppHeader: React.FC<MainAppHeaderProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <header className="w-full px-4 pt-3 pb-2.5 flex items-center justify-between bg-[#F4F5F7] border-b border-[#E4E6EB] z-20">
+    <header className="w-full px-4 pt-3 pb-2.5 flex items-center justify-between bg-[#FFFFFF] border-b border-[#E4E6EB] z-20">
       {/* Batch Selector Dropdown Pill */}
       <button
         type="button"

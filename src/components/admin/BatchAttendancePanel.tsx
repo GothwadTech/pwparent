@@ -109,7 +109,7 @@ const StudentCalendar: React.FC<{
               title={`${day}${mark ? ` — ${style?.label}` : ' — unmarked'}`}
               aria-label={`${day}${mark ? `, ${style?.label}` : ', unmarked'}`}
               className={`aspect-square rounded-lg border text-[11px] font-bold flex items-center justify-center transition-colors disabled:opacity-50 ${
-                style?.bg ?? 'bg-[#F4F5F7] border-[#E4E6EB] text-neutral-600 hover:border-[#E4E6EB]'
+                style?.bg ?? 'bg-[#FFFFFF] border-[#E4E6EB] text-neutral-600 hover:border-[#E4E6EB]'
               } ${isToday ? 'ring-1 ring-[#8E75FF]' : ''}`}
             >
               {Number(day.slice(-2))}

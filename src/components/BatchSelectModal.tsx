@@ -40,7 +40,7 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
       </div>
 
       {/* Bottom Sheet Modal matching screenshot */}
-      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#F4F5F7] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
+      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#FFFFFF] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
         {/* Top drag handle indicator */}
         <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-4" />
 

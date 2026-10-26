@@ -25,9 +25,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLogout,
 }) => {
   return (
-    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top App Bar matching Screenshot_20260918_180819.jpg */}
-      <div className="w-full px-4 pt-4 pb-3 flex items-center bg-[#F4F5F7] border-b border-[#E4E6EB]/40 z-20">
+      <div className="w-full px-4 pt-4 pb-3 flex items-center bg-[#FFFFFF] border-b border-[#E4E6EB]/40 z-20">
         <button
           type="button"
           onClick={onBack}
@@ -100,7 +100,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
 
         {/* Menu Items List */}
-        <div className="divide-y divide-[#181a27] bg-[#F4F5F7]">
+        <div className="divide-y divide-[#181a27] bg-[#FFFFFF]">
           {/* Ayush's Purchases */}
           <button
             type="button"

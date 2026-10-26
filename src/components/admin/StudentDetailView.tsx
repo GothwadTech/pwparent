@@ -143,7 +143,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
 
   return (
     <div className="-mx-4 -my-4 flex flex-col h-full min-h-0">
-      <header className="shrink-0 px-4 pt-3 pb-3 border-b border-[#E4E6EB] bg-[#F4F5F7]">
+      <header className="shrink-0 px-4 pt-3 pb-3 border-b border-[#E4E6EB] bg-[#FFFFFF]">
         <button
           type="button"
           onClick={onBack}
@@ -236,7 +236,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
                 disabled={busy}
                 onClick={() => void toggleBatch(batch)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-colors ${
-                  on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#F4F5F7] border-[#E4E6EB] hover:border-[#E4E6EB]'
+                  on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#FFFFFF] border-[#E4E6EB] hover:border-[#E4E6EB]'
                 }`}
                 aria-pressed={on}
               >
@@ -270,7 +270,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
           {(draft.tests ?? []).length === 0 && <Note>No test rows yet.</Note>}
 
           {(draft.tests ?? []).map((test) => (
-            <div key={test.id} className="bg-[#F4F5F7] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
+            <div key={test.id} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <input
                   className={inputCls}

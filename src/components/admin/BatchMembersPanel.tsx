@@ -302,7 +302,7 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
                   type="button"
                   onClick={() => toggle(key)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-colors ${
-                    on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#F4F5F7] border-[#E4E6EB] hover:border-[#E4E6EB]'
+                    on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#FFFFFF] border-[#E4E6EB] hover:border-[#E4E6EB]'
                   }`}
                 >
                   <span

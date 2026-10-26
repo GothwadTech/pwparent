@@ -67,6 +67,8 @@ export interface AppData {
   closeAdmin: () => void;
 
   // ── auth flow ────────────────────────────────────────────────────────────
+  /** Header sync button: bypass the cache and re-read everything once. */
+  refreshData: () => Promise<void>;
   handleLoginSubmit: (phone: string) => Promise<void>;
   handleOtpVerified: (code: string) => Promise<void>;
   handleSelectStudent: (student: StudentProfile) => void;
@@ -94,8 +96,15 @@ export function useAppData(): AppData {
    * visit, login on every visit after that. Read synchronously from
    * localStorage inside the initializer so there is no flash and no delay.
    */
+  /**
+   * A device that remembers a session opens ON THE DASHBOARD, not on login.
+   * Opening on login and hopping across once the restore lands is the blink
+   * users read as "logged out again"; the boot hold below keeps the paint
+   * still until the restore has actually decided, so the wrong screen is
+   * never shown even for one frame.
+   */
   const [screen, setScreen] = useState<ScreenId>(() =>
-    hasSeenOnboarding() ? 'login' : 'onboarding1',
+    !hasSeenOnboarding() ? 'onboarding1' : hasStoredSession() ? 'dashboard' : 'login',
   );
   /** Only ever true when this device remembers a session to resume. */
   const [booting, setBooting] = useState<boolean>(() => hasStoredSession());
@@ -202,10 +211,11 @@ export function useAppData(): AppData {
         await hydrate(instance, restored.uid, restored.studentId ?? null);
         // Straight to the child. No picker: one number is one student.
         if (!cancelled) setScreen('dashboard');
-      } else if (storedSessionPhone()) {
-        // No resumable session, but this device remembers its number: prefill
-        // the login field so re-entering it is not a chore.
-        setPhoneNumber(storedSessionPhone());
+      } else {
+        // Nothing resumable: land on login (we may have opened optimistically
+        // on the dashboard) and prefill whatever number this device remembers.
+        setScreen('login');
+        if (storedSessionPhone()) setPhoneNumber(storedSessionPhone());
       }
       void refreshAdmin();
     };
@@ -277,6 +287,17 @@ export function useAppData(): AppData {
     },
     [backend, otpResult, hydrate],
   );
+
+  /**
+   * The header's circular sync button: drop the read cache and pull every
+   * collection once more, so an admin's edit shows up immediately instead of
+   * after the TTL. One user-triggered round trip, never automatic.
+   */
+  const refreshData = useCallback(async () => {
+    if (!backend) return;
+    backend.clearCache();
+    await hydrate(backend, uid, boundStudentId);
+  }, [backend, uid, boundStudentId, hydrate]);
 
   const handleSelectStudent = useCallback((student: StudentProfile) => {
     setActiveStudent(student);
@@ -424,6 +445,7 @@ export function useAppData(): AppData {
     setScreen,
     openAdmin,
     closeAdmin,
+    refreshData,
     handleLoginSubmit,
     handleOtpVerified,
     handleSelectStudent,

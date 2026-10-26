@@ -64,7 +64,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
         </p>
 
         {/* Live Preview */}
-        <div className="mt-4 p-4 rounded-xl bg-[#F4F5F7] border border-[#E4E6EB] flex flex-col items-center justify-center">
+        <div className="mt-4 p-4 rounded-xl bg-[#FFFFFF] border border-[#E4E6EB] flex flex-col items-center justify-center">
           <span className="text-[11px] text-neutral-500 mb-2 font-medium">PREVIEW ON SPLASH BG</span>
           <div className="w-18 h-18 rounded-full bg-[#005677] flex items-center justify-center p-2 shadow-inner">
             <PWLogo size={52} customLogoUrl={urlInput || '/assets/ic_launcher_round.webp'} />
@@ -133,7 +133,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full bg-[#F4F5F7] border border-[#E4E6EB] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
+            className="w-full bg-[#FFFFFF] border border-[#E4E6EB] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
           />
         </div>
 

@@ -34,7 +34,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       {/* Header with PW Logo and "How it works" */}
       <AppHeader
         showHowItWorks={true}
@@ -54,7 +54,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* Input Container with floating label on top-left border */}
         <div className="mt-8 relative">
           <div
-            className={`relative flex items-center bg-[#F4F5F7] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
+            className={`relative flex items-center bg-[#FFFFFF] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
               isFocused || phoneNumber.length > 0
                 ? 'border-[#5747D6] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
                 : 'border-[#E4E6EB]'
@@ -62,7 +62,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             {/* Floating label cut into top border */}
             <span
-              className={`absolute -top-2.5 left-4 px-1.5 text-[11px] font-medium bg-[#F4F5F7] transition-colors ${
+              className={`absolute -top-2.5 left-4 px-1.5 text-[11px] font-medium bg-[#FFFFFF] transition-colors ${
                 isFocused || phoneNumber.length > 0
                   ? 'text-[#5747D6]'
                   : 'text-[#9ca3af]'

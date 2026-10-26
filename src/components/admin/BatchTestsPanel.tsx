@@ -61,7 +61,7 @@ const SyllabusEditor: React.FC<{
       {syllabus.length === 0 && <Note>No syllabus yet — optional, but students see it on the test card.</Note>}
 
       {syllabus.map((topic, index) => (
-        <div key={index} className="bg-[#F4F5F7] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
+        <div key={index} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <input
               className={inputCls}
