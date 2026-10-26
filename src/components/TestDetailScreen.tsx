@@ -65,7 +65,7 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
   }, [test.syllabus, result]);
 
   return (
-    <div className="w-full h-full flex flex-col select-none font-['Plus_Jakarta_Sans',sans-serif]" style={{ background: '#F4F5F7' }}>
+    <div className="w-full h-full flex flex-col select-none font-['Plus_Jakarta_Sans',sans-serif]" style={{ background: '#FFFFFF' }}>
       <header className="shrink-0 px-4 pt-4 pb-3.5 flex items-center space-x-4" style={{ background: HEADER_BG }}>
         <button type="button" onClick={onBack} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />
@@ -115,7 +115,7 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
                     type="button"
                     onClick={() => setOpen((o) => ({ ...o, [s.subject]: !isOpen }))}
                     className="w-full flex items-center justify-between py-3.5 pr-4 relative"
-                    style={{ background: '#F4F5F7' }}
+                    style={{ background: '#FFFFFF' }}
                   >
                     <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: ACCENT }} />
                     <span className="flex items-center space-x-3 pl-4">

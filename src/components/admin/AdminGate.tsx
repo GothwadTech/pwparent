@@ -41,7 +41,7 @@ const Shell: React.FC<{title: string; subtitle: string; icon: React.ReactNode; o
   onBack,
   children,
 }) => (
-  <div className="w-full h-full bg-[#F4F5F7] text-[#17181C] flex flex-col select-none">
+  <div className="w-full h-full bg-[#FFFFFF] text-[#17181C] flex flex-col select-none">
     <header className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-[#E4E6EB]">
       <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-black/[0.03]">
         <ArrowLeft size={18} />

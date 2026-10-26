@@ -94,7 +94,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
           {tests.map((test) => (
             <div key={test.id} className="relative group">
               {/* Timeline node circle */}
-              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#F4F5F7] border-2 border-[#5747D6] flex items-center justify-center z-10">
+              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#FFFFFF] border-2 border-[#5747D6] flex items-center justify-center z-10">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#5747D6]" />
               </div>
 

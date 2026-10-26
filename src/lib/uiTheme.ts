@@ -11,10 +11,10 @@
  */
 
 /** Page background — the canvas everything sits on. */
-export const PAGE_BG = '#F4F5F7';
+export const PAGE_BG = '#FFFFFF';
 
 /** Slightly lighter band used for sticky headers and the top bar. */
-export const HEADER_BG = '#F7F8FA';
+export const HEADER_BG = '#FFFFFF';
 
 /** Card surface. */
 export const CARD_BG = '#FFFFFF';

@@ -40,6 +40,7 @@ import {AdminPanelScreen} from './components/admin/AdminPanelScreen';
 import {SettingsDock} from './components/SettingsDock';
 import {HowItWorksModal} from './components/HowItWorksModal';
 import {LogoCustomizerModal} from './components/LogoCustomizerModal';
+import {IconClipboard} from './components/icons/AppIcons';
 
 /** Ambient wash. Outside the scaled shell so it always covers the window. */
 export const App: React.FC = () => {
@@ -65,6 +66,7 @@ export const App: React.FC = () => {
   const {
     backend,
     booting,
+    refreshData,
     mode,
     uid,
     phoneNumber,
@@ -135,12 +137,48 @@ export const App: React.FC = () => {
         );
 
       case 'dashboard':
-        return activeStudent ? (
+        // A dashboard with no child to show must NEVER be a blank screen —
+        // that is exactly the "OTP ke baad poora white" report. Hydration can
+        // come back empty (slow network, a denied read, a record that lives
+        // under another uid); say so honestly and offer a retry instead.
+        if (!activeStudent) {
+          return (
+            <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                style={{background: '#EAEEF9'}}
+              >
+                <IconClipboard size={26} />
+              </div>
+              <p className="text-[15px] font-extrabold mb-2">Dashboard khali mila</p>
+              <p className="text-[12px] leading-relaxed text-[#6B7280] mb-5">
+                Is number se linked student ka record load nahi ho paya. Network ya read
+                *fail ho sakta hai — dobara try karo, ya dusre number se login karo.
+              </p>
+              <button
+                type="button"
+                onClick={() => void refreshData()}
+                className="w-full py-3 rounded-xl bg-[#5747D6] text-white text-[13px] font-bold mb-2"
+              >
+                Dobara try karein
+              </button>
+              <button
+                type="button"
+                onClick={handleSwitchNumber}
+                className="w-full py-3 rounded-xl border border-[#E4E6EB] text-[13px] font-bold"
+              >
+                Number badlein
+              </button>
+            </div>
+          );
+        }
+        return (
           <ChildDashboardScreen
             student={activeStudent}
             onBack={() => setScreen('profile')}
             onOpenProfile={() => setScreen('profile')}
             onOpenSettings={openSettings}
+            onRefreshData={refreshData}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
             announcements={announcements}
@@ -157,7 +195,7 @@ export const App: React.FC = () => {
             dpp={dppSummary}
             batchTests={batchView.tests}
           />
-        ) : null;
+        );
 
       case 'profile':
         return (
@@ -207,12 +245,12 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden bg-[#F4F5F7] text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="w-full h-[100dvh] overflow-hidden bg-white text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif]">
 
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main
         style={fluidShellStyle(scale)}
-        className="bg-[#F4F5F7] flex flex-col relative z-10 overflow-hidden"
+        className="bg-white flex flex-col relative z-10 overflow-hidden"
       >
         {/* A remembered session holds the first paint instead of flashing the
             login form — a blank hold, not a splash: it clears the moment the

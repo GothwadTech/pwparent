@@ -85,7 +85,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
   ];
 
   return (
-    <div className="w-full h-full bg-[#F4F5F7] text-[#17181C] flex flex-col select-none">
+    <div className="w-full h-full bg-[#FFFFFF] text-[#17181C] flex flex-col select-none">
       <header className="shrink-0 border-b border-[#E4E6EB]">
         <div className="flex items-center gap-3 px-4 py-3">
           <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-black/[0.03]">

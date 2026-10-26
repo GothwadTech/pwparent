@@ -41,9 +41,9 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Bar matching Screenshot_20260918_180825.jpg */}
-      <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#F4F5F7] border-b border-[#E4E6EB]/40 z-20">
+      <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#FFFFFF] border-b border-[#E4E6EB]/40 z-20">
         <div className="flex items-center">
           <button
             type="button"
@@ -87,7 +87,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
         <div className="space-y-5">
           {/* Field 1: Name */}
           <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
+            <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Name
             </label>
             <input
@@ -104,7 +104,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
 
           {/* Field 2: Mobile number */}
           <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
+            <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Mobile number
             </label>
             <div className="flex items-center space-x-3 text-[15px]">
@@ -130,7 +130,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
 
           {/* Field 3: Email */}
           <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
+            <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Email
             </label>
             <input
@@ -166,7 +166,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
 
       {/* Bottom Action Bar when Editing (Screenshot_20260918_180854.jpg) */}
       {isEditing && (
-        <div className="p-4 bg-[#F4F5F7] border-t border-[#E4E6EB] flex items-center space-x-3 z-20">
+        <div className="p-4 bg-[#FFFFFF] border-t border-[#E4E6EB] flex items-center space-x-3 z-20">
           <button
             type="button"
             onClick={handleCancel}
@@ -206,7 +206,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           </div>
 
           {/* Bottom sheet content */}
-          <div className="relative z-10 w-full max-w-[420px] mx-auto bg-[#F4F5F7] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
+          <div className="relative z-10 w-full max-w-[420px] mx-auto bg-[#FFFFFF] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
             {/* Top drag handle pill */}
             <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-5" />
 

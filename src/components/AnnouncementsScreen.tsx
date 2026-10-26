@@ -28,12 +28,12 @@ export const AnnouncementsScreen: React.FC<AnnouncementsScreenProps> = () => {
   ];
 
   return (
-    <div className="flex-1 bg-[#F4F5F7] text-[#17181C] flex flex-col overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 bg-[#FFFFFF] text-[#17181C] flex flex-col overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
       <div className="divide-y divide-[#1e202f]">
         {announcements.map((item) => (
           <article
             key={item.id}
-            className="px-5 py-5 hover:bg-[#F4F5F7] transition-colors"
+            className="px-5 py-5 hover:bg-[#FFFFFF] transition-colors"
           >
             {/* Author Header */}
             <div className="flex items-center justify-between mb-2.5">

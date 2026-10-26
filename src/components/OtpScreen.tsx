@@ -99,7 +99,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       <AppHeader
         showHowItWorks={true}
         onHowItWorksClick={onHowItWorks}

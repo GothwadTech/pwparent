@@ -72,7 +72,7 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
 
   return (
     <div className="-mx-4 -my-4 flex flex-col h-full min-h-0">
-      <header className="shrink-0 px-4 pt-3 pb-2 border-b border-[#E4E6EB] bg-[#F4F5F7]">
+      <header className="shrink-0 px-4 pt-3 pb-2 border-b border-[#E4E6EB] bg-[#FFFFFF]">
         <button
           type="button"
           onClick={onBack}
