@@ -55,12 +55,16 @@ export const App: React.FC = () => {
   const dppSummary = useDppView(batchView.selectedBatchId, app.activeStudent?.id ?? null);
 
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>('/assets/ic_launcher_round.webp');
+  /** The settings / Firestore panel is now opened on purpose, never floating. */
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const openSettings = () => setIsSettingsOpen(true);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [isLogoCustomizerOpen, setIsLogoCustomizerOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   const {
     backend,
+    booting,
     mode,
     uid,
     phoneNumber,
@@ -109,6 +113,7 @@ export const App: React.FC = () => {
             initialPhoneNumber={phoneNumber}
             onSubmit={(phone) => void handleLoginSubmit(phone)}
             onHowItWorks={() => setIsHowItWorksOpen(true)}
+            onOpenSettings={openSettings}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
           />
@@ -123,6 +128,7 @@ export const App: React.FC = () => {
             onEditPhone={handleSwitchNumber}
             onVerifySuccess={handleOtpVerified}
             onHowItWorks={() => setIsHowItWorksOpen(true)}
+            onOpenSettings={openSettings}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
           />
@@ -134,6 +140,7 @@ export const App: React.FC = () => {
             student={activeStudent}
             onBack={() => setScreen('profile')}
             onOpenProfile={() => setScreen('profile')}
+            onOpenSettings={openSettings}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
             announcements={announcements}
@@ -207,12 +214,17 @@ export const App: React.FC = () => {
         style={fluidShellStyle(scale)}
         className="bg-[#F4F5F7] flex flex-col relative z-10 overflow-hidden"
       >
-        {renderCurrentScreen()}
+        {/* A remembered session holds the first paint instead of flashing the
+            login form — a blank hold, not a splash: it clears the moment the
+            boot settles either way. */}
+        {booting ? null : renderCurrentScreen()}
       </main>
 
       {/* ── Everything below stays OUTSIDE the scaled subtree ─────────────── */}
 
       <SettingsDock
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         backend={backend}
         mode={mode}
         uid={uid}

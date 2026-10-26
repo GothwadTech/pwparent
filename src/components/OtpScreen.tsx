@@ -13,6 +13,8 @@ interface OtpScreenProps {
   /** Receives the typed code. Async: App.tsx verifies it and throws on failure. */
   onVerifySuccess: (code: string) => void | Promise<void>;
   onHowItWorks: () => void;
+  /** The (i) door into the settings panel. */
+  onOpenSettings?: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
 }
@@ -34,6 +36,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   onEditPhone,
   onVerifySuccess,
   onHowItWorks,
+  onOpenSettings,
   customLogoUrl,
   onOpenLogoCustomizer,
 }) => {
@@ -100,6 +103,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       <AppHeader
         showHowItWorks={true}
         onHowItWorksClick={onHowItWorks}
+        onOpenSettings={onOpenSettings}
         customLogoUrl={customLogoUrl}
         onLogoClick={onOpenLogoCustomizer}
       />

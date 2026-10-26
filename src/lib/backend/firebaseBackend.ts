@@ -23,6 +23,8 @@ import type {Backend, LoginCodeInfo, SendOtpResult, Session} from './types';
 import {emptyProfile} from './types';
 import {paths, readCollection, readDoc, removeDoc, writeDoc} from '../firebase/firestore';
 import * as auth from '../firebase/auth';
+import * as identity from '../firebase/identity';
+import {clearStoredSession, readStoredSession, writeStoredSession} from '../sessionStore';
 import {
   CREDENTIAL_VERSION,
   createCredential,
@@ -122,10 +124,20 @@ export function createFirebaseBackend(): Backend {
    * as the brother's number and then the sister's showed both children — which
    * is exactly the "one student's code reaches the other student" report. The
    * number decides the child; the browser does not.
+   *
+   * `code` is the login code the parent just proved they know. With it the
+   * session is claimed as a PERMANENT identity (src/lib/firebase/identity.ts):
+   * the same (number, code) pair resolves to the same uid on EVERY device and
+   * survives a cleared browser profile. Without it this is a resume, not a
+   * login, and the already-restored session is simply reused.
    */
-  const signIn = async (phone: string, studentId?: string | null): Promise<Session> => {
+  const signIn = async (phone: string, studentId?: string | null, code?: string | null): Promise<Session> => {
     const digits = normalizePhone(phone);
-    const user = await auth.ensureSession(); // anonymous — free on Spark, gives a real uid
+    // Wait for Firebase to finish restoring its persisted user FIRST: peeking at
+    // `currentUser` before that resolved minted a fresh anonymous uid per reload.
+    const user = code
+      ? (await identity.claimIdentity(digits, code)).user
+      : await auth.ensureSession();
     const path = paths.parent(user.uid);
 
     const existing = await cachedRead(
@@ -147,6 +159,10 @@ export function createFirebaseBackend(): Backend {
       } as unknown as Record<string, unknown>),
     );
 
+    // Remember it on this device so the next reload resumes instantly instead of
+    // flashing the login form while Auth initialises from IndexedDB.
+    writeStoredSession({uid: user.uid, phone: digits, studentId: studentId ?? null});
+
     return {uid: user.uid, phone: digits, isNewUser, studentId: studentId ?? null};
   };
 
@@ -159,9 +175,14 @@ export function createFirebaseBackend(): Backend {
     },
 
     async restoreSession() {
-      // Pure read: no ensureSession(), no write. An anonymous user that already
-      // exists from a previous visit is enough to resume.
-      const existingUid = auth.currentUserId();
+      // WAIT for Firebase to finish restoring its user before looking at it.
+      // `currentUserId()` on the first tick of a reload is null even for a
+      // signed-in parent — that single missed await is what made every refresh
+      // look like a logout, and the re-login then minted a fresh anonymous uid
+      // with an empty `parents/{uid}` subtree.
+      const restoredUser = await auth.whenAuthReady();
+      const marker = readStoredSession();
+      const existingUid = restoredUser?.uid ?? auth.currentUserId();
       if (!existingUid) return null;
 
       const profile = await cachedRead(
@@ -169,7 +190,12 @@ export function createFirebaseBackend(): Backend {
         () => orEmpty<ParentProfileData | null>('read parents/{uid}', () => readDoc<ParentProfileData>(paths.parent(existingUid)), null),
         DEFAULT_TTL_MS,
       );
-      const digits = normalizePhone(profile?.mobileNumber ?? '');
+      // The marker is the fallback for a profile read that came back empty or
+      // was denied: this device's own last session still knows the number. It is
+      // only trusted when it describes the SAME uid Auth just restored.
+      const digits = normalizePhone(
+        profile?.mobileNumber ?? (marker?.uid === existingUid ? marker.phone : ''),
+      );
       if (!digits) return null;
 
       // Re-read the binding so a restored session lands on the same single child
@@ -180,11 +206,17 @@ export function createFirebaseBackend(): Backend {
         DEFAULT_TTL_MS,
       );
 
-      return {uid: existingUid, phone: digits, isNewUser: false, studentId: cred?.studentId ?? null};
+      const studentId = cred?.studentId ?? (marker?.uid === existingUid ? marker.studentId : null) ?? null;
+      // Keep the marker describing the LIVE session, so the next reload is just
+      // as instant as this one was.
+      writeStoredSession({uid: existingUid, phone: digits, studentId});
+
+      return {uid: existingUid, phone: digits, isNewUser: false, studentId};
     },
 
     async signOut() {
       await auth.signOut();
+      clearStoredSession();
       resetCache();
     },
 
@@ -241,7 +273,10 @@ export function createFirebaseBackend(): Backend {
       const ok = await verifyCredential(code, phone, stored);
       if (!ok) return {ok: false, error: 'Incorrect code.'};
 
-      const session = await signIn(phone, stored.studentId ?? null);
+      // The verified code travels with the sign-in: it is what lets the session
+      // become a permanent, cross-device identity instead of a browser-local
+      // anonymous one. See src/lib/firebase/identity.ts.
+      const session = await signIn(phone, stored.studentId ?? null, code);
       return {ok: true, uid: session.uid, studentId: session.studentId ?? null};
     },
 

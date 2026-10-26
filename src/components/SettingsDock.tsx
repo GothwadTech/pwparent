@@ -1,24 +1,30 @@
 /**
- * Settings dock — the small pill in the bottom-right corner.
+ * Settings dock — the panel behind the backend pill, now opened on purpose.
  *
- * Replaces the old DEMO badge. It still shows the live backend mode at a
- * glance (🟡 mock · 🟢 firebase · 🔴 misconfigured), and it is the entry point
- * the app needs for two things that have no other home on the phone layout:
+ * It used to hang off a floating pill pinned to the bottom-right of every
+ * screen. That is gone: the panel opens from exactly TWO doors now — the round
+ * (i) button left of "How it works" on the login/OTP headers, and the Help
+ * Centre's search bar when someone types "admin". So this component is fully
+ * CONTROLLED: the owner decides when it is on screen.
  *
- *   • opening the Admin Panel
- *   • switching to a different phone number without logging out first
- *
- * Plus the Firestore read budget, because Spark's 50k/day is shared across
- * every visitor and should not be an invisible number.
+ * It still shows the live backend mode (mock · firebase · misconfigured), the
+ * session facts, the Firestore read budget (Spark's 50k/day is shared by every
+ * visitor and should not be an invisible number), and the two actions that have
+ * no other home on the phone layout: opening the Admin Panel, and switching to
+ * a different phone number without logging out first.
  */
 import React, {useEffect, useState} from 'react';
-import {AlertTriangle, Database, KeyRound, LogOut, Phone, RefreshCw, Settings, X} from 'lucide-react';
+import {identityNote} from '../lib/identityStatus';
+import {AlertTriangle, Database, KeyRound, LogOut, Phone, RefreshCw, X} from 'lucide-react';
 import type {Backend} from '../lib/backend';
 import {cacheStats} from '../lib/backend/readCache';
 import type {AdminIdentity} from '../lib/adminAuth';
 import {labelCls} from './admin/ui';
 
 interface SettingsDockProps {
+  /** Controlled: the panel renders only while this is true. */
+  open: boolean;
+  onClose: () => void;
   backend: Backend | null;
   mode: 'mock' | 'firebase';
   uid: string | null;
@@ -68,6 +74,8 @@ const Action: React.FC<{icon: React.ReactNode; label: string; hint?: string; onC
 );
 
 export const SettingsDock: React.FC<SettingsDockProps> = ({
+  open,
+  onClose,
   backend,
   mode,
   uid,
@@ -78,7 +86,6 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
   onSwitchNumber,
   onSignOut,
 }) => {
-  const [open, setOpen] = useState(false);
   const [stats, setStats] = useState(cacheStats());
 
   useEffect(() => {
@@ -86,32 +93,23 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
   }, [open]);
 
   const dot = configError ? DOT.error : DOT[mode] ?? DOT.mock;
+  const note = identityNote();
+
+  // Controlled: closed means not in the DOM at all. There is no floating
+  // trigger any more — the two doors that open this live in AppHeader and in
+  // the Help Centre.
+  if (!open) return null;
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        title="Settings"
-        aria-label="Open settings"
-        className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1
-                   rounded-full bg-black/55 border border-[#E4E6EB] backdrop-blur-sm
-                   text-[10px] font-semibold tracking-wide text-neutral-600
-                   hover:text-neutral-900 hover:border-[#5747D6]/50 transition-colors select-none"
-      >
-        <span className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: dot}} />
-        <Settings size={11} />
-        {configError ? 'setup' : mode}
-      </button>
-
-      {open && (
+      {(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs">
           <div className="w-full sm:max-w-sm max-h-[88dvh] overflow-y-auto bg-[#F4F5F7] border border-[#E4E6EB] sm:rounded-2xl rounded-t-2xl p-5 text-[#17181C] shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold">Settings</h2>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={onClose}
                 aria-label="Close settings"
                 className="p-1.5 rounded-lg hover:bg-black/[0.03] text-neutral-600"
               >
@@ -126,7 +124,20 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
               </p>
             )}
 
-            <p className={labelCls}>Session</p>
+            <p className={labelCls}>
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle"
+                style={{backgroundColor: dot}}
+              />
+              Session
+            </p>
+
+            {note && (
+              <p className="mb-4 text-[11px] leading-relaxed px-3 py-2.5 rounded-lg bg-[#E8F1FB] border border-[#7FB3E8] text-neutral-700">
+                <AlertTriangle size={12} className="inline mr-1 -mt-0.5 text-[#7FB3E8]" />
+                {note}
+              </p>
+            )}
             <div className="space-y-1.5 mb-4 px-3.5 py-3 rounded-xl bg-white border border-[#E4E6EB]">
               <Row label="Backend" value={configError ? 'unconfigured' : mode} />
               <Row label="Number" value={phone ? `+91 ${phone}` : '—'} />
@@ -157,7 +168,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                 label="Admin Panel"
                 hint={admin ? `Signed in as ${admin.username}` : 'Issue login codes, manage students'}
                 onClick={() => {
-                  setOpen(false);
+                  onClose();
                   onOpenAdmin();
                 }}
               />
@@ -166,7 +177,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                 label="Login with another number"
                 hint="Any number that has a login code issued by an admin"
                 onClick={() => {
-                  setOpen(false);
+                  onClose();
                   onSwitchNumber();
                 }}
               />
@@ -185,7 +196,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                   icon={<LogOut size={16} />}
                   label="Sign out"
                   onClick={() => {
-                    setOpen(false);
+                    onClose();
                     onSignOut();
                   }}
                   danger

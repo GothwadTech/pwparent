@@ -20,6 +20,7 @@ import {loadSlice, saveSlice} from './demoStore';
 import {resetCache} from './readCache';
 import {MOCK_OTP, mockAnnouncements, mockParentProfile, mockPurchases, mockStudents} from './mockData';
 import {normalizePhone} from '../credentials';
+import {clearStoredSession, writeStoredSession} from '../sessionStore';
 import type {DppRecord} from './types';
 
 /** In-memory DPP store, keyed `${batchId}/${studentId}`. */
@@ -61,6 +62,8 @@ async function mockSignIn(phone: string): Promise<Session> {
 
   saveSlice('uid', uid);
   saveSlice('phone', digits);
+  // Same marker the firebase path keeps, so both backends resume identically.
+  writeStoredSession({uid, phone: digits});
   saveSlice('profile', {
     ...(stored ?? emptyProfile(digits)),
     mobileNumber: digits,
@@ -109,6 +112,7 @@ export const mockBackend: Backend = {
   async signOut() {
     await delay(80);
     saveSlice('uid', undefined);
+    clearStoredSession();
   },
 
   currentUid: currentUidImpl,

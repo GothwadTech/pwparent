@@ -27,6 +27,7 @@ import {
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
 import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
+import {clearStoredSession, hasStoredSession, storedSessionPhone} from '../lib/sessionStore';
 import {visibleStudentsFor} from '../lib/studentScope';
 import {currentAdmin, type AdminIdentity} from '../lib/adminAuth';
 
@@ -51,7 +52,15 @@ export interface AppData {
   parentProfile: ParentProfileData;
   otpResult: SendOtpResult | null;
 
-  // ── navigation ───────────────────────────────────────────────────────────
+  /**
+   * True while a remembered session is being resumed. The shell holds its first
+   * paint instead of flashing the login form — the flash is exactly what read as
+   * "refresh pe login hat gaya". A hold, not a splash: nothing renders, nothing
+   * auto-advances, and it always clears when the boot settles.
+   */
+  booting: boolean;
+
+  // ── navigation ──────────────────────────────────────────────────────────
   screen: ScreenId;
   setScreen: (screen: ScreenId) => void;
   openAdmin: () => void;
@@ -88,6 +97,8 @@ export function useAppData(): AppData {
   const [screen, setScreen] = useState<ScreenId>(() =>
     hasSeenOnboarding() ? 'login' : 'onboarding1',
   );
+  /** Only ever true when this device remembers a session to resume. */
+  const [booting, setBooting] = useState<boolean>(() => hasStoredSession());
   const [previousScreen, setPreviousScreen] = useState<ScreenId>(ADMIN_RETURN_SCREEN);
 
   const [students, setStudents] = useState<StudentProfile[]>([]);
@@ -174,7 +185,14 @@ export function useAppData(): AppData {
       if (cancelled) return;
       setBackend(instance);
 
-      const restored = await instance.restoreSession();
+      let restored;
+      try {
+        restored = await instance.restoreSession();
+      } finally {
+        // Never leave the shell held: a failed restore still has to land on a
+        // real screen.
+        if (!cancelled) setBooting(false);
+      }
       if (cancelled) return;
 
       if (restored) {
@@ -184,6 +202,10 @@ export function useAppData(): AppData {
         await hydrate(instance, restored.uid, restored.studentId ?? null);
         // Straight to the child. No picker: one number is one student.
         if (!cancelled) setScreen('dashboard');
+      } else if (storedSessionPhone()) {
+        // No resumable session, but this device remembers its number: prefill
+        // the login field so re-entering it is not a chore.
+        setPhoneNumber(storedSessionPhone());
       }
       void refreshAdmin();
     };
@@ -263,6 +285,8 @@ export function useAppData(): AppData {
 
   const handleLogout = useCallback(() => {
     void backend?.signOut().catch(() => undefined);
+    clearStoredSession();
+    setBooting(false);
     sessionRef.current = null;
     setUid(null);
     setAdmin(null);
@@ -274,6 +298,8 @@ export function useAppData(): AppData {
     // Keep the anonymous uid — only the number changes. Signing out would
     // orphan the stored profile for no reason.
     sessionRef.current = null;
+    clearStoredSession();
+    setBooting(false);
     setPhoneNumber('');
     setOtpResult(null);
     // A different number means a different child — never carry the old binding
@@ -284,6 +310,8 @@ export function useAppData(): AppData {
   }, [backend]);
 
   const handleDeleteParentProfile = useCallback(() => {
+    clearStoredSession();
+    setBooting(false);
     setStudents([]);
     setActiveStudent(null);
     setBoundStudentId(null);
@@ -375,6 +403,7 @@ export function useAppData(): AppData {
 
   return {
     backend,
+    booting,
     mode,
     uid,
     phoneNumber,
