@@ -14,8 +14,8 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-[#2b2e40] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between pb-3 border-b border-[#202230]">
+      <div className="bg-white border border-[#E4E6EB] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E4E6EB]">
           <h3 className="font-bold text-lg text-[#17181C]">How PW Parent's App Works</h3>
           <button
             type="button"

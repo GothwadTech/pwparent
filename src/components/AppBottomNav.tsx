@@ -31,7 +31,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
 
   return (
     <div
-      className="w-full bg-white border-t py-2 px-6 flex items-center justify-around z-30 select-none"
+      className="w-full bg-white border-t py-1.5 px-4 flex items-center justify-around z-30 select-none"
       style={{ borderColor: CARD_BORDER }}
     >
       {tabs.map((tab) => {
@@ -42,11 +42,11 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
             key={tab.id}
             type="button"
             onClick={() => onSelectTab(tab.id)}
-            className="relative flex flex-col items-center space-y-1 py-1 px-3"
+            className="relative flex flex-col items-center space-y-1 py-1 px-2.5"
           >
             <span className="relative">
               <Icon
-                size={22}
+                size={15}
                 strokeWidth={isActive ? 2.4 : 1.8}
                 style={{ color: isActive ? ACCENT : TEXT_SECONDARY }}
               />
@@ -58,7 +58,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
               )}
             </span>
             <span
-              className="text-[12px] tracking-tight"
+              className="text-[8px] tracking-tight"
               style={{
                 color: isActive ? ACCENT : TEXT_SECONDARY,
                 fontWeight: isActive ? 700 : 500,

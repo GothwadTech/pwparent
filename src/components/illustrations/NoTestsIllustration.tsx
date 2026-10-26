@@ -4,7 +4,7 @@
  */
 import React from 'react';
 
-export const NoTestsIllustration: React.FC<{ size?: number }> = ({ size = 120 }) => (
+export const NoTestsIllustration: React.FC<{ size?: number }> = ({ size = 92 }) => (
   <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden="true">
     <ellipse cx="62" cy="62" rx="46" ry="34" fill="#DCEBFA" />
     {/* scroll body */}

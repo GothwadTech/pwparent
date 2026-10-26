@@ -155,7 +155,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
         {notice && (
           <div
             className={`mt-6 flex items-start gap-2 px-3 py-2.5 rounded-lg border ${
-              registered ? 'bg-white border-[#E4E6EB]' : 'bg-[#2a1a10] border-[#4d3419]'
+              registered ? 'bg-white border-[#E4E6EB]' : 'bg-[#FBF1D7] border-[#F2DFA8]'
             }`}
           >
             {registered ? (
@@ -178,7 +178,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 ${
             registered && isComplete && !isVerifying
               ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
-              : 'bg-[#3b3b4f]/70 text-neutral-600 cursor-not-allowed opacity-80'
+              : 'bg-[#F1F2F4]/70 text-neutral-600 cursor-not-allowed opacity-80'
           }`}
         >
           {isVerifying && <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />}

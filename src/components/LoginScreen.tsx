@@ -50,10 +50,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* Input Container with floating label on top-left border */}
         <div className="mt-8 relative">
           <div
-            className={`relative flex items-center bg-[#0e1017] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
+            className={`relative flex items-center bg-[#F4F5F7] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
               isFocused || phoneNumber.length > 0
                 ? 'border-[#5747D6] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
-                : 'border-[#2f3242]'
+                : 'border-[#E4E6EB]'
             }`}
           >
             {/* Floating label cut into top border */}
@@ -68,7 +68,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </span>
 
             {/* Country Selector: IN +91 */}
-            <div className="flex items-center space-x-1.5 pr-3 text-neutral-800 cursor-default select-none border-r border-[#262938]">
+            <div className="flex items-center space-x-1.5 pr-3 text-neutral-800 cursor-default select-none border-r border-[#E4E6EB]">
               <span className="text-[15px] font-semibold tracking-wide">
                 IN +91
               </span>
@@ -114,7 +114,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] ${
             isValid
               ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
-              : 'bg-[#3b3b4f]/70 text-neutral-600 cursor-not-allowed opacity-80'
+              : 'bg-[#F1F2F4]/70 text-neutral-600 cursor-not-allowed opacity-80'
           }`}
         >
           Get OTP

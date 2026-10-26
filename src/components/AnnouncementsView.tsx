@@ -45,7 +45,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
       {announcements.map((item) => (
         <div
           key={item.id}
-          className="pb-6 border-b border-[#1c1e2d] last:border-b-0 space-y-3"
+          className="pb-6 border-b border-[#E4E6EB] last:border-b-0 space-y-3"
         >
           {/* Header with author, time and New badge */}
           <div className="flex items-center justify-between">

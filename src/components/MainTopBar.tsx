@@ -26,21 +26,21 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
 }) => {
   return (
     <div
-      className="w-full px-4 pt-3 pb-3 flex items-center justify-between z-30 select-none"
+      className="w-full px-3 pt-3 pb-3 flex items-center justify-between z-30 select-none"
       style={{ background: HEADER_BG }}
     >
       {/* Batch dropdown pill selector */}
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center space-x-2 px-4 py-3 rounded-lg bg-white border max-w-[260px]"
+        className="flex items-center space-x-2 px-3 py-2.5 rounded-lg bg-white border max-w-[208px]"
         style={{ borderColor: CARD_BORDER }}
         title="Select Batch"
       >
-        <span className="text-[15px] font-semibold truncate" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[10px] font-semibold truncate" style={{ color: TEXT_PRIMARY }}>
           {selectedBatchName}
         </span>
-        <ChevronDown size={17} style={{ color: TEXT_PRIMARY }} className="shrink-0" />
+        <ChevronDown size={12} style={{ color: TEXT_PRIMARY }} className="shrink-0" />
       </button>
 
       {/* Student avatar + name */}
@@ -51,12 +51,12 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
         title="Open Profile"
       >
         <div
-          className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border"
+          className="h-9 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border"
           style={{ borderColor: CARD_BORDER }}
         >
-          <StudentAvatar type="boy" size={40} />
+          <StudentAvatar type="boy" size={28} />
         </div>
-        <span className="text-[13px] mt-1" style={{ color: TEXT_SECONDARY }}>
+        <span className="text-[9px] mt-1" style={{ color: TEXT_SECONDARY }}>
           {activeStudent.name || 'No Name'}
         </span>
       </button>

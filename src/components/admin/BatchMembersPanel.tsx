@@ -187,7 +187,7 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
       </div>
 
       {error && (
-        <p className="text-xs text-[#ff9bb3] leading-relaxed px-3 py-2.5 rounded-lg bg-[#2a1620] border border-[#4d2436]">
+        <p className="text-xs text-[#ff9bb3] leading-relaxed px-3 py-2.5 rounded-lg bg-[#FBE0E5] border border-[#F3C1CB]">
           {error}
         </p>
       )}

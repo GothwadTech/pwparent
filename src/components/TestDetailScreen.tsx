@@ -63,37 +63,37 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
 
   return (
     <div className="w-full h-full flex flex-col select-none font-['Plus_Jakarta_Sans',sans-serif]" style={{ background: '#F4F5F7' }}>
-      <header className="shrink-0 px-4 pt-4 pb-4 flex items-center space-x-4" style={{ background: HEADER_BG }}>
+      <header className="shrink-0 px-3 pt-3 pb-4 flex items-center space-x-4" style={{ background: HEADER_BG }}>
         <button type="button" onClick={onBack} aria-label="Back" className="p-1">
-          <ChevronLeft size={26} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />
+          <ChevronLeft size={18} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />
         </button>
-        <h1 className="text-[21px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+        <h1 className="text-[14px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           {test.title}
         </h1>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-5 pb-8 space-y-6">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 pt-3.5 pb-6 space-y-4">
+        <div className="grid grid-cols-2 gap-2">
           {tiles.map((t) => (
-            <div key={t.label} className="flex items-center justify-between px-3 py-4 rounded-lg" style={{ background: TILE_BG }}>
+            <div key={t.label} className="flex items-center justify-between px-2.5 py-3 rounded-lg" style={{ background: TILE_BG }}>
               <div className="flex items-center space-x-2.5">
-                <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-[17px]">
+                <span className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-[12px]">
                   {t.icon}
                 </span>
-                <span className="text-[15px] font-bold" style={{ color: TEXT_PRIMARY }}>{t.label}</span>
+                <span className="text-[10px] font-bold" style={{ color: TEXT_PRIMARY }}>{t.label}</span>
               </div>
-              <span className="text-[17px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{t.value}</span>
+              <span className="text-[12px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{t.value}</span>
             </div>
           ))}
         </div>
 
-        <div className="space-y-3">
-          <h2 className="text-[19px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+        <div className="space-y-2">
+          <h2 className="text-[13px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
             Subject wise Performance
           </h2>
 
           {subjects.length === 0 ? (
-            <p className="text-[14px]" style={{ color: TEXT_PRIMARY }}>
+            <p className="text-[10px]" style={{ color: TEXT_PRIMARY }}>
               No syllabus was attached to this test, so there is no subject-wise breakdown.
             </p>
           ) : (
@@ -105,30 +105,30 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
                     <button
                       type="button"
                       onClick={() => setOpen((o) => ({ ...o, [s.subject]: !isOpen }))}
-                      className="w-full flex items-center justify-between py-4 pr-4 relative"
+                      className="w-full flex items-center justify-between py-3 pr-4 relative"
                       style={{ background: '#F2F3F5' }}
                     >
                       <span className="absolute left-0 top-0 bottom-0 w-1" style={{ background: ACCENT }} />
                       <span className="flex items-center space-x-3 pl-4">
                         {isOpen
-                          ? <ChevronUp size={15} style={{ color: TEXT_PRIMARY }} />
-                          : <ChevronDown size={15} style={{ color: TEXT_PRIMARY }} />}
-                        <span className="text-[16px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{s.subject}</span>
+                          ? <ChevronUp size={10} style={{ color: TEXT_PRIMARY }} />
+                          : <ChevronDown size={10} style={{ color: TEXT_PRIMARY }} />}
+                        <span className="text-[11px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{s.subject}</span>
                       </span>
-                      <span className="text-[16px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{s.total}</span>
+                      <span className="text-[11px] font-extrabold" style={{ color: TEXT_PRIMARY }}>{s.total}</span>
                     </button>
 
                     {isOpen && s.topics.map((tp) => (
                       <div
                         key={tp.topic}
-                        className="w-full flex items-center justify-between py-4 pr-4 border-t"
+                        className="w-full flex items-center justify-between py-3 pr-4 border-t"
                         style={{ borderColor: CARD_BORDER, background: '#FAFBFC' }}
                       >
                         <span className="flex items-center space-x-3 pl-9">
-                          <ChevronDown size={13} style={{ color: TEXT_PRIMARY }} />
-                          <span className="text-[15px]" style={{ color: TEXT_PRIMARY }}>{tp.topic}</span>
+                          <ChevronDown size={9} style={{ color: TEXT_PRIMARY }} />
+                          <span className="text-[10px]" style={{ color: TEXT_PRIMARY }}>{tp.topic}</span>
                         </span>
-                        <span className="text-[15px]" style={{ color: TEXT_PRIMARY }}>{tp.marks}</span>
+                        <span className="text-[10px]" style={{ color: TEXT_PRIMARY }}>{tp.marks}</span>
                       </div>
                     ))}
                   </div>

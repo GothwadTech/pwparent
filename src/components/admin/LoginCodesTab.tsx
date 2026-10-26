@@ -190,7 +190,7 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
       </Note>
 
       {issued && (
-        <div className="bg-[#0d2018] border border-[#4ade80]/45 rounded-xl p-3.5 space-y-1.5">
+        <div className="bg-[#D8F0DE] border border-[#4ade80]/45 rounded-xl p-3.5 space-y-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#4ade80]">
             Just issued — shown once
           </p>

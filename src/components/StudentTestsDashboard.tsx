@@ -37,7 +37,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
         </div>
 
         {/* Progress Bar with indicator dot */}
-        <div className="mt-3 relative w-full h-1 bg-[#1a172e] rounded-full overflow-visible">
+        <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
           <div className="w-0 h-full bg-[#5747D6] rounded-full" />
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
         </div>
@@ -69,7 +69,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
         <button
           type="button"
           onClick={onOpenSubjectDetails}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#171826] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
         >
           <span>Subject Details</span>
           <Play
@@ -98,7 +98,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
               </div>
 
               {/* Test Card */}
-              <div className="bg-[#12131f] border border-[#212338] hover:border-[#383b58] rounded-xl p-3.5 flex items-center justify-between transition-all shadow-xs">
+              <div className="bg-[#FFFFFF] border border-[#E4E6EB] hover:border-[#E4E6EB] rounded-xl p-3.5 flex items-center justify-between transition-all shadow-xs">
                 <div>
                   <h4 className="text-[13px] font-bold text-[#17181C] tracking-tight">
                     {test.title}
@@ -111,7 +111,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
                 </div>
 
                 {/* Status Badge */}
-                <span className="px-2.5 py-1 rounded-md bg-[#42151c] text-[#F87171] text-[10px] font-bold tracking-wider">
+                <span className="px-2.5 py-1 rounded-md bg-[#FBE0E5] text-[#F87171] text-[10px] font-bold tracking-wider">
                   {test.status}
                 </span>
               </div>
@@ -124,7 +124,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
           <button
             type="button"
             onClick={onViewAllTests}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#191c2b] hover:bg-[#23273c] border border-[#2c3049] text-[#17181C] font-bold text-xs flex items-center justify-center space-x-2 transition-all group active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-xl bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-[#17181C] font-bold text-xs flex items-center justify-center space-x-2 transition-all group active:scale-[0.99]"
           >
             <span>View All Tests</span>
             <div className="w-4 h-4 rounded-full border border-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform">

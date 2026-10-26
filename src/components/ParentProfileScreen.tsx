@@ -147,7 +147,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
         </div>
 
         {/* Profile Settings Option matching screenshot */}
-        <div className="mt-7 pt-4 border-t border-[#1a1c2b]">
+        <div className="mt-7 pt-4 border-t border-[#E4E6EB]">
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
@@ -170,7 +170,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 py-3.5 rounded-xl bg-black border border-[#2b2d3d] text-[#17181C] font-semibold text-sm hover:bg-[#161722] active:scale-[0.98] transition-all"
+            className="flex-1 py-3.5 rounded-xl bg-black border border-[#E4E6EB] text-[#17181C] font-semibold text-sm hover:bg-[#FFFFFF] active:scale-[0.98] transition-all"
           >
             Cancel
           </button>
@@ -217,7 +217,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
                 setIsSettingsOpen(false);
                 onDeleteProfile();
               }}
-              className="w-full py-3.5 px-4 rounded-xl border border-[#E4E6EB] hover:border-red-900/60 bg-[#141520] flex items-center space-x-3 text-left transition-colors group"
+              className="w-full py-3.5 px-4 rounded-xl border border-[#E4E6EB] hover:border-red-900/60 bg-[#FFFFFF] flex items-center space-x-3 text-left transition-colors group"
             >
               <Trash2
                 size={19}

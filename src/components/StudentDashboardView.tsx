@@ -95,7 +95,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         </div>
 
         {/* Weekly Report Card */}
-        <div className="bg-[#121320] border border-[#E4E6EB] rounded-2xl p-4">
+        <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3 text-xs">
             <span className="font-semibold text-neutral-700">Weekly Report</span>
             <div className="flex items-center space-x-1.5 text-neutral-600">
@@ -139,7 +139,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
               <div className="border-b border-dashed border-[#E4E6EB] w-full pb-0.5 flex justify-between">
                 <span>4m</span>
               </div>
-              <div className="border-b border-[#2b2f4a] w-full pb-0.5 flex justify-between">
+              <div className="border-b border-[#E4E6EB] w-full pb-0.5 flex justify-between">
                 <span>0m</span>
               </div>
             </div>
@@ -168,7 +168,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenSubjectDetails('lectures')}
-            className="px-4 py-1.5 rounded-full bg-[#1b1c2b] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
+            className="px-4 py-1.5 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
           >
             <span>Subject Details</span>
             <Play size={10} className="fill-current" />
@@ -177,7 +177,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       </section>
 
       {/* ---------------- 2. DAILY PRACTICE PAPER (Screenshot_20260918_180910.jpg) ---------------- */}
-      <section className="space-y-3 pt-2 border-t border-[#1b1d2e]">
+      <section className="space-y-3 pt-2 border-t border-[#E4E6EB]">
         <div className="flex items-center space-x-2">
           <span className="text-base">📋</span>
           <h2 className="text-base font-bold text-[#17181C] tracking-tight">
@@ -220,7 +220,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         </div>
 
         {/* Monthly DPP Performance Card */}
-        <div className="bg-[#121320] border border-[#E4E6EB] rounded-2xl p-4">
+        <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-2xl p-4">
           <div className="text-xs font-semibold text-neutral-700 mb-6">
             Monthly DPP Performance
           </div>
@@ -233,7 +233,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
                   <span>0</span>
                   <span>0</span>
                 </div>
-                <div className="w-12 h-0.5 bg-[#25283f] mb-2 rounded-full" />
+                <div className="w-12 h-0.5 bg-[#F1F2F4] mb-2 rounded-full" />
                 <span className="text-[11px] text-neutral-600 font-medium">
                   {month}
                 </span>
@@ -242,7 +242,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-center space-x-4 pt-4 border-t border-[#1d2033] text-[10px] text-neutral-600">
+          <div className="flex items-center justify-center space-x-4 pt-4 border-t border-[#E4E6EB] text-[10px] text-neutral-600">
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-xs bg-sky-500" />
               <span>Total DPPs Assigned</span>
@@ -259,7 +259,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenSubjectDetails('dpp')}
-            className="px-4 py-1.5 rounded-full bg-[#1b1c2b] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
+            className="px-4 py-1.5 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
           >
             <span>Subject Details</span>
             <Play size={10} className="fill-current" />
@@ -268,7 +268,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       </section>
 
       {/* ---------------- 3. TEST SECTION (Screenshot_20260918_180910.jpg & 180913.jpg) ---------------- */}
-      <section className="space-y-3 pt-2 border-t border-[#1b1d2e]">
+      <section className="space-y-3 pt-2 border-t border-[#E4E6EB]">
         <div className="flex items-center space-x-2">
           <span className="text-base">📑</span>
           <h2 className="text-base font-bold text-[#17181C] tracking-tight">
@@ -320,7 +320,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenSubjectDetails('tests')}
-            className="px-4 py-1.5 rounded-full bg-[#1b1c2b] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
+            className="px-4 py-1.5 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 hover:text-neutral-900 flex items-center space-x-1.5 transition-all shadow-xs"
           >
             <span>Subject Details</span>
             <Play size={10} className="fill-current" />
@@ -342,10 +342,10 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           {recentTests.map((test) => (
             <div key={test.id} className="relative">
               {/* Timeline Node Dot */}
-              <div className="absolute -left-6 top-4 w-3 h-3 rounded-full bg-[#5747D6] border-2 border-[#0e0f16]" />
+              <div className="absolute -left-6 top-4 w-3 h-3 rounded-full bg-[#5747D6] border-2 border-[#E4E6EB]" />
 
               {/* Test Card */}
-              <div className="bg-[#131420] border border-[#E4E6EB] rounded-xl p-3.5 flex items-center justify-between hover:border-[#3a3d5a] transition-colors">
+              <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-xl p-3.5 flex items-center justify-between hover:border-[#E4E6EB] transition-colors">
                 <div>
                   <h4 className="text-xs font-bold text-[#17181C]">
                     {test.name}
@@ -359,8 +359,8 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
                 <span
                   className={`px-2.5 py-0.5 rounded-md border text-[10px] font-bold tracking-wider ${
                     test.status === 'ATTEMPTED'
-                      ? 'bg-[#12301f] border-green-900/40 text-[#7CE8A8]'
-                      : 'bg-[#38161D] border-red-900/40 text-[#FF7A7A]'
+                      ? 'bg-[#D8F0DE] border-green-900/40 text-[#7CE8A8]'
+                      : 'bg-[#FBE0E5] border-red-900/40 text-[#FF7A7A]'
                   }`}
                 >
                   {test.status}
@@ -374,7 +374,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         <button
           type="button"
           onClick={onViewAllTests}
-          className="w-full py-3 rounded-xl bg-[#141524] border border-[#E4E6EB] hover:bg-[#1c1d30] text-neutral-800 hover:text-neutral-900 font-semibold text-xs flex items-center justify-center space-x-2 transition-all mt-3"
+          className="w-full py-3 rounded-xl bg-[#FFFFFF] border border-[#E4E6EB] hover:bg-[#FFFFFF] text-neutral-800 hover:text-neutral-900 font-semibold text-xs flex items-center justify-center space-x-2 transition-all mt-3"
         >
           <span>View All Tests</span>
           <ArrowRight size={14} />

@@ -12,7 +12,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   onChangeTab,
 }) => {
   return (
-    <nav className="w-full bg-[#F4F5F7] border-t border-[#1a1c2b] px-6 py-2 flex items-center justify-around z-30 select-none">
+    <nav className="w-full bg-[#F4F5F7] border-t border-[#E4E6EB] px-6 py-2 flex items-center justify-around z-30 select-none">
       {/* Dashboard Tab */}
       <button
         type="button"

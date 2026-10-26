@@ -44,8 +44,8 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border border-[#2b2e40] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between pb-3 border-b border-[#202230]">
+      <div className="bg-white border border-[#E4E6EB] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E4E6EB]">
           <div className="flex items-center space-x-2">
             <Image size={18} className="text-[#5747D6]" />
             <h3 className="font-bold text-base text-[#17181C]">Custom App Logo</h3>
@@ -111,7 +111,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
         {/* File Upload Button */}
         <div className="mt-4">
-          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#434863] hover:border-[#5747D6] bg-white cursor-pointer text-xs font-semibold text-neutral-800 hover:text-neutral-900 transition-all">
+          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#E4E6EB] hover:border-[#5747D6] bg-white cursor-pointer text-xs font-semibold text-neutral-800 hover:text-neutral-900 transition-all">
             <Upload size={16} className="text-[#5747D6]" />
             <span>Upload Image from Device</span>
             <input
@@ -133,7 +133,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full bg-[#F4F5F7] border border-[#2a2c3d] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
+            className="w-full bg-[#F4F5F7] border border-[#E4E6EB] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
           />
         </div>
 
@@ -142,7 +142,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            className="w-1/3 py-2.5 rounded-xl border border-[#2a2c3d] text-neutral-600 hover:text-neutral-900 text-xs font-medium flex items-center justify-center space-x-1 transition-colors"
+            className="w-1/3 py-2.5 rounded-xl border border-[#E4E6EB] text-neutral-600 hover:text-neutral-900 text-xs font-medium flex items-center justify-center space-x-1 transition-colors"
           >
             <RotateCcw size={13} />
             <span>Default</span>

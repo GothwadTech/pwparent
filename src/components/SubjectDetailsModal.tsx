@@ -92,7 +92,7 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#0d0e17] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl max-h-[85vh] flex flex-col">
+      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#F4F5F7] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl max-h-[85vh] flex flex-col">
         {/* Top Handle */}
         <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-3" />
 
@@ -119,7 +119,7 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
           {subjectRows.map((subj) => (
             <div
               key={subj.name}
-              className={`p-3.5 rounded-xl bg-[#141523] border ${subj.color.split(' ')[2]} space-y-2.5`}
+              className={`p-3.5 rounded-xl bg-[#FFFFFF] border ${subj.color.split(' ')[2]} space-y-2.5`}
             >
               <div className="flex items-center justify-between">
                 <div>

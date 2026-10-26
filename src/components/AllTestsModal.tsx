@@ -77,7 +77,7 @@ export const AllTestsModal: React.FC<AllTestsModalProps> = ({
           {allTests.map((test) => (
             <div
               key={test.id}
-              className="bg-[#131420] border border-[#E4E6EB] rounded-xl p-3 flex items-center justify-between hover:border-[#3a3d5a] transition-colors"
+              className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-xl p-3 flex items-center justify-between hover:border-[#E4E6EB] transition-colors"
             >
               <div>
                 <h4 className="text-xs font-bold text-[#17181C]">{test.name}</h4>
@@ -86,7 +86,7 @@ export const AllTestsModal: React.FC<AllTestsModalProps> = ({
                 </p>
               </div>
 
-              <span className="px-2.5 py-0.5 rounded-md bg-[#38161D] border border-red-900/40 text-[#FF7A7A] text-[10px] font-bold tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-md bg-[#FBE0E5] border border-red-900/40 text-[#FF7A7A] text-[10px] font-bold tracking-wider">
                 {test.status}
               </span>
             </div>

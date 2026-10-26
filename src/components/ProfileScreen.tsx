@@ -44,7 +44,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Student Profile Section with subtle purple gradient */}
-        <div className="px-5 pt-5 pb-6 bg-gradient-to-b from-[#1c1a32]/80 to-[#10111a] border-b border-[#E4E6EB]">
+        <div className="px-5 pt-5 pb-6 bg-gradient-to-b from-[#EDEFF5]/80 to-[#FFFFFF] border-b border-[#E4E6EB]">
           <h2 className="text-[14px] font-semibold text-neutral-800 mb-4">
             {students.length === 1 ? 'Student' : 'Student Profile'}
           </h2>
@@ -79,7 +79,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
                     {/* Active checkmark badge */}
                     {isSelected && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7C63FF] text-white flex items-center justify-center border-2 border-[#0d0e15] shadow-sm">
+                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7C63FF] text-white flex items-center justify-center border-2 border-[#E4E6EB] shadow-sm">
                         <Check size={12} strokeWidth={3} />
                       </div>
                     )}

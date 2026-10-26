@@ -32,7 +32,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
           </div>
 
           {/* Progress Bar with indicator dot */}
-          <div className="mt-3 relative w-full h-1 bg-[#1a172e] rounded-full overflow-visible">
+          <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
             <div className="w-0 h-full bg-[#5747D6] rounded-full" />
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
           </div>
@@ -55,7 +55,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
         </div>
 
         {/* Weekly Report Card */}
-        <div className="bg-[#12131f] border border-[#E4E6EB] rounded-2xl p-4.5 shadow-sm">
+        <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-2xl p-4.5 shadow-sm">
           {/* Header with week navigation */}
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-[#17181C] text-[13px]">
@@ -126,7 +126,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
           <button
             type="button"
             onClick={onOpenSubjectDetails}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#171826] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
           >
             <span>Subject Details</span>
             <Play
@@ -157,7 +157,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
           </div>
 
           {/* Progress Bar with indicator dot */}
-          <div className="mt-3 relative w-full h-1 bg-[#1a172e] rounded-full overflow-visible">
+          <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
             <div className="w-0 h-full bg-[#5747D6] rounded-full" />
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
           </div>
@@ -185,7 +185,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
         </div>
 
         {/* Monthly DPP Performance Card */}
-        <div className="bg-[#12131f] border border-[#E4E6EB] rounded-2xl p-4.5 shadow-sm">
+        <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-2xl p-4.5 shadow-sm">
           <div className="text-[13px] font-bold text-[#17181C] mb-6">
             Monthly DPP Performance
           </div>
@@ -227,7 +227,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
           <button
             type="button"
             onClick={onOpenSubjectDetails}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#171826] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-full bg-[#FFFFFF] hover:bg-[#F1F2F4] border border-[#E4E6EB] text-xs font-semibold text-neutral-800 transition-all shadow-xs group"
           >
             <span>Subject Details</span>
             <Play
