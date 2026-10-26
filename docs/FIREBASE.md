@@ -187,6 +187,41 @@ parents/{uid}/purchases/{itemId}       PurchaseItem
   └─ imageBg                           Tailwind gradient classes, hex NAHI
                                        ("from-blue-600 to-indigo-700")
 
+batches/{batchId}                      Batch — admin banata hai
+  ├─ name, course                      string
+  ├─ batchType                         "online" | "offline"
+  ├─ startDate                         "YYYY-MM-DD"
+  ├─ active                            boolean (false = draft, parents ko nahi dikhta)
+  └─ createdAt, createdBy
+
+batches/{batchId}/members/{parentUid}  allotment — PARENT uid se keyed
+  ├─ studentIds[]                      is parent ke kaun se bachche is batch me hain
+  └─ joinedAt                          ISO timestamp
+      ⚠️ id JAAN-BOOJH KE parentUid hai: rules isi se ek `exists()` me
+         decide kar lete hain ki caller is batch ko padh sakta hai ya nahi.
+
+batches/{batchId}/attendance/{studentId}   ← EK doc per student, saare months
+  ├─ studentId                         string
+  └─ months                            {"2026-10": {"2026-10-05": "P"}}
+      ⚠️ Month-wise alag docs NAHI banaye. Ek doc isliye ki:
+         (a) rules me "kya ye caller is student ka parent hai?" seedha
+             `attendance/{studentId}` pe lag jata hai — composite
+             `{studentId}__{month}` id parse karni padti
+         (b) calendar kholne pe 1 read lagta hai, mahine pe nahi
+         (c) size negligible hai — poora saal = 372 chhote entries
+
+batches/{batchId}/tests/{testId}       BatchTest — test BATCH ka hai, student ka nahi
+  ├─ title, date, mode                 string / "YYYY-MM-DD" / "Online"|"Offline"
+  ├─ marksTotal                        number
+  ├─ status                            "scheduled" | "completed"
+  └─ syllabus[]                        {subject, topic, weightage?}
+
+batches/{batchId}/tests/{testId}/results/{studentId}
+  ├─ studentName                       denormalised — list bina profile read ke render ho
+  ├─ marksObtained, accuracyPercent    number (admin bharta hai)
+  ├─ status                            "ATTEMPTED" | "MISSED"
+  └─ scorePercent                      number ← DERIVED, admin bharta nahi
+
 announcements/{id}                     AnnouncementItem (shared feed)
 
 admins/{uid}                           role marker — admin allow-list
@@ -212,6 +247,10 @@ credentials/{phone}                    phone ka login code — SIRF digest
 
 **Har parent-scoped path `parents/{uid}` se shuru hota hai** — isse rules me
 ek line me poora subtree lock ho jata hai.
+
+**Batch tree ulta hai** — wo admin-owned hai, isliye `batches/{batchId}` se
+shuru hota hai aur parent ko access *membership* se milta hai, uid path se
+nahi. Ek bachcha kai batches me ho sakta hai (`StudentProfile.batchIds[]`).
 
 ### Derived fields
 `testsCompleted`, `avgScorePercent`, `accuracyPercent` aur har test ka

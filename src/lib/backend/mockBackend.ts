@@ -20,6 +20,7 @@ import {loadSlice, saveSlice} from './demoStore';
 import {resetCache} from './readCache';
 import {MOCK_OTP, mockAnnouncements, mockParentProfile, mockPurchases, mockStudents} from './mockData';
 import {normalizePhone} from '../credentials';
+import {createMockBatchOps} from './mockBatches';
 
 /** Small delay so loading states are actually observable in mock mode. */
 const delay = (ms = 180) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -56,7 +57,26 @@ async function mockSignIn(phone: string): Promise<Session> {
   return {uid, phone: digits, isNewUser};
 }
 
+const currentUidImpl = (): string | null => loadSlice<string | null>('uid', null);
+
+const getLinkedStudentsImpl = async (): Promise<StudentProfile[]> => {
+  await delay();
+  return loadSlice<StudentProfile[]>('students', mockStudents);
+};
+
+const saveStudentImpl = async (student: StudentProfile): Promise<void> => {
+  await delay();
+  saveSlice('students', upsert(loadSlice<StudentProfile[]>('students', mockStudents), student));
+};
+
+const mockBatchOps = createMockBatchOps({
+  currentUid: currentUidImpl,
+  getLinkedStudents: getLinkedStudentsImpl,
+  saveStudent: saveStudentImpl,
+});
+
 export const mockBackend: Backend = {
+  ...mockBatchOps,
   mode: 'mock',
 
   async signInWithPhone(phone) {
@@ -76,9 +96,7 @@ export const mockBackend: Backend = {
     saveSlice('uid', undefined);
   },
 
-  currentUid() {
-    return loadSlice<string | null>('uid', null);
-  },
+  currentUid: currentUidImpl,
 
   async sendOtp(phone) {
     await delay(160);
@@ -141,15 +159,9 @@ export const mockBackend: Backend = {
     saveSlice('profile', data);
   },
 
-  async getLinkedStudents() {
-    await delay();
-    return loadSlice<StudentProfile[]>('students', mockStudents);
-  },
+  getLinkedStudents: getLinkedStudentsImpl,
 
-  async saveStudent(student) {
-    await delay();
-    saveSlice('students', upsert(loadSlice<StudentProfile[]>('students', mockStudents), student));
-  },
+  saveStudent: saveStudentImpl,
 
   async deleteStudent(studentId) {
     await delay();

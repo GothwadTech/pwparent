@@ -20,6 +20,15 @@ export interface DemoSnapshot {
   /** phone -> plaintext code. MOCK MODE ONLY: the Firebase backend stores
    *  PBKDF2 digests in `credentials/{phone}` and never a readable code. */
   codes?: unknown;
+  /**
+   * The whole batch tree, in one slice: `{[batchId]: BatchRecord}` where a
+   * record holds the batch, its members, its attendance months and its tests
+   * (each test holding its results).
+   *
+   * One slice rather than one per collection because mock mode is synchronous
+   * localStorage — splitting it would just multiply parse/serialize work.
+   */
+  batches?: unknown;
 }
 
 function readRaw(): DemoSnapshot {
