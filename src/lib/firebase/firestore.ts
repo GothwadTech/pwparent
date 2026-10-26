@@ -52,6 +52,14 @@ export const paths = {
   announcement: (id: string) => `announcements/${id}`,
   admins: () => 'admins',
   admin: (uid: string) => `admins/${uid}`,
+  /**
+   * Singleton that records "an admin already exists".
+   * Its existence is what permanently closes registration — see firestore.rules.
+   */
+  adminConfig: () => 'adminConfig/singleton',
+  /** One doc per phone number: the hashed 6-digit login code. */
+  credentials: () => 'credentials',
+  credential: (phone: string) => `credentials/${phone}`,
 };
 
 export async function readDoc<T>(path: string): Promise<T | null> {

@@ -43,7 +43,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
       {/* App Header: PW Logo + Parent's App */}
       <AppHeader
         customLogoUrl={customLogoUrl}

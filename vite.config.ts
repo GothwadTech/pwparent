@@ -1,53 +1,99 @@
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
-import path from 'node:path';
 import {defineConfig} from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import {VitePWA} from 'vite-plugin-pwa';
 
-export default defineConfig(() => {
-  return {
-    plugins: [react(), tailwindcss()],
-    resolve: {
-      alias: {
-        '@': path.resolve(import.meta.dirname, '.'),
+/**
+ * Build config.
+ *
+ * Two constraints matter here and are easy to break:
+ *
+ * 1. Cloudflare Pages rejects a `wrangler.jsonc` with an `assets` block, so the
+ *    build output directory is declared there only. Never re-add `assets`.
+ * 2. Pages switches OUT of SPA mode if `dist/404.html` or `dist/200.html`
+ *    exists, which breaks deep links. `scripts/check-build-output.mjs` guards
+ *    this after every build — vite-plugin-pwa's service worker uses a
+ *    navigation route, not a 404 file, so it is safe.
+ *
+ * `server.allowedHosts` is DEV-only and never affects a production build.
+ */
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      // Injected into index.html; no manual <link rel="manifest"> needed.
+      injectRegister: 'auto',
+      includeAssets: ['icons/favicon-32x32.png', 'icons/apple-touch-icon.png'],
+      manifest: {
+        name: 'PW Parent App',
+        short_name: 'PW Parent',
+        description:
+          'Batch and test tracking for Physics Wallah batches — attendance, DPPs, scorecards and purchases.',
+        id: '/',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        orientation: 'any',
+        theme_color: '#005677',
+        background_color: '#050608',
+        categories: ['education', 'productivity'],
+        icons: [
+          {src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any'},
+          {src: '/icons/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any'},
+          {src: '/icons/maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable'},
+        ],
       },
-    },
-    build: {
-      // Cloudflare Pages serves dist/ directly.
-      outDir: 'dist',
-      assetsDir: 'assets',
-      // Keeps the bundle honest in CI logs; raise only if you split chunks.
-      chunkSizeWarningLimit: 900,
-      sourcemap: false,
-      target: 'es2022',
-    },
-    server: {
-      host: '0.0.0.0',
-      port: Number(process.env.PORT ?? 3000),
-      /**
-       * Allow the Arena/e2b live-preview proxy host so `npm run dev` can be
-       * viewed in a browser. Leading dot = all subdomains of e2b.app.
-       *
-       * Without this Vite answers the proxied request with
-       * `403 Blocked request. This host is not allowed.`
-       *
-       * DEV SERVER ONLY — production is static files served by Cloudflare
-       * Pages, so this setting never ships. Add your own domain here if you
-       * ever run the dev server behind a different tunnel.
-       */
-      allowedHosts: ['.e2b.app', ...(process.env.VITE_ALLOWED_HOSTS?.split(',').filter(Boolean) ?? [])],
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
-    },
-    preview: {
-      host: '0.0.0.0',
-      port: Number(process.env.PREVIEW_PORT ?? 4173),
-    },
-    // Only variables starting with VITE_ are exposed to the client bundle.
-    // A missing var becomes `undefined` at build time — src/lib/config.ts
-    // validates that and falls back to mock mode instead of crashing.
-    envDir: '.',
-    envPrefix: 'VITE_',
-  };
+      workbox: {
+        // Precache the hashed build output only.
+        globPatterns: ['**/*.{js,css,html,webp,png,svg,woff2}'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        // Offline navigation falls back to the cached shell.
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            // Images and illustrations: cache-first, they are immutable.
+            urlPattern: ({url, sameOrigin}) => sameOrigin && url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pw-assets',
+              expiration: {maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30},
+            },
+          },
+          {
+            // Firebase Auth + Firestore must NEVER be served from the service
+            // worker cache. A cached credential or a stale scorecard would be
+            // both wrong and a security hole. The in-app read cache
+            // (src/lib/backend/readCache.ts) is the layer that saves reads.
+            urlPattern: ({url}) =>
+              /(^|\.)googleapis\.com$/.test(url.hostname) || url.hostname.endsWith('.firebaseapp.com'),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({url, sameOrigin}) => sameOrigin && url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+      devOptions: {enabled: false},
+    }),
+  ],
+  envDir: '.',
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+    // Dev-only. The sandbox preview serves this app from a *.e2b.app host and
+    // Vite rejects unknown Host headers with a 403 without this. Never ships.
+    allowedHosts: ['.e2b.app', '.pages.dev', 'localhost', '127.0.0.1'],
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false,
+    target: 'es2020',
+  },
 });

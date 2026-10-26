@@ -17,6 +17,9 @@ export interface DemoSnapshot {
   announcements?: unknown;
   purchases?: unknown;
   profile?: unknown;
+  /** phone -> plaintext code. MOCK MODE ONLY: the Firebase backend stores
+   *  PBKDF2 digests in `credentials/{phone}` and never a readable code. */
+  codes?: unknown;
 }
 
 function readRaw(): DemoSnapshot {

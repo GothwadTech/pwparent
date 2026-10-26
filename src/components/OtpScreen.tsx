@@ -1,116 +1,102 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AppHeader } from './AppHeader';
-import { Pencil, CheckCircle2, Info } from 'lucide-react';
-import { MOCK_OTP } from '../lib/backend';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {AppHeader} from './AppHeader';
+import {AlertTriangle, ArrowRight, Pencil} from 'lucide-react';
+import {CODE_LENGTH} from '../lib/backend';
 
 interface OtpScreenProps {
   phoneNumber: string;
+  /** False when no administrator has set a login code for this number. */
+  registered: boolean;
+  /** Line to show under the heading — comes from the backend, not hardcoded. */
+  notice?: string;
   onEditPhone: () => void;
-  /**
-   * Receives the 4 digits the user typed. May be async — App.tsx performs the
-   * real (anonymous) sign-in here and throws/returns to signal failure.
-   */
+  /** Receives the typed code. Async: App.tsx verifies it and throws on failure. */
   onVerifySuccess: (code: string) => void | Promise<void>;
   onHowItWorks: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
-  /** Shown verbatim under the inputs, e.g. the backend's demo hint. */
-  hint?: string;
 }
 
+const emptyCode = () => Array<string>(CODE_LENGTH).fill('');
+
+/**
+ * Login-code screen.
+ *
+ * This is NOT an SMS OTP. An administrator sets a fixed 6-digit code per phone
+ * number; the number is the username and the code is the password. Nothing is
+ * sent to the device and nothing is read from an inbox, so the copy says so
+ * plainly instead of pretending to "retrieve" a message.
+ */
 export const OtpScreen: React.FC<OtpScreenProps> = ({
   phoneNumber,
+  registered,
+  notice,
   onEditPhone,
   onVerifySuccess,
   onHowItWorks,
   customLogoUrl,
   onOpenLogoCustomizer,
-  hint,
 }) => {
-  const [otp, setOtp] = useState(['', '', '', '']);
-  const [timer, setTimer] = useState(26);
+  const [code, setCode] = useState<string[]>(emptyCode);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verifyError, setVerifyError] = useState('');
+  const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Format phone display
-  const formattedPhone = phoneNumber.startsWith('+91')
-    ? phoneNumber
-    : `+91 ${phoneNumber || '9335010032'}`;
+  const formattedPhone = useMemo(
+    () => (phoneNumber.startsWith('+91') ? phoneNumber : `+91 ${phoneNumber}`),
+    [phoneNumber],
+  );
 
-  // Countdown timer from 26s as shown in screenshot
+  const typed = code.join('');
+  const isComplete = typed.length === CODE_LENGTH;
+
   useEffect(() => {
-    if (timer <= 0) return;
-    const interval = setInterval(() => {
-      setTimer((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
+    inputRefs.current[0]?.focus();
+  }, []);
 
-  // Handle OTP input change
-  const handleChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1);
-    const newOtp = [...otp];
-    newOtp[index] = digit;
-    setOtp(newOtp);
-
-    // Auto advance focus to next box
-    if (digit && index < 3) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Auto verify when all 4 digits entered
-    if (digit && index === 3 && newOtp.every((d) => d !== '')) {
-      handleComplete(newOtp.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
-    if (!pastedData) return;
-    const newOtp = ['', '', '', ''];
-    for (let i = 0; i < pastedData.length; i++) {
-      newOtp[i] = pastedData[i];
-    }
-    setOtp(newOtp);
-    if (pastedData.length === 4) {
-      handleComplete(pastedData);
-    }
-  };
-
-  const handleComplete = async (code: string) => {
+  const submit = async (value: string) => {
     setIsVerifying(true);
-    setVerifyError('');
+    setError('');
     try {
-      await onVerifySuccess(code);
-    } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : 'Verification failed. Try again.');
-      setOtp(['', '', '', '']);
+      await onVerifySuccess(value);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Verification failed.');
+      setCode(emptyCode());
       inputRefs.current[0]?.focus();
     } finally {
       setIsVerifying(false);
     }
   };
 
-  /**
-   * Demo convenience only. This app sends NO SMS — see the notice below the
-   * inputs. It fills the documented demo code and submits it.
-   */
-  const handleAutoFill = () => {
-    setOtp(MOCK_OTP.split(''));
-    void handleComplete(MOCK_OTP);
+  const handleChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const next = [...code];
+    next[index] = digit;
+    setCode(next);
+
+    if (digit && index < CODE_LENGTH - 1) inputRefs.current[index + 1]?.focus();
+    if (digit && index === CODE_LENGTH - 1 && next.every((d) => d !== '')) {
+      void submit(next.join(''));
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) inputRefs.current[index - 1]?.focus();
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH);
+    if (!pasted) return;
+    const next = emptyCode();
+    for (let i = 0; i < pasted.length; i += 1) next[i] = pasted[i];
+    setCode(next);
+    if (pasted.length === CODE_LENGTH) void submit(pasted);
+    else inputRefs.current[pasted.length]?.focus();
   };
 
   return (
-    <div className="relative w-full h-full min-h-screen bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
-      {/* Header with PW logo and How it works */}
+    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
       <AppHeader
         showHowItWorks={true}
         onHowItWorksClick={onHowItWorks}
@@ -118,16 +104,15 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
         onLogoClick={onOpenLogoCustomizer}
       />
 
-      {/* Main Content */}
       <div className="flex-1 px-5 pt-8 flex flex-col">
-        {/* Title */}
         <h1 className="text-[28px] sm:text-[30px] font-bold text-white tracking-tight leading-snug">
-          OTP Verification
+          Enter your code
         </h1>
 
-        {/* Subtitle with Phone Number and Pencil Edit Icon */}
         <div className="mt-3 flex items-center space-x-2 text-[14.5px] text-neutral-300">
-          <span>Enter the code sent on <strong className="font-semibold text-white">{formattedPhone}</strong></span>
+          <span>
+            For <strong className="font-semibold text-white">{formattedPhone}</strong>
+          </span>
           <button
             type="button"
             onClick={onEditPhone}
@@ -138,90 +123,71 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
           </button>
         </div>
 
-        {/* 4 OTP Input Boxes */}
-        <div className="mt-8 flex items-center space-x-3.5 sm:space-x-4">
-          {[0, 1, 2, 3].map((index) => {
-            const hasVal = Boolean(otp[index]);
-            return (
-              <input
-                key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={1}
-                value={otp[index]}
-                onChange={(e) => handleChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined}
-                autoFocus={index === 0}
-                className={`w-[62px] h-[62px] sm:w-[68px] sm:h-[68px] text-center text-2xl font-bold bg-[#11121c] rounded-xl border transition-all duration-200 outline-none ${
-                  hasVal
-                    ? 'border-[#8E75FF] text-white shadow-md shadow-purple-950/20'
-                    : 'border-[#262838] text-white focus:border-[#8E75FF] focus:ring-1 focus:ring-[#8E75FF]/40'
-                }`}
-              />
-            );
-          })}
+        {/* Code boxes */}
+        <div className="mt-8 flex items-center justify-between gap-2 sm:gap-3">
+          {code.map((digit, index) => (
+            <input
+              key={index}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              autoComplete={index === 0 ? 'one-time-code' : 'off'}
+              pattern="[0-9]*"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
+              onPaste={index === 0 ? handlePaste : undefined}
+              disabled={!registered || isVerifying}
+              aria-label={`Digit ${index + 1}`}
+              className={`flex-1 min-w-0 aspect-square max-w-[68px] text-center text-2xl font-bold bg-[#11121c] rounded-xl border transition-all duration-200 outline-none disabled:opacity-40 ${
+                digit
+                  ? 'border-[#8E75FF] text-white shadow-md shadow-purple-950/20'
+                  : 'border-[#262838] text-white focus:border-[#8E75FF] focus:ring-1 focus:ring-[#8E75FF]/40'
+              }`}
+            />
+          ))}
         </div>
 
-        {/* Countdown Timer in lavender/purple */}
-        <div className="mt-6">
-          <span className="text-[17px] font-bold text-[#a78bfa] tracking-wider">
-            {`00:${timer.toString().padStart(2, '0')}`}
-          </span>
-        </div>
-
-        {/* Status Message from screenshot: "We are trying to retrieving your OTP \n Please Wait •••" */}
-        <div className="mt-3 text-[14px] text-neutral-300 leading-relaxed">
-          <p>We are trying to retrieving your OTP</p>
-          <div className="flex items-center space-x-1.5 mt-0.5 text-neutral-300">
-            <span>Please Wait</span>
-            <span className="inline-flex space-x-1 items-center text-[#8E75FF]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8E75FF] animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8E75FF] animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8E75FF] animate-bounce" style={{ animationDelay: '300ms' }} />
-            </span>
+        {/* Backend-supplied notice */}
+        {notice && (
+          <div
+            className={`mt-6 flex items-start gap-2 px-3 py-2.5 rounded-lg border ${
+              registered ? 'bg-[#12131d] border-[#2f3246]' : 'bg-[#2a1a10] border-[#4d3419]'
+            }`}
+          >
+            {registered ? (
+              <ArrowRight size={14} className="text-[#8E75FF] shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle size={14} className="text-[#facc15] shrink-0 mt-0.5" />
+            )}
+            <p className="text-[11.5px] text-neutral-300 leading-relaxed">{notice}</p>
           </div>
-        </div>
-
-        {/* Demo notice — this build sends no SMS and reads no inbox. */}
-        <div className="mt-8 flex items-start gap-2 px-3 py-2.5 rounded-lg bg-[#1a1710] border border-[#3d3419]">
-          <Info size={14} className="text-[#facc15] shrink-0 mt-0.5" />
-          <p className="text-[11px] text-neutral-400 leading-relaxed">
-            <span className="font-semibold text-neutral-200">Demo build.</span>{' '}
-            {hint ?? `No SMS is sent and nothing is read from your inbox. Enter ${MOCK_OTP} to continue.`}
-          </p>
-        </div>
-
-        {verifyError && (
-          <p className="mt-3 text-xs text-[#ff9bb3]">{verifyError}</p>
         )}
 
-        {/* Demo convenience: fill the documented code and submit. */}
-        <div className="mt-5">
-          <button
-            type="button"
-            onClick={handleAutoFill}
-            disabled={isVerifying}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#181926] hover:bg-[#222436] text-xs text-[#c6b6fc] border border-[#2f3246] transition-all disabled:opacity-50"
-          >
-            <CheckCircle2 size={14} className="text-[#8E75FF]" />
-            <span>Fill demo code ({MOCK_OTP})</span>
-          </button>
-        </div>
+        {error && <p className="mt-4 text-xs text-[#ff9bb3] leading-relaxed">{error}</p>}
       </div>
 
-      {/* Bottom spacer / verify state */}
-      <div className="w-full px-5 pb-8 pt-2">
-        {isVerifying && (
-          <div className="w-full py-3.5 rounded-xl bg-[#D4C7FF] text-[#111218] font-bold text-center flex items-center justify-center space-x-2">
-            <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-            <span>Verifying OTP...</span>
-          </div>
-        )}
+      <div className="w-full px-5 pb-8 pt-4 flex flex-col items-center">
+        <button
+          type="button"
+          disabled={!registered || !isComplete || isVerifying}
+          onClick={() => void submit(typed)}
+          className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 ${
+            registered && isComplete && !isVerifying
+              ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
+              : 'bg-[#3b3b4f]/70 text-neutral-400 cursor-not-allowed opacity-80'
+          }`}
+        >
+          {isVerifying && <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />}
+          {isVerifying ? 'Verifying…' : 'Continue'}
+        </button>
+
+        <p className="mt-4 text-[11.5px] text-[#8e95a5] text-center leading-relaxed">
+          No SMS is sent. Your login code is issued by the app administrator.
+        </p>
       </div>
     </div>
   );

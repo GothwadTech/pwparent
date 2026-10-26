@@ -16,6 +16,15 @@ export default defineConfig({
   // See src/tests/env/README.md.
   envDir: path.resolve(import.meta.dirname, 'src/tests/env'),
   test: {
+    // The app DEFAULTS to firebase now (there is no demo dataset behind it), so
+    // with an empty envDir the facade would resolve to `unconfiguredBackend`
+    // and every data test would assert against empty reads. Mock is the mode
+    // that exists for tests + offline dev, so pin it here explicitly.
+    // config.spec.ts still covers the firebase/unconfigured resolution paths by
+    // stubbing env + resetting modules.
+    env: {
+      VITE_BACKEND_MODE: 'mock',
+    },
     // happy-dom instead of jsdom: no native/optional peer deps (canvas),
     // so `npm ci` stays reliable on Cloudflare Pages + GitHub Actions runners.
     environment: 'happy-dom',

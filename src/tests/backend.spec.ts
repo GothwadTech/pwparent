@@ -20,9 +20,9 @@ describe('backend facade', () => {
 
     const sent = await backend.sendOtp('9335010032');
     expect(sent.mode).toBe('mock');
-    expect(sent.mockHint).toContain(MOCK_OTP);
+    expect(sent.notice).toContain(MOCK_OTP);
 
-    const bad = await backend.verifyOtp('0000', sent);
+    const bad = await backend.verifyOtp('000000', sent);
     expect(bad.ok).toBe(false);
     expect(bad.error).toBeTruthy();
 

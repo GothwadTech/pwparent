@@ -1,102 +1,161 @@
 rules_version = '2';
 
 /**
- * Firestore security rules — PW Parent's App (demo build).
+ * PW Parent App — Firestore security rules.
  *
- * ── THE IDENTITY MODEL ─────────────────────────────────────────────────────
- * Sign-in is Firebase **Anonymous Auth**, not phone OTP. Phone auth requires a
- * Blaze (billing-enabled) project; anonymous auth is free up to 50,000 MAU and
- * still gives every visitor a real, stable `request.auth.uid`.
+ * ── THREAT MODEL ───────────────────────────────────────────────────────────
+ * This is a pure client-side SPA. Everything here is enforced server-side by
+ * Firestore, which is the ONLY real security boundary the app has — the JS
+ * bundle is public and any client-side check is advisory.
  *
- * The phone number the user types is stored as a PROFILE FIELD at
- * `parents/{uid}.mobileNumber`. It is never a credential and it is never
- * verified — so do not use it to look up a child's records. The `uid` is the
- * only thing these rules trust.
+ * Collections:
+ *   parents/{uid}                  profile (phone is a FIELD, not a credential)
+ *   parents/{uid}/children/{id}    academic record
+ *   parents/{uid}/purchases/{id}   orders
+ *   announcements/{id}             shared feed, admin-written
+ *   admins/{uid}                   role marker — the admin allow-list
+ *   adminConfig/singleton          closes registration after the first admin
+ *   credentials/{phone}            PBKDF2 digest of a phone's login code
  *
- * ── ADMIN ──────────────────────────────────────────────────────────────────
- * The in-app Admin Panel passcode is a CLIENT-SIDE gate only; anyone reading
- * the JS bundle can find it. Real authorisation lives here: a uid must have a
- * document at `admins/{uid}` to write the shared `announcements` feed.
- * Create those documents by hand in the Firebase console — the app cannot
- * promote itself, which is exactly the point.
+ * ── THE ADMIN SLOT ─────────────────────────────────────────────────────────
+ * Whoever registers first becomes the one and only admin, permanently.
+ * `admins/{uid}` can be CREATED only while `adminConfig/singleton` does not
+ * exist, and `registerAdmin()` writes both documents in a single batch. A batch
+ * is atomic and `exists()` sees pre-batch state, so the window closes the
+ * instant the first admin is created. Both documents are then immutable from
+ * the app — revoking an admin is a Firebase console operation.
  *
- * Deploy:  npx --yes firebase-tools deploy --only firestore:rules
- * Or paste into: Console -> Firestore Database -> Rules
+ * ── LOGIN CODES ────────────────────────────────────────────────────────────
+ * `get` is allowed for anyone because the browser must fetch the digest to
+ * verify a typed code (there is no server to do it for us). `list` is
+ * admin-only, so the collection cannot be enumerated to discover which numbers
+ * are registered. Writes are admin-only. The plaintext code is never stored —
+ * see src/lib/credentials.ts.
  */
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── helpers ──────────────────────────────────────────────────────────
+    // ── helpers ────────────────────────────────────────────────────────────
+
     function signedIn() {
       return request.auth != null;
     }
 
-    /** The uid in the path is the caller's own uid. */
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
 
-    /**
-     * True when `admins/{uid}` exists for the caller.
-     * `exists()` costs one read; it is only evaluated on writes to the shared
-     * feed, so the extra read is not on any hot path.
-     */
+    /** True when the caller's uid is in the admin allow-list. */
     function isAdmin() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return signedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    /** Keep documents small and free of keys a client should not invent. */
-    function profileIsValid() {
-      return request.resource.data.keys().hasAll(['mobileNumber'])
-        && request.resource.data.mobileNumber is string
-        && request.resource.data.mobileNumber.size() <= 20;
+    /** True only while no admin has ever been created. */
+    function adminSlotIsOpen() {
+      return !exists(/databases/$(database)/documents/adminConfig/singleton);
     }
 
-    // ── parent profile ───────────────────────────────────────────────────
-    // parents/{uid} holds name, countryCode, mobileNumber, email, signInMethod.
-    match /parents/{uid} {
-      allow read:   if isOwner(uid);
-      allow create: if isOwner(uid) && profileIsValid();
-      allow update: if isOwner(uid);
-      // Deletion goes through the app's "delete profile" flow; hard delete is
-      // left to the console so a stray client bug cannot wipe an account.
-      allow delete: if false;
-
-      // ── children / academic record ─────────────────────────────────────
-      // StudentProfile + TestRecord[]. Written by the parent UI and by the
-      // Admin Panel, both of which act on the signed-in uid's own subtree.
-      match /children/{childId} {
-        allow read, write: if isOwner(uid);
-      }
-
-      // ── purchases ──────────────────────────────────────────────────────
-      match /purchases/{itemId} {
-        allow read, write: if isOwner(uid);
-      }
+    /** Canonical Indian mobile: exactly 10 digits, no separators. */
+    function validPhone(phone) {
+      return phone is string && phone.matches('^[0-9]{10}$');
     }
 
-    // ── shared announcement feed ─────────────────────────────────────────
-    // Any signed-in visitor (anonymous counts) can read it; only uids listed
-    // in `admins` can change it.
-    match /announcements/{announcementId} {
-      allow read:               if signedIn();
-      allow create, update:     if isAdmin();
-      allow delete:             if isAdmin();
+    function validCredential() {
+      return request.resource.data.keys().hasAll(['v', 'salt', 'iterations', 'hash', 'createdAt']) &&
+        request.resource.data.v is int &&
+        request.resource.data.salt is string &&
+        request.resource.data.salt.size() >= 16 &&
+        request.resource.data.iterations is int &&
+        request.resource.data.iterations >= 100000 &&
+        request.resource.data.hash is string &&
+        request.resource.data.hash.size() >= 32;
     }
 
-    // ── admin allow-list ─────────────────────────────────────────────────
-    // A user may confirm their own role, but nobody can promote themselves:
-    // writes are console-only.
+    function validAdminDoc() {
+      return request.resource.data.keys().hasAll(['username', 'role', 'createdAt']) &&
+        request.resource.data.username is string &&
+        request.resource.data.username.matches('^[a-z0-9._-]{3,30}$') &&
+        request.resource.data.role == 'owner';
+    }
+
+    // ── admin slot ─────────────────────────────────────────────────────────
+    // World-readable ON PURPOSE: the login screen must know whether
+    // registration is still open before anyone is authenticated. It therefore
+    // stores no username and nothing else sensitive.
+
+    match /adminConfig/singleton {
+      allow get: if true;
+      // Creatable exactly once, by whoever claims the admin slot first.
+      allow create: if signedIn() && adminSlotIsOpen();
+      // Never updatable or deletable from the app. Resetting the admin is a
+      // console operation, not a client one.
+      allow update, delete: if false;
+    }
+
     match /admins/{uid} {
-      allow read:   if isOwner(uid) || isAdmin();
-      allow write:  if false;
+      allow get: if isOwner(uid) || isAdmin();
+      // The first admin creates their own marker while the slot is open. After
+      // that this is permanently closed — no second admin can ever be added.
+      allow create: if isOwner(uid) && adminSlotIsOpen() && validAdminDoc();
+      allow update, delete: if false;
+      // An admin's own record is not enumerable by strangers.
+      allow list: if isAdmin();
     }
 
-    // ── everything else ──────────────────────────────────────────────────
-    // Default deny. Adding a new collection must come with an explicit rule.
-    match /{document=**} {
-      allow read, write: if false;
+    // ── login codes (phone + admin-set 6-digit code) ───────────────────────
+
+    match /credentials/{phone} {
+      // Anyone may GET one document: the browser has to fetch the digest to
+      // check a typed code. Knowing a phone number is not a secret, and the
+      // digest is salted + peppered with 210k PBKDF2 rounds.
+      allow get: if validPhone(phone);
+      // Never listable by non-admins — that would expose which numbers are
+      // registered.
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && validPhone(phone) && validCredential();
+      allow delete: if isAdmin();
     }
+
+    // ── parent data ────────────────────────────────────────────────────────
+    // Owners have full access to their own subtree. Admins get access to ANY
+    // subtree because the Admin Panel exists to manage other people's records.
+
+    match /parents/{uid} {
+      allow get: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) || isAdmin();
+      // Deletion is a console operation — the app signs out instead.
+      allow delete: if false;
+      allow list: if isAdmin();
+
+      match /children/{childId} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow create, update: if isOwner(uid) || isAdmin();
+        allow delete: if isOwner(uid) || isAdmin();
+      }
+
+      match /purchases/{itemId} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow create, update: if isOwner(uid) || isAdmin();
+        allow delete: if isOwner(uid) || isAdmin();
+      }
+
+      // Any subcollection added later is DENIED until a rule is written for it
+      // — Firestore does not cascade, so nothing here widens silently.
+    }
+
+    // ── announcements ──────────────────────────────────────────────────────
+    // Shared feed: every signed-in visitor reads it, only an admin writes it.
+
+    match /announcements/{announcementId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── default deny ───────────────────────────────────────────────────────
+    // There is deliberately no `match /{document=**}` catch-all here: Firestore
+    // already denies every path that no rule allows, and a root-level recursive
+    // wildcard would overlap all of the matches above. Anything not listed in
+    // this file is unreadable and unwritable.
   }
 }

@@ -132,5 +132,14 @@ export const mockPurchases: PurchaseItem[] = [
   },
 ];
 
-/** OTP accepted in mock mode so the whole flow is clickable without a backend. */
-export const MOCK_OTP = '1234';
+/**
+ * Login code accepted in MOCK mode only.
+ *
+ * Real (firebase) mode verifies a per-phone 6-digit code that an ADMIN set,
+ * stored as a PBKDF2 digest at `credentials/{phone}`. This constant is never
+ * consulted there.
+ */
+export const MOCK_OTP = '123456';
+
+/** Length of a login code. The OTP screen renders exactly this many boxes. */
+export const CODE_LENGTH = 6;

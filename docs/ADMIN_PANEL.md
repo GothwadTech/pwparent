@@ -1,187 +1,224 @@
-# Admin Panel — Demo Data Control
+# Admin Panel
 
-Ek passcode-gated screen jisse tum app ka academic record (students, marks,
-tests, attendance, announcements, purchases) seed aur edit kar sakte ho —
-Firestore ya console chhue bina.
+Ek hi administrator. Username + password. Firebase mode me real authentication,
+mock mode me local passcode.
+
+> **Security ki poori tasveer** — login codes, PBKDF2, permanent admin, read
+> budget — [`docs/SECURITY.md`](./SECURITY.md) me hai. Ye file sirf *use* karna
+> sikhata hai.
 
 ---
 
 ## 1. Kaise kholein
 
-Do tarike:
+Do raste, dono hamesha available:
 
-| Tarika | Kaise |
+| Rasta | Kahan |
 |---|---|
-| **UI se** | App ke bottom-right corner pe chhota badge hai: `DEMO · mock · admin` → uspe **click** karo |
-| **URL se** | `https://pwparent.pages.dev/#admin` (ya local: `http://localhost:3000/#admin`) |
+| **Settings dock** | Bottom-right corner ka chhota pill (`🟢 firebase` / `🟡 mock`) → **Admin Panel** |
+| **URL hash** | `https://pwparent.pages.dev/#admin` |
 
-Badge ka dot colour backend batata hai:
-- 🟡 **yellow** = `mock` mode (localStorage, koi Firebase nahi)
-- 🟢 **green** = `firebase` mode (real Firestore)
-
-Panel se bahar aane pe tum us screen pe wapas jate ho jahan se aaye the.
+Settings dock ne purana `DEMO` badge replace kiya hai. Wo ab live backend mode
+bhi dikhata hai aur wahi entry point hai "doosre number se login" ka.
 
 ---
 
-## 2. Passcode
+## 2. Login — mode ke hisaab se alag
+
+### Firebase mode (production)
+
+**Username + password.** Pehli baar kholne par form *registration* dikhata hai;
+uske baad hamesha sirf *login*.
 
 ```
-Default: pw-admin-demo
+Username  3-30 chars: a-z 0-9 . - _
+Password  min 8 chars, ek letter + ek digit zaroori
 ```
 
-Badalna ho to `VITE_ADMIN_PASSCODE` set karo (`.env.local` locally, Cloudflare
-Pages dashboard me deployed site ke liye) → phir **Retry deployment**.
+Password **Firebase Authentication** me rehta hai (Email/Password provider).
+Firestore me sirf role marker `admins/{uid}` hai — password ka koi trace nahi,
+hash bhi nahi. Username ek synthetic address ban jata hai:
+`<username>@admin.pwparent.local` (local domain, koi mail nahi jaata).
 
-Session `sessionStorage` me rehta hai, `localStorage` me nahi — matlab **tab
-band karte hi admin logout**. Lock button se manually bhi lock kar sakte ho.
+> ### ⚠️ Jo pehle register karega, wahi admin banega — hamesha ke liye
+>
+> Ye feature hai, bug nahi. `admins/{uid}` create hone ki ijazat sirf tab hai
+> jab `adminConfig/singleton` exist nahi karta, aur registration dono documents
+> ek hi atomic batch me likhti hai. Pehla admin bante hi window band.
+>
+> **Deploy ke turant baad khud register karo.** Warna koi aur ban jayega aur app
+> se undo nahi hoga.
+>
+> Reset karna ho to console se: Firebase → Authentication → Users me user
+> delete karo **aur** Firestore me `adminConfig/singleton` + `admins/{uid}`
+> delete karo. Dono, warna slot band hi rahega.
+
+**Zaroori:** Authentication → Sign-in method me **Anonymous** aur
+**Email/Password** dono enabled hon. Anonymous isliye zaroori hai kyunki
+registration anonymous session ko `linkWithCredential` se upgrade karti hai —
+uid wahi rehta hai, us visit me bana data orphan nahi hota.
+
+### Mock mode (dev + tests)
+
+Firebase nahi hai, isliye Email/Password provider bhi nahi. Panel
+`VITE_ADMIN_PASSCODE` (default `pw-admin-demo`) maangta hai.
+
+> Ye passcode Vite se **public JS bundle me inline** ho jata hai. Koi bhi padh
+> sakta hai. Mock mode me real data hota hi nahi, isliye ye sirf UI friction
+> hai — security nahi.
 
 ---
 
-## 3. ⚠️ Ye REAL security nahi hai — padh lo
+## 3. Tabs
 
-Ye ek **client-side SPA** hai. `VITE_ADMIN_PASSCODE` ko Vite **JS bundle me
-inline** kar deta hai, jo har browser download karta hai. Matlab:
+### Students — academic record
 
-- ✅ Casual visitor panel me nahi ghus payega
-- ❌ Jo DevTools khol ke bundle padh lega, use passcode mil jayega
+Har student ka card expand hota hai. Editable:
 
-**Ye jaan-boojh ke aisa hai** — demo/portfolio build ke liye passcode gate
-kaafi hai. Par agar ye app kabhi real users tak jaye, to **real
-authorisation `firestore.rules` me hai**, passcode me nahi:
+- name, batch, course
+- attendance %, video watch %
+- DPPs done, total tests
+- **test records** — title, date, mode (Online/Offline), status
+  (Attempted/Missed), marks obtained, marks total, accuracy %
 
+Har save par `recomputeStudent()` (`src/lib/admin.ts`) derived figures dobara
+calculate karta hai.
+
+### Login codes — OTP ka replacement ⭐
+
+Ye naya tab hai aur sabse zaroori.
+
+**Koi SMS nahi jaata.** Admin ek number ke liye fixed 6-digit code set karta
+hai — number username hai, code password.
+
+1. Phone number daalo (10 digits)
+2. Code daalo, ya 🔄 se random generate karo
+3. **Save code** — hashing me ek second lagta hai, jaan-boojh kar (210 000
+   PBKDF2 rounds)
+
+Neeche registered numbers ki list hai: number + kab bana. **Code kabhi nahi
+dikhta** — list me sirf metadata aata hai.
+
+- **Replace** → number + naya random code pre-fill kar deta hai; Save dabao
+- 🗑️ → us number ka code delete (wo number phir login nahi kar sakta)
+
+Firestore me sirf digest jaata hai:
+
+```json
+{"v":1,"salt":"…","iterations":210000,"hash":"…","createdAt":"…"}
 ```
-match /announcements/{id} {
-  allow read:           if signedIn();
-  allow create, update: if isAdmin();   // isAdmin() = admins/{uid} doc exists
-}
-```
 
-Real admin banane ke liye Firebase Console → Firestore → `admins/<your-uid>`
-document banao. Rules me `admins/{uid}` pe `write: if false` hai, isliye
-**app khud ko promote nahi kar sakti** — sirf console se hi admin banta hai.
+Fresh 16-byte salt per code, phone number pepper ki tarah mix, constant-time
+verify. Details [`SECURITY.md §2`](./SECURITY.md).
 
-> Ek aur baat: admin panel **signed-in uid ka apna data** edit karta hai.
-> Kisi *doosre* user ka data edit karne ki koshish rules block kar denge.
-> Ye design deliberate hai.
+> **Pehla kaam ye karo:** apne number ka code issue karo, phir login karke
+> dekho. Jab tak koi code exist nahi karta, **koi login nahi kar sakta** — ye
+> intentional hai, peeche koi demo data nahi hai.
+
+### Announcements
+
+Shared feed. `announcements/{id}` — har signed-in visitor padh sakta hai, sirf
+admin likh sakta hai. Author, content, time label, video link.
+
+Yahan write fail ho to matlab `admins/{uid}` document missing hai — rules me
+`isAdmin()` wahi check karta hai.
+
+### Data — diagnostics
+
+- **Session**: mode, admin username, uid, students/announcements count
+- **Firestore reads**: network reads, cache hits, hit rate, cached keys
+
+  Spark plan = **50 000 reads/din, sab visitors me banta hua**. Ye counter
+  isliye hai ki read cache ka asar assume na karo, dekho. Deploy ke baad
+  `hitRate` check karo — kam ho to koi cheez cache ke bahar padh rahi hai.
+- **Clear read cache** — sirf cached reads, stored data safe
+- **Delete all local data** — mock mode only, destructive, alag button jaan
+  boojh kar
+- **Sign out of admin account** — firebase mode me
 
 ---
 
-## 4. Kya-kya edit kar sakte ho
+## 4. Derived fields — direct edit nahi hote
 
-### Tab: **Students**
+`testsCompleted`, `avgScorePercent`, `accuracyPercent`, aur har test ka
+`scorePercent` **type nahi kiye ja sakte**. `recomputeStudent()` inhe raw marks
+se banata hai.
 
-Har student card expand hota hai:
+Iska matlab scorecard kabhi khud se contradict nahi kar sakta: agar 3 tests
+attempted hain to counter 3 hi dikhega, aur average unhi 3 ke marks se aayega.
 
-| Field | Type | Note |
+⚠️ **Ordering matter karti hai.** `recomputeStudent()` pehle `tests[]` ko
+enrich karta hai (raw marks → `scorePercent`), *phir* average leta hai —
+kyunki `averageScore()` sirf un tests ko ginta hai jinka `scorePercent` number
+hai. Ulti order me average hamesha `0` aayega. Ye bug already fix hai; wapas
+mat badalna.
+
+---
+
+## 5. Persistence
+
+| Mode | Kahan | Reload ke baad |
 |---|---|---|
-| Name | text | LinkedAccounts + Profile screen pe turant dikhta hai |
-| Batch | text | |
-| Course | text | |
-| Attendance % | number | Auto-formats to `"96%"` |
-| Video watch % | number | Auto-formats |
-| DPPs done | number | |
-| Total tests | number | Scorecard ka denominator |
+| **firebase** | Firestore: `parents/{uid}`, `…/children/{id}`, `…/purchases/{id}`, `announcements/{id}`, `credentials/{phone}` | Sab rehta hai |
+| **mock** | Is browser ka `localStorage` (`src/lib/backend/demoStore.ts`) | Rehta hai, sirf isi browser me |
 
-**Test records** (har student ke andar):
-- Add / delete tests
-- Title, date, mode (`Online`/`Offline`), status (`Attempted`/`Missed`)
-- **Marks obtained**, **Out of**, **Accuracy %**
-
-Plus **Add student** (naya bachcha) aur **Delete** (poora record).
-
-### Tab: **Announcements**
-Shared feed — create, edit, delete. Firestore mode me ye write `admins/{uid}`
-rule ke through jata hai, isliye bina admin doc ke `permission-denied` aayega
-(app demo feed pe fallback kar jata hai, crash nahi karta).
-
-### Tab: **Data**
-- Backend mode + current `uid` + record counts
-- **Seed demo data** — poora dataset wipe karke shipped seed wapas likh deta
-  hai (Firestore me atomic batch se, taaki UI kabhi half-written list na
-  dikhaye)
-- **Clear local demo store** (sirf mock mode) — browser ka sab kuch hata deta hai
-- Demo build notice
-
----
-
-## 5. Derived fields — direct edit nahi hote
-
-Ye 4 cheezein admin **bharta nahi**, ye automatically calculate hoti hain:
-
-| Field | Kaise derive hota hai |
-|---|---|
-| `testsCompleted` | `status === 'ATTEMPTED'` wale tests ki count |
-| `avgScorePercent` | sirf ATTEMPTED tests ka average (MISSED average ko neeche **nahi** kheenchta) |
-| `accuracyPercent` | waise hi, accuracy ka |
-| per-test `scorePercent` | `marksObtained / marksTotal × 100`, clamped 0–100 |
-
-Logic: `src/lib/admin.ts` → `recomputeStudent()`. Har save pe chalta hai.
-
-**Kyun:** iska matlab admin panel se aisa scorecard kabhi nahi ban sakta jo
-apne aap se contradict kare — jaise "0/17 attempted, 0% average" ke saath
-bhara hua marks list. Ye ek *test-covered invariant* hai
-(`src/tests/admin.spec.ts`).
-
-Edge cases jo handle hain:
-- `marksTotal = 0` ya missing → `scorePercent` undefined (NaN nahi)
-- Negative marks → 0 pe clamp
-- 100 se zyada → 100 pe clamp
-- Khali test list → averages 0, NaN nahi
+**Firebase mode me koi demo dataset nahi hai.** Pehli baar app khaali khulegi
+jab tak admin code issue na kare. Ye design decision hai: nakli marks dikhane
+se behtar hai saaf "not configured" dikhana.
 
 ---
 
 ## 6. Kahan dikhta hai (aur kahan abhi nahi)
 
 ### ✅ Wired — admin ke edits turant render hote hain
-| Screen | Kya |
-|---|---|
-| `LinkedAccountsScreen` | student name, batch |
-| `ProfileScreen` | student name, selection |
-| `StudentDashboardView` | Total Tests Attempted `n/m`, progress bar, Avg. Score, Accuracy, Recent Tests list (date • mode • **marks**, green/red status badge) |
-| `AnnouncementsView` | poora feed |
-| `PurchasesScreen` | poora list + filters |
 
-### ⚠️ Abhi bhi hardcoded (deliberately chhoda gaya)
-| Component | Kya |
-|---|---|
-| `OfflineAttendanceDashboardView` | day-wise attendance calendar, ring % |
-| `SubjectDetailsModal` | subject-wise lecture/DPP counts |
-| `StudentDashboardView` (lectures section) | Lectures Completed, Chapters |
+`ChildDashboardScreen`, `StudentDashboardView` (tests), `AnnouncementsView`,
+`PurchasesScreen`, `LinkedAccountsScreen`, `ProfileScreen`,
+`ParentProfileScreen`
 
-Reason: ye original AI Studio export ke 38 components hain jinke andar sample
-data hardcoded hai. Poora refactor risky tha, isliye sirf high-value paths
-wire kiye gaye. Follow-up me inhe bhi data-driven banaya ja sakta hai —
-pattern wahi hai jo `PurchasesScreen`/`AnnouncementsView` me use hua:
-**optional `items?` prop jiska default built-in list ho** (non-breaking).
+### ⚠️ Abhi bhi hardcoded (jaan-boojh kar)
 
-### 🗑️ Orphan components (original export se unused)
-`AnnouncementsScreen`, `BottomNavBar`, `ContactSupportModal`, `MainAppHeader`,
-`StatusBar`, `StudentLecturesDashboard`, `StudentTestsDashboard`,
-`SupportScreen` — inhe koi import nahi karta. Chheda nahi gaya.
+`OfflineAttendanceDashboardView` (day calendar + ring %), `SubjectDetailsModal`
+(subject-wise lecture/DPP counts), `StudentDashboardView` ka lectures section,
+`ChildDashboardScreen.batchOptions`
+
+Pattern fix karne ka: optional `items?` prop with built-in default — jaise
+baaki screens me already hai. 38 components ko ek saath refactor karna risky
+tha.
 
 ---
 
-## 7. Persistence — kahan save hota hai
+## 7. Files
 
-| Mode | Kahan | Reload pe |
-|---|---|---|
-| `mock` | `localStorage` key `pwparent.demo.v1` | ✅ rehta hai |
-| `firebase` | Firestore `parents/{uid}/...` | ✅ rehta hai (uid Anonymous Auth se persist hota hai) |
+```
+src/components/admin/
+  AdminPanelScreen.tsx   shell — gate + tabs (160 lines)
+  AdminGate.tsx          username+password / passcode (273)
+  StudentsTab.tsx        academic record + test marks (285)
+  LoginCodesTab.tsx      per-phone 6-digit codes
+  AnnouncementsTab.tsx   shared feed
+  DataTab.tsx            session, read budget, cache
+  ui.tsx                 shared primitives
 
-Mock mode me storage fail hone pe (private browsing, quota full) app crash
-nahi karti — `demoStore.ts` quietly degrade kar deta hai aur session bhar ka
-data memory me rehta hai.
+src/lib/
+  adminAuth.ts           registerAdmin / loginAdmin / currentAdmin
+  credentials.ts         PBKDF2 hashing + verification
+  admin.ts               passcode gate (mock), recomputeStudent, math helpers
+  backend/readCache.ts   TTL + de-dupe + stats
+```
+
+Koi bhi file 500 lines cross nahi karti — ye repo me ek hard rule hai.
 
 ---
 
-## 8. Files
+## 8. Tests
 
-| File | Kaam |
-|---|---|
-| `src/lib/admin.ts` | passcode gate, marks maths, `recomputeStudent()` |
-| `src/components/AdminPanelScreen.tsx` | poora panel UI |
-| `src/components/DemoBadge.tsx` | badge + entry point |
-| `src/lib/backend/index.ts` | `saveStudent` / `deleteStudent` / `saveAnnouncement` / `seedDemoData` |
-| `src/lib/backend/demoStore.ts` | mock-mode localStorage layer |
-| `src/tests/admin.spec.ts` | 20 tests — gate + maths + invariants |
-| `firestore.rules` | real authorisation (`admins/{uid}`) |
+```bash
+npm test                                    # 74 tests
+npx vitest run src/tests/backend-session.spec.ts   # login codes, restore, cache
+npx vitest run src/tests/credentials.spec.ts       # PBKDF2 round trip
+npx vitest run src/tests/admin.spec.ts             # recomputeStudent
+```
+
+Tests mock mode me chalte hain (`vitest.config.ts` → `env.VITE_BACKEND_MODE=mock`),
+taaki ek developer ka `.env.local` suite ko firebase mode me na phenk de.

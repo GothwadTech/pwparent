@@ -1,4 +1,4 @@
-# Firebase Backend — Setup Guide (DEMO BUILD)
+# Firebase Backend — Setup Guide
 
 > **TL;DR — code already likha ja chuka hai.** `src/App.tsx`, `src/lib/backend/`,
 > `src/lib/firebase/` sab wire ho gaye hain. Tumhe sirf **Firebase console me 4
@@ -40,7 +40,7 @@ bina ek bhi screen chhede.
 
 ---
 
-## 2. Console checklist — sirf 4 kaam
+## 2. Console checklist — 6 kaam
 
 Project: **`pwparentapp`**
 
@@ -60,11 +60,22 @@ Console → **Build → Firestore Database → Create database**
 ### ② Anonymous Auth enable karo
 Console → **Build → Authentication → Sign-in method → Anonymous → Enable → Save**
 
-Ye **zaroori** hai. Iske bina `signInAnonymously()` fail hoga
-(`auth/operation-not-allowed`) aur app mock data pe gir jayegi.
+Ye **zaroori** hai. Iske bina `signInAnonymously()` fail hoga (`auth/operation-not-allowed`) aur
+app khaali reh jayegi — **koi demo data fallback nahi hai** (neeche §7).
 
 **Phone/SMS OTP enable mat karna** — wo Spark plan pe chalta hi nahi
 (`auth/billing-not-enabled`). Neeche §3 me poora reason hai.
+
+### ②b Email/Password Auth enable karo
+Console → **Build → Authentication → Sign-in method → Email/Password → Enable → Save**
+
+Admin Panel ke username + password ke liye zaroori. Password **sirf yahin**
+rehta hai — Firestore me uska koi trace nahi jaata. Username ek synthetic
+address ban jata hai: `<username>@admin.pwparent.local` (local domain, koi mail
+nahi jaata).
+
+> ⚠️ **Pehla register karne wala hi admin banega — permanently.** Deploy ke
+> turant baad khud register karo. Details [`ADMIN_PANEL.md §2`](./ADMIN_PANEL.md).
 
 ### ③ Rules publish karo
 Console → **Firestore Database → Rules** → repo ka `firestore.rules` paste karo → **Publish**
@@ -83,6 +94,21 @@ Dashboard → **pwparent → Settings → Environment variables** → neeche §5
 Vite env vars ko **build time** pe inline karta hai, isliye sirf save karna
 kaafi nahi — **rebuild zaroori hai**.
 
+### ⑤ Authorized domains me Pages host daalo
+Console → **Authentication → Settings → Authorized domains** →
+`pwparent.pages.dev` add karo (aur har preview host jo use karna ho).
+
+Iske bina `signInAnonymously()` us origin se `auth/unauthorized-domain` dega.
+`*.pages.dev` wildcard support nahi hota — exact host chahiye.
+
+### ⑥ Admin code issue karo, phir test karo
+App kholo → Settings dock → **Admin Panel** → register karo → **Login codes**
+tab → apne number ka 6-digit code set karo → logout → us number + code se login
+karke dekho.
+
+Jab tak koi code exist nahi karta, **koi login nahi kar sakta**. Peeche koi demo
+dataset nahi hai — ye intentional hai.
+
 ---
 
 ## 3. Auth model — phone number credential KYUN nahi hai
@@ -94,22 +120,29 @@ sakte** (rules `request.auth.uid` pe chalte hain).
 
 ### Jo ab hota hai
 
+Ye **username + password** hai, SMS OTP nahi. Number username hai; admin ke
+diye hue 6-digit code password hain.
+
 | Step | Kya hota hai |
 |---|---|
 | 1 | User 10-digit number type karta hai |
-| 2 | OTP screen pe demo code (`1234`) — **koi SMS nahi bhejta, koi inbox nahi padhta** |
-| 3 | `ensureSession()` chup-chaap `signInAnonymously()` karta hai → ek **real, stable `uid`** milta hai |
-| 4 | Number **profile field** ki tarah `parents/{uid}.mobileNumber` me save hota hai |
-| 5 | Rules us `uid` se har user ka data isolate kar dete hain |
+| 2 | `sendOtp()` sirf **check** karta hai ki `credentials/{phone}` exist karta hai — kuch bhejta nahi |
+| 3 | Number registered nahi hai to screen saaf bol deti hai: *"An administrator must set a login code for it first."* |
+| 4 | Registered hai to 6 boxes khulte hain. Typed code PBKDF2 digest se **constant-time** verify hota hai |
+| 5 | Verify hone par `ensureSession()` → `signInAnonymously()` → ek **real, stable `uid`** |
+| 6 | Number **profile field** ki tarah `parents/{uid}.mobileNumber` me save hota hai |
+| 7 | Rules us `uid` se har user ka data isolate kar dete hain |
 
 **Result:**
-- ✅ Free (Anonymous Auth Spark plan pe 50,000 MAU tak)
-- ✅ Zero friction — user ko OTP/email/password kuch nahi chahiye
-- ✅ Session reload pe bhi rehta hai (Firebase IndexedDB me persist karta hai)
+- ✅ Free (Anonymous Auth + Email/Password, Spark plan pe 50,000 MAU tak)
+- ✅ **₹0 SMS cost** — koi message bhejta hi nahi, koi inbox padhta hi nahi
+- ✅ Number **ab actually gate karta hai** — bina admin-set code ke andar nahi aa sakte
+- ✅ Session reload pe bhi rehta hai (`restoreSession()` bina likhe resume karta hai)
 - ✅ Har user ka data rules se locked
-- ⚠️ Number **verify nahi hota** — koi bhi koi bhi number type kar sakta hai.
-  Isliye number ko **kabhi bhi kisi bachche ke records ka lookup key mat
-  banana**. Lookup key hamesha `uid` hai.
+- ⚠️ Verification **browser me** hoti hai — 6-digit code strong password nahi hai.
+  Poora analysis [`SECURITY.md §2`](./SECURITY.md).
+- ⚠️ Number ko kisi bachche ke records ka **lookup key mat banana**. Lookup key
+  hamesha `uid` hai — number badal sakta hai, uid nahi.
 
 ### Phone OTP kyun nahi
 Firebase Phone Auth (SMS) ke liye **1 September 2024 se linked Cloud Billing
@@ -132,7 +165,7 @@ parents/{uid}                          ParentProfileData
   ├─ countryCode                       "IN +91"
   ├─ mobileNumber                      "9876543210"   ← profile field, credential nahi
   ├─ email                             string
-  ├─ signInMethod                      "anonymous"
+  ├─ signInMethod                      "anonymous+login-code"
   └─ lastLoginAt                       ISO timestamp
 
 parents/{uid}/children/{childId}       StudentProfile
@@ -155,7 +188,26 @@ parents/{uid}/purchases/{itemId}       PurchaseItem
                                        ("from-blue-600 to-indigo-700")
 
 announcements/{id}                     AnnouncementItem (shared feed)
-admins/{uid}                           {role, grantedAt}  ← console se banao
+
+admins/{uid}                           role marker — admin allow-list
+  ├─ username                          "a-z0-9._-", 3-30 chars
+  ├─ role                              "owner"
+  └─ createdAt                         ISO timestamp
+                                       ⚠️ password YAHAN NAHI hai (Firebase Auth me hai)
+
+adminConfig/singleton                  registration permanently band karta hai
+  ├─ closedAt                          ISO timestamp
+  └─ reason                            string
+                                       ⚠️ username YAHAN NAHI — ye doc world-readable
+                                       hai (login screen ko pata hona chahiye ki
+                                       registration open hai ya nahi)
+
+credentials/{phone}                    phone ka login code — SIRF digest
+  ├─ v                                 1  (CREDENTIAL_VERSION)
+  ├─ salt                              base64, 16 random bytes
+  ├─ iterations                        210000
+  ├─ hash                              base64, PBKDF2-SHA256 over "code|phone"
+  └─ createdAt                         ISO timestamp
 ```
 
 **Har parent-scoped path `parents/{uid}` se shuru hota hai** — isse rules me
@@ -192,7 +244,6 @@ VITE_FIREBASE_STORAGE_BUCKET=pwparentapp.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=543582188666
 VITE_FIREBASE_APP_ID=1:543582188666:web:fc0d4a1ee188fd4a97b7c3
 VITE_USE_ANONYMOUS_AUTH=true
-VITE_DEMO_BUILD=true
 VITE_ADMIN_PASSCODE=<apna passcode>
 ```
 
@@ -225,32 +276,54 @@ rehta hai.
 
 | Path | Read | Write |
 |---|---|---|
-| `parents/{uid}` | sirf owner | sirf owner (delete: sirf console) |
-| `parents/{uid}/children/{childId}` | sirf owner | sirf owner |
-| `parents/{uid}/purchases/{itemId}` | sirf owner | sirf owner |
-| `announcements/{id}` | koi bhi signed-in | sirf `admins/{uid}` |
-| `admins/{uid}` | owner ya admin | **koi nahi** (console-only) |
+| `parents/{uid}` + subcollections | owner **ya admin** | owner **ya admin** (delete: sirf console) |
+| `announcements/{id}` | koi bhi signed-in | sirf `isAdmin()` |
+| `admins/{uid}` | owner ya admin | **create**: sirf jab slot khula ho; update/delete ❌ |
+| `adminConfig/singleton` | **koi bhi** (jaan-boojh ke) | **create**: ek hi baar; update/delete ❌ |
+| `credentials/{phone}` | **get**: koi bhi · **list**: sirf admin | sirf `isAdmin()` |
 | baaki sab | ❌ | ❌ |
 
 **Default deny** — nayi collection bina explicit rule ke kaam nahi karegi.
+Root-level `match /{document=**}` catch-all deliberately nahi hai: Firestore
+pehle se har unmatched path deny karta hai, aur recursive wildcard upar ke
+matches se overlap karta.
 
-`admins/{uid}` pe `write: if false` jaan-boojh ke hai: app khud ko promote
-nahi kar sakti. Admin banana ho to console se `admins/<your-uid>` document
-banao.
+Teen design decisions jo surprising lag sakte hain:
+
+1. **`adminConfig/singleton` world-readable hai** — login screen ko
+   authenticate hone se *pehle* pata hona chahiye ki registration open hai ya
+   nahi. Isliye usme username ya koi sensitive cheez **nahi** hai.
+2. **`credentials/{phone}` pe `get: if true`** — browser ko digest fetch karke
+   typed code check karna padta hai, koi server nahi jo ye kaam kare. `list`
+   admin-only hai, isliye collection enumerate karke registered numbers pata
+   nahi chal sakte.
+3. **`admins/{uid}` ka create `!exists(adminConfig/singleton)` pe gated hai** —
+   aur `registerAdmin()` dono documents ek atomic batch me likhta hai. Rule ke
+   andar `exists()` **pre-batch** state dekhta hai, isliye pehla admin bante hi
+   window permanently band. App se doosra admin kabhi nahi ban sakta.
+
+Admin ko `parents/{uid}` subtree ka access isliye hai kyunki Admin Panel ka
+kaam hi doosron ka academic record manage karna hai.
 
 ---
 
-## 7. Demo build — jo honest limitations hain
+## 7. Koi demo data nahi — jo honest limitations hain
 
-Ye ek **demonstration project** hai, production product nahi. Ye baatein
-jaan-na zaroori hai:
-
-1. **OTP verify kuch nahi karta.** `1234` (ya `4286`) accept hota hai. Koi SMS
-   nahi bhejta, koi inbox nahi padhta. Screen pe ye saaf likha hai.
-2. **Phone number verify nahi hota.** Koi bhi koi bhi number type kar sakta hai.
-3. **Admin passcode client-side hai.** Vite use bundle me inline kar deta hai,
-   to jo bundle padh lega use passcode mil jayega. Real authorisation
-   `firestore.rules` ke `admins/{uid}` me hai. See `docs/ADMIN_PANEL.md`.
+1. **Login code browser me verify hota hai.** `credentials/{phone}` ka digest
+   client pe download hota hai aur PBKDF2 se check hota hai. 210 000 rounds +
+   per-code salt + phone pepper se offline brute force mehnga padta hai, par
+   6-digit code strong password nahi hai. Sahi fix: verification ko Cloudflare
+   Pages Function me le jao (Admin SDK ke saath) aur rules me
+   `credentials/{phone}` ko `read, write: if false` kar do.
+   Poora analysis [`SECURITY.md §2`](./SECURITY.md).
+2. **Phone number ownership prove nahi hota.** SMS nahi jaata, isliye ye
+   confirm nahi hota ki number type karne wala uska malik hai. Gate ye hai ki
+   admin ne us number ke liye code issue kiya hai — jo effectively ek
+   allow-list hai.
+3. **Firebase mode me koi demo data nahi hai.** Adhoore env pe app khaali
+   dikhegi aur `backendConfigError` missing vars naam se batayega — nakli
+   marks invent nahi karegi. Mock mode (`VITE_BACKEND_MODE=mock`) sirf dev +
+   tests ke liye hai; uska passcode bundle me inline hota hai, security nahi.
 4. **Kuch views me abhi bhi sample numbers hardcoded hain.**
    Wired: student name/batch (LinkedAccounts, Profile), test scorecard +
    recent tests + marks (`StudentDashboardView`), announcements
@@ -264,10 +337,10 @@ jaan-na zaroori hai:
    `MainAppHeader`, `StatusBar`, `StudentLecturesDashboard`,
    `StudentTestsDashboard`, `SupportScreen`. Inhe chheda nahi gaya.
 
-App ke bottom-right pe ek chhota **`DEMO · <mode> · admin`** badge rehta hai
-(`src/components/DemoBadge.tsx`). Uspe click karke Admin Panel khulta hai.
-`VITE_DEMO_BUILD=false` karne se badge hat jata hai — par tab tak mat hatana
-jab tak saara sample data real integration se replace na ho jaye.
+App ke bottom-right pe ek chhota **Settings dock** rehta hai
+(`src/components/SettingsDock.tsx`) jo live backend mode dikhata hai — 🟢
+`firebase`, 🟡 `mock`, 🔴 `setup` (env adhoora). Wahi se Admin Panel khulta
+hai, doosre number se login hota hai, aur Firestore read budget dikhta hai.
 
 ---
 
@@ -347,7 +420,7 @@ jata aur `config.spec.ts` fail hone lagta. Details: `src/tests/env/README.md`.
 | `auth/unauthorized-domain` | `pages.dev` authorized nahi | §8 → Authorized domains |
 | `permission-denied` on announcements | `admins/{uid}` doc nahi hai | Console me `admins/<uid>` banao |
 | Deploy ke baad bhi purana behaviour | Vite build-time inline karta hai | **Retry deployment** (sirf save kaafi nahi) |
-| Data reload pe chala gaya | Mock mode me `resetLocalData()` chala tha | Admin Panel → Data → Seed demo data |
+| Data reload pe chala gaya | Mock mode ka store clear ho gaya (`clearDemoStore`) | Ye mock mode ka behaviour hai; firebase mode me data Firestore me rehta hai |
 
 ---
 
