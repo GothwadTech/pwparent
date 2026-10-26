@@ -27,7 +27,7 @@ import { BatchSelectModal } from './BatchSelectModal';
 import { SubjectDetailsModal } from './SubjectDetailsModal';
 import { AllTestsScreen } from './AllTestsScreen';
 import { TestDetailScreen } from './TestDetailScreen';
-import { PAGE_BG, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
+import { PAGE_BG, SECTION_BAND, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
 
 interface ChildDashboardScreenProps {
   student: StudentProfile;
@@ -123,6 +123,9 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
           onOpenProfile={onOpenProfile}
         />
       </header>
+
+      {/* The neutral band the reference shows directly under the top bar. */}
+      <div className="shrink-0 h-3 w-full" style={{ background: SECTION_BAND }} />
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
         {!selectedBatch ? (
