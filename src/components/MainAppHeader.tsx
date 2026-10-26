@@ -16,12 +16,12 @@ export const MainAppHeader: React.FC<MainAppHeaderProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <header className="w-full px-4 pt-3 pb-2.5 flex items-center justify-between bg-[#F4F5F7] border-b border-[#181a27] z-20">
+    <header className="w-full px-4 pt-3 pb-2.5 flex items-center justify-between bg-[#F4F5F7] border-b border-[#E4E6EB] z-20">
       {/* Batch Selector Dropdown Pill */}
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-[#2b2e42] bg-[#121320] hover:bg-[#181a2b] transition-all text-left shadow-xs group"
+        className="flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-[#E4E6EB] bg-[#FFFFFF] hover:bg-[#FFFFFF] transition-all text-left shadow-xs group"
         aria-label="Select Batch"
       >
         <span className="text-[13px] font-bold text-[#17181C] tracking-tight truncate max-w-[210px]">

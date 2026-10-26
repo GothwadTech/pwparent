@@ -39,13 +39,13 @@ const LEGEND = [
 
 /** A ring whose filled arc is `percent` of the circumference. */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 84;
-  const stroke = 22;
+  const radius = 68;
+  const stroke = 17;
   const circumference = 2 * Math.PI * radius;
   const filled = (Math.min(100, Math.max(0, percent)) / 100) * circumference;
 
   return (
-    <div className="relative w-[210px] h-[210px] mx-auto">
+    <div className="relative w-[168px] h-[168px] mx-auto">
       <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
         <circle cx="100" cy="100" r={radius} fill="none" stroke={PROGRESS_TRACK} strokeWidth={stroke} opacity="0.55" />
         <circle
@@ -55,10 +55,10 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[44px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[30px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
           {percent}%
         </span>
-        <span className="text-[15px] font-semibold mt-2" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[10px] font-semibold mt-1.5" style={{ color: TEXT_PRIMARY }}>
           Average attendance
         </span>
       </div>
@@ -72,22 +72,22 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
   const todayIndex = days.findIndex((d) => d.status !== 'no_class' && d.dayNum === new Date().getDate());
 
   return (
-    <section className="px-4 pt-4 space-y-5">
+    <section className="px-3 pt-3 space-y-3">
       {/* Title + streak pill */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="text-[20px] leading-none">📅</span>
-          <h2 className="text-[19px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+          <span className="text-[14px] leading-none">📅</span>
+          <h2 className="text-[13px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
             Attendance
           </h2>
         </div>
         {summary.streakDays > 0 && (
           <div
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-full border"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full border"
             style={{ background: STREAK_BG, borderColor: STREAK_BORDER }}
           >
-            <span className="text-[14px] leading-none">🔥</span>
-            <span className="text-[13px] font-bold" style={{ color: STREAK_TEXT }}>
+            <span className="text-[10px] leading-none">🔥</span>
+            <span className="text-[9px] font-bold" style={{ color: STREAK_TEXT }}>
               {summary.streakDays} day streak
             </span>
           </div>
@@ -99,22 +99,22 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       {/* All-time day counts */}
       <div className="grid grid-cols-2 items-center py-1">
         <div className="text-center">
-          <div className="text-[26px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+          <div className="text-[18px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
             {summary.studyDays}
           </div>
-          <div className="text-[15px] mt-2" style={{ color: TEXT_PRIMARY }}>Total Study Days</div>
+          <div className="text-[10px] mt-1.5" style={{ color: TEXT_PRIMARY }}>Total Study Days</div>
         </div>
         <div className="text-center border-l" style={{ borderColor: CARD_BORDER }}>
-          <div className="text-[26px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+          <div className="text-[18px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
             {summary.presentDays}
           </div>
-          <div className="text-[15px] mt-2" style={{ color: TEXT_PRIMARY }}>Total Present Days</div>
+          <div className="text-[10px] mt-1.5" style={{ color: TEXT_PRIMARY }}>Total Present Days</div>
         </div>
       </div>
 
       {/* Weekly report */}
-      <div className="space-y-3">
-        <h3 className="text-[15px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+      <div className="space-y-2">
+        <h3 className="text-[10px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           Weekly Report
         </h3>
 
@@ -124,47 +124,47 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
             onClick={onPrevWeek}
             disabled={!canPrevWeek}
             aria-label="Previous week"
-            className="w-9 h-9 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
+            className="w-8 h-8 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
             style={{ borderColor: CARD_BORDER }}
           >
-            <ArrowLeft size={17} style={{ color: TEXT_PRIMARY }} />
+            <ArrowLeft size={12} style={{ color: TEXT_PRIMARY }} />
           </button>
-          <span className="text-[16px]" style={{ color: TEXT_SECONDARY }}>{weekLabel}</span>
+          <span className="text-[11px]" style={{ color: TEXT_SECONDARY }}>{weekLabel}</span>
           <button
             type="button"
             onClick={onNextWeek}
             disabled={!canNextWeek}
             aria-label="Next week"
-            className="w-9 h-9 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
+            className="w-8 h-8 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
             style={{ borderColor: CARD_BORDER }}
           >
-            <ArrowRight size={17} style={{ color: canNextWeek ? TEXT_PRIMARY : '#C6C9CF' }} />
+            <ArrowRight size={12} style={{ color: canNextWeek ? TEXT_PRIMARY : '#C6C9CF' }} />
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-1">
           {days.map((d, i) => {
             const isToday = i === todayIndex;
             return (
               <div
                 key={d.dateStr}
-                className="flex flex-col items-center py-2 rounded-lg border"
+                className="flex flex-col items-center py-1.5 rounded-lg border"
                 style={{
                   background: isToday ? CAL_TODAY_COL_BG : 'transparent',
                   borderColor: isToday ? CAL_TODAY_COL_BORDER : 'transparent',
                 }}
               >
-                <span className="text-[15px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                <span className="text-[10px] font-semibold" style={{ color: TEXT_PRIMARY }}>
                   {d.dayLabel}
                 </span>
                 <div
-                  className="mt-2 w-11 h-11 rounded-lg border flex flex-col items-center justify-center"
+                  className="mt-1.5 w-9 h-9 rounded-lg border flex flex-col items-center justify-center"
                   style={{
                     background: isToday ? CAL_TODAY_CHIP_BG : '#FFFFFF',
                     borderColor: isToday ? CAL_TODAY_CHIP_BORDER : CARD_BORDER,
                   }}
                 >
-                  <span className="text-[14px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                  <span className="text-[10px] font-semibold" style={{ color: TEXT_PRIMARY }}>
                     {d.dayNum}
                   </span>
                   {d.status === 'present' && (
@@ -183,7 +183,7 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
           {LEGEND.map((l) => (
             <div key={l.label} className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
-              <span className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{l.label}</span>
+              <span className="text-[9px] font-semibold" style={{ color: TEXT_PRIMARY }}>{l.label}</span>
             </div>
           ))}
         </div>

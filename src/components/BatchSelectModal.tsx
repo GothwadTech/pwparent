@@ -66,8 +66,8 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
                 }}
                 className={`w-full p-3.5 rounded-xl flex items-center justify-between transition-all text-left ${
                   isSelected
-                    ? 'bg-[#292348] border border-[#7C63FF]/50 text-[#17181C]'
-                    : 'bg-[#12131e] border border-[#202233] hover:border-[#353852] text-neutral-800'
+                    ? 'bg-[#F1F2F4] border border-[#7C63FF]/50 text-[#17181C]'
+                    : 'bg-[#FFFFFF] border border-[#E4E6EB] hover:border-[#E4E6EB] text-neutral-800'
                 }`}
               >
                 <span className="text-sm font-semibold tracking-tight">
@@ -83,7 +83,7 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
                   }`}
                 >
                   {isSelected && (
-                    <div className="w-2 h-2 rounded-full bg-[#18132e]" />
+                    <div className="w-2 h-2 rounded-full bg-[#FFFFFF]" />
                   )}
                 </div>
               </button>

@@ -35,7 +35,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           onClick={onHowItWorksClick}
-          className="px-3 py-1 rounded-md border border-[#2e313d] bg-[#161822]/80 hover:bg-[#202330] text-neutral-800 text-[12px] font-medium transition-all active:scale-95"
+          className="px-3 py-1 rounded-md border border-[#E4E6EB] bg-[#FFFFFF]/80 hover:bg-[#FFFFFF] text-neutral-800 text-[12px] font-medium transition-all active:scale-95"
         >
           How it works
         </button>

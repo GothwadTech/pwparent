@@ -38,9 +38,9 @@ const nextMark = (current: AttendanceMark | undefined): AttendanceMark | null =>
 };
 
 const MARK_STYLE: Record<AttendanceMark, {bg: string; label: string}> = {
-  P: {bg: 'bg-[#1d4a2c] border-[#2f7a48] text-[#8ff0b0]', label: 'Present'},
-  A: {bg: 'bg-[#4a1d24] border-[#7a2f3a] text-[#ff9b9b]', label: 'Absent'},
-  L: {bg: 'bg-[#4a3d1d] border-[#7a6530] text-[#f0dc8f]', label: 'Late'},
+  P: {bg: 'bg-[#D8F0DE] border-[#A7D9B4] text-[#8ff0b0]', label: 'Present'},
+  A: {bg: 'bg-[#FBE0E5] border-[#E8AEB8] text-[#ff9b9b]', label: 'Absent'},
+  L: {bg: 'bg-[#FBF1D7] border-[#E4CE93] text-[#f0dc8f]', label: 'Late'},
 };
 
 /** Shift a `YYYY-MM` key by n months, clamped to a sane range. */
@@ -217,7 +217,7 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
       </div>
 
       {error && (
-        <p className="text-xs text-[#ff9bb3] leading-relaxed px-3 py-2.5 rounded-lg bg-[#2a1620] border border-[#4d2436]">
+        <p className="text-xs text-[#ff9bb3] leading-relaxed px-3 py-2.5 rounded-lg bg-[#FBE0E5] border border-[#F3C1CB]">
           {error}
         </p>
       )}

@@ -94,7 +94,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 className={`transition-all duration-300 rounded-full h-2 ${
                   isActive
                     ? 'w-7 bg-[#6b7280]'
-                    : 'w-2 bg-[#272938] hover:bg-[#3b3e54]'
+                    : 'w-2 bg-[#F1F2F4] hover:bg-[#F1F2F4]'
                 }`}
               />
             );

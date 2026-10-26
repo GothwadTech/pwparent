@@ -33,7 +33,7 @@ export const AnnouncementsScreen: React.FC<AnnouncementsScreenProps> = () => {
         {announcements.map((item) => (
           <article
             key={item.id}
-            className="px-5 py-5 hover:bg-[#0f1018] transition-colors"
+            className="px-5 py-5 hover:bg-[#F4F5F7] transition-colors"
           >
             {/* Author Header */}
             <div className="flex items-center justify-between mb-2.5">

@@ -55,8 +55,8 @@ const Action: React.FC<{icon: React.ReactNode; label: string; hint?: string; onC
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl border text-left transition-colors ${
       danger
-        ? 'bg-[#2a1620] border-[#4d2436] hover:bg-[#3a1d2b] text-[#ff9bb3]'
-        : 'bg-white border-[#E4E6EB] hover:bg-[#161824] text-[#17181C]'
+        ? 'bg-[#FBE0E5] border-[#F3C1CB] hover:bg-[#FBE0E5] text-[#ff9bb3]'
+        : 'bg-white border-[#E4E6EB] hover:bg-[#FFFFFF] text-[#17181C]'
     }`}
   >
     <span className={danger ? 'text-[#ff9bb3]' : 'text-[#8E75FF]'}>{icon}</span>
@@ -120,7 +120,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
             </div>
 
             {configError && (
-              <p className="mb-4 text-[11px] leading-relaxed px-3 py-2.5 rounded-lg bg-[#2a1a10] border border-[#4d3419] text-neutral-700">
+              <p className="mb-4 text-[11px] leading-relaxed px-3 py-2.5 rounded-lg bg-[#FBF1D7] border border-[#F2DFA8] text-neutral-700">
                 <AlertTriangle size={12} className="inline mr-1 -mt-0.5 text-[#facc15]" />
                 {configError}
               </p>

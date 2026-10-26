@@ -34,21 +34,21 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
     : 0;
 
   return (
-    <section className="px-4 pt-4 space-y-4">
+    <section className="px-3 pt-3 space-y-3">
       <div className="flex items-center space-x-2">
-        <span className="text-[20px] leading-none">📑</span>
-        <h2 className="text-[19px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[14px] leading-none">📑</span>
+        <h2 className="text-[13px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           Test
         </h2>
       </div>
 
       {/* Lavender roll-up */}
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: SUMMARY_BG }}>
+      <div className="rounded-2xl p-3.5 space-y-3" style={{ background: SUMMARY_BG }}>
         <div className="flex items-center justify-between">
-          <span className="text-[15px]" style={{ color: TEXT_PRIMARY }}>Total Tests Attempted</span>
-          <span className="text-[22px] font-extrabold" style={{ color: TEXT_PRIMARY }}>
+          <span className="text-[10px]" style={{ color: TEXT_PRIMARY }}>Total Tests Attempted</span>
+          <span className="text-[15px] font-extrabold" style={{ color: TEXT_PRIMARY }}>
             {summary.testsAttempted}
-            <span className="text-[15px] font-bold">/{summary.testsTotal}</span>
+            <span className="text-[10px] font-bold">/{summary.testsTotal}</span>
           </span>
         </div>
 
@@ -65,22 +65,22 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
 
         <div className="flex items-center space-x-3 pt-1">
           <span className="flex-1 h-px" style={{ background: '#C9C4F0' }} />
-          <span className="text-[14px] font-bold" style={{ color: ACCENT }}>In Attempted Tests</span>
+          <span className="text-[10px] font-bold" style={{ color: ACCENT }}>In Attempted Tests</span>
           <span className="flex-1 h-px" style={{ background: '#C9C4F0' }} />
         </div>
 
         <div className="grid grid-cols-2 text-center">
           <div className="border-r" style={{ borderColor: '#C9C4F0' }}>
-            <div className="text-[26px] font-extrabold" style={{ color: FIGURE }}>
+            <div className="text-[18px] font-extrabold" style={{ color: FIGURE }}>
               {summary.avgScorePercent || '0%'}
             </div>
-            <div className="text-[14px] mt-1" style={{ color: TEXT_PRIMARY }}>Avg. Score</div>
+            <div className="text-[10px] mt-1" style={{ color: TEXT_PRIMARY }}>Avg. Score</div>
           </div>
           <div>
-            <div className="text-[26px] font-extrabold" style={{ color: FIGURE }}>
+            <div className="text-[18px] font-extrabold" style={{ color: FIGURE }}>
               {summary.avgAccuracyPercent || '0%'}
             </div>
-            <div className="text-[14px] mt-1" style={{ color: TEXT_PRIMARY }}>Accuracy</div>
+            <div className="text-[10px] mt-1" style={{ color: TEXT_PRIMARY }}>Accuracy</div>
           </div>
         </div>
       </div>
@@ -88,21 +88,21 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
       <button
         type="button"
         onClick={onOpenSubjectDetails}
-        className="mx-auto flex items-center space-x-2 px-5 py-3 rounded-xl bg-[#F1F2F4]"
+        className="mx-auto flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-[#F1F2F4]"
       >
-        <span className="text-[15px] font-extrabold" style={{ color: TEXT_PRIMARY }}>Subject Details</span>
-        <Play size={13} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
+        <span className="text-[10px] font-extrabold" style={{ color: TEXT_PRIMARY }}>Subject Details</span>
+        <Play size={9} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
       </button>
 
       {/* Recent tests timeline */}
-      <div className="space-y-3 pt-2">
-        <h3 className="text-[17px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+      <div className="space-y-2 pt-2">
+        <h3 className="text-[12px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           Recent Tests
         </h3>
 
         <div className="relative pl-5">
-          <span className="absolute left-[5px] top-2 bottom-2 w-[2px]" style={{ background: ACCENT }} />
-          <div className="space-y-4">
+          <span className="absolute left-[5px] top-2 bottom-2 w-[8px]" style={{ background: ACCENT }} />
+          <div className="space-y-3">
             {offlineTests.map((t) => {
               const awaiting = t.status === 'RESULT_AWAITING';
               const pill = statusPillClasses(t.status);
@@ -112,45 +112,45 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
                     className="absolute -left-5 top-6 w-3 h-3 rounded-full"
                     style={{ background: ACCENT }}
                   />
-                  <div className="bg-white border rounded-xl p-4" style={{ borderColor: CARD_BORDER }}>
+                  <div className="bg-white border rounded-xl p-3" style={{ borderColor: CARD_BORDER }}>
                     <div className="flex items-start justify-between">
-                      <span className="text-[17px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+                      <span className="text-[12px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
                         {t.name}
                       </span>
                       <span
-                        className="text-[11px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-md"
+                        className="text-[8px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-md"
                         style={{ background: pill.bg, color: pill.text }}
                       >
                         {t.status}
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-2 mt-1.5 text-[14px]" style={{ color: TEXT_SECONDARY }}>
+                    <div className="flex items-center space-x-2 mt-1.5 text-[10px]" style={{ color: TEXT_SECONDARY }}>
                       <span>{t.date}</span>
                       <span>•</span>
                       <span>{t.mode}</span>
                     </div>
 
                     {awaiting ? (
-                      <p className="text-[14px] mt-3" style={{ color: FIGURE }}>
+                      <p className="text-[10px] mt-2" style={{ color: FIGURE }}>
                         Result has not been announced yet
                       </p>
                     ) : t.status === 'ATTEMPTED' ? (
-                      <div className="grid grid-cols-2 gap-3 mt-3">
-                        <div className="rounded-lg px-3 py-2.5" style={{ background: TILE_BG }}>
-                          <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>Score</div>
-                          <div className="text-[17px] font-extrabold" style={{ color: FIGURE }}>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        <div className="rounded-lg px-2.5 py-2.5" style={{ background: TILE_BG }}>
+                          <div className="text-[9px] font-semibold" style={{ color: TEXT_PRIMARY }}>Score</div>
+                          <div className="text-[12px] font-extrabold" style={{ color: FIGURE }}>
                             {t.marks}
                             {t.scorePercent && (
-                              <span className="text-[13px] font-bold ml-2" style={{ color: TEXT_PRIMARY }}>
+                              <span className="text-[9px] font-bold ml-2" style={{ color: TEXT_PRIMARY }}>
                                 {t.scorePercent}
                               </span>
                             )}
                           </div>
                         </div>
-                        <div className="rounded-lg px-3 py-2.5" style={{ background: TILE_BG }}>
-                          <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>Rank</div>
-                          <div className="text-[17px] font-extrabold" style={{ color: FIGURE }}>
+                        <div className="rounded-lg px-2.5 py-2.5" style={{ background: TILE_BG }}>
+                          <div className="text-[9px] font-semibold" style={{ color: TEXT_PRIMARY }}>Rank</div>
+                          <div className="text-[12px] font-extrabold" style={{ color: FIGURE }}>
                             {t.rank || '—'}
                           </div>
                         </div>
@@ -161,16 +161,16 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
                       <button
                         type="button"
                         onClick={() => onOpenTest(t.id)}
-                        className="w-full flex items-center justify-center space-x-2 mt-3 py-1"
+                        className="w-full flex items-center justify-center space-x-2 mt-2 py-1"
                       >
-                        <span className="text-[15px]" style={{ color: TEXT_PRIMARY }}>View Details</span>
-                        <Play size={11} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
+                        <span className="text-[10px]" style={{ color: TEXT_PRIMARY }}>View Details</span>
+                        <Play size={8} fill={TEXT_PRIMARY} style={{ color: TEXT_PRIMARY }} />
                       </button>
                     )}
                     {awaiting && (
-                      <div className="w-full flex items-center justify-center space-x-2 mt-3 py-1 opacity-40">
-                        <span className="text-[15px]" style={{ color: TEXT_TERTIARY }}>View Details</span>
-                        <Play size={11} fill={TEXT_TERTIARY} style={{ color: TEXT_TERTIARY }} />
+                      <div className="w-full flex items-center justify-center space-x-2 mt-2 py-1 opacity-40">
+                        <span className="text-[10px]" style={{ color: TEXT_TERTIARY }}>View Details</span>
+                        <Play size={8} fill={TEXT_TERTIARY} style={{ color: TEXT_TERTIARY }} />
                       </div>
                     )}
                   </div>
@@ -183,15 +183,15 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
         <button
           type="button"
           onClick={onViewAllTests}
-          className="w-full py-4 rounded-xl flex items-center justify-center space-x-3"
+          className="w-full py-3 rounded-xl flex items-center justify-center space-x-3"
           style={{ background: '#E4E9F8' }}
         >
-          <span className="text-[16px] font-extrabold" style={{ color: TEXT_PRIMARY }}>View All Tests</span>
+          <span className="text-[11px] font-extrabold" style={{ color: TEXT_PRIMARY }}>View All Tests</span>
           <span
-            className="w-7 h-7 rounded-full border flex items-center justify-center"
+            className="w-6 h-6 rounded-full border flex items-center justify-center"
             style={{ borderColor: TEXT_PRIMARY }}
           >
-            <ArrowRight size={15} style={{ color: TEXT_PRIMARY }} />
+            <ArrowRight size={10} style={{ color: TEXT_PRIMARY }} />
           </span>
         </button>
       </div>

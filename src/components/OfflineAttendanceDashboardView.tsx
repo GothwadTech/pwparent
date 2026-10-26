@@ -101,7 +101,7 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
   const band = <div className="h-2 w-full" style={{ background: SECTION_BAND }} />;
 
   return (
-    <div className="flex-1 w-full pb-6 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full pb-4 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
       <AttendanceCalendarSection
         summary={summary}
         days={currentWeek}
