@@ -64,7 +64,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
             </div>
 
             {item.isNew && (
-              <span className="px-2 py-0.5 rounded-md bg-[#FFDC4A] text-[#1a1500] text-[10.5px] font-bold tracking-wider">
+              <span className="px-2 py-0.5 rounded-md bg-[#FFDC4A] text-[#1a1500] text-[10px] font-bold tracking-wider">
                 New
               </span>
             )}

@@ -32,8 +32,12 @@ import {type CSSProperties, useEffect, useState} from 'react';
 /** Design height the screens were built against (see App.tsx's old 880px frame). */
 export const DESIGN_HEIGHT = 880;
 
-/** Above this, text stops being "a big phone" and starts being "a poster". */
-export const MAX_SCALE = 1.35;
+/**
+ * Never magnify. The reference renders are 1:1 phone pixels; uniformly blowing
+ * the shell up to fill a tall window is exactly the "zoomed" feel this app must
+ * not have. Width still goes fluid, height just becomes more scroll room.
+ */
+export const MAX_SCALE = 1;
 
 export function computeFluidScale(viewportHeight: number): number {
   if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return 1;

@@ -156,7 +156,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             </div>
 
             {/* Legend */}
-            <div className="flex items-center justify-center space-x-2 pt-2 text-[10.5px] text-neutral-600">
+            <div className="flex items-center justify-center space-x-2 pt-2 text-[10px] text-neutral-600">
               <span className="w-2.5 h-2.5 rounded-xs bg-[#9F86FF]" />
               <span>Total Watch Time</span>
             </div>
@@ -199,7 +199,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             <div className="absolute right-0 -top-0.5 w-2 h-2 rounded-full bg-amber-400" />
           </div>
 
-          <div className="text-center text-[10.5px] text-[#5747D6] font-medium my-1">
+          <div className="text-center text-[10px] text-[#5747D6] font-medium my-1">
             In Attempted DPP&apos;s
           </div>
 
@@ -295,7 +295,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             <div className="absolute right-0 -top-0.5 w-2 h-2 rounded-full bg-amber-400" />
           </div>
 
-          <div className="text-center text-[10.5px] text-[#5747D6] font-medium my-1">
+          <div className="text-center text-[10px] text-[#5747D6] font-medium my-1">
             In Attempted Tests
           </div>
 

@@ -43,7 +43,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* Main Form Content */}
       <div className="flex-1 px-5 pt-8 flex flex-col">
         {/* Title */}
-        <h1 className="text-[28px] sm:text-[30px] font-bold text-[#17181C] tracking-tight leading-snug">
+        <h1 className="text-[21px] sm:text-[22px] font-bold text-[#17181C] tracking-tight leading-snug">
           Enter your number
         </h1>
 

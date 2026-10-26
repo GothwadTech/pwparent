@@ -105,11 +105,11 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       />
 
       <div className="flex-1 px-5 pt-8 flex flex-col">
-        <h1 className="text-[28px] sm:text-[30px] font-bold text-[#17181C] tracking-tight leading-snug">
+        <h1 className="text-[21px] sm:text-[22px] font-bold text-[#17181C] tracking-tight leading-snug">
           Enter your code
         </h1>
 
-        <div className="mt-3 flex items-center space-x-2 text-[14.5px] text-neutral-700">
+        <div className="mt-3 flex items-center space-x-2 text-[14px] text-neutral-700">
           <span>
             For <strong className="font-semibold text-[#17181C]">{formattedPhone}</strong>
           </span>
@@ -163,7 +163,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
             ) : (
               <AlertTriangle size={14} className="text-[#facc15] shrink-0 mt-0.5" />
             )}
-            <p className="text-[11.5px] text-neutral-700 leading-relaxed">{notice}</p>
+            <p className="text-[11px] text-neutral-700 leading-relaxed">{notice}</p>
           </div>
         )}
 
@@ -185,7 +185,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
           {isVerifying ? 'Verifying…' : 'Continue'}
         </button>
 
-        <p className="mt-4 text-[11.5px] text-[#8e95a5] text-center leading-relaxed">
+        <p className="mt-4 text-[11px] text-[#8e95a5] text-center leading-relaxed">
           No SMS is sent. Your login code is issued by the app administrator.
         </p>
       </div>
