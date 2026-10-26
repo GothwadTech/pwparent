@@ -1,20 +1,36 @@
 import React from 'react';
 import { X, ArrowLeft } from 'lucide-react';
 
+/** One row in the all-tests list. Shape matches the batch test model. */
+export interface AllTestsRow {
+  id: string;
+  name: string;
+  date: string;
+  mode: string;
+  status: string;
+}
+
 interface AllTestsModalProps {
   isOpen: boolean;
   onClose: () => void;
   batchName: string;
+  /**
+   * Real tests from the selected batch. When omitted the built-in list below
+   * renders, so this modal keeps working for every existing call site — but in
+   * a configured build App.tsx always passes the batch's tests.
+   */
+  tests?: AllTestsRow[];
 }
 
 export const AllTestsModal: React.FC<AllTestsModalProps> = ({
   isOpen,
   onClose,
   batchName,
+  tests,
 }) => {
   if (!isOpen) return null;
 
-  const allTests = [
+  const fallbackTests: AllTestsRow[] = [
     { id: '17', name: 'MISSION 30 : Test 17', date: '19-6-2026', mode: 'Online', status: 'MISSED' },
     { id: '16', name: 'MISSION 30 : Test 16', date: '17-6-2026', mode: 'Online', status: 'MISSED' },
     { id: '15', name: 'MISSION 30 : Test 15', date: '15-6-2026', mode: 'Online', status: 'MISSED' },
@@ -24,6 +40,8 @@ export const AllTestsModal: React.FC<AllTestsModalProps> = ({
     { id: '11', name: 'MISSION 30 : Test 11', date: '05-6-2026', mode: 'Online', status: 'MISSED' },
     { id: '10', name: 'MISSION 30 : Test 10', date: '02-6-2026', mode: 'Online', status: 'MISSED' },
   ];
+
+  const allTests = tests ?? fallbackTests;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end font-['Plus_Jakarta_Sans',sans-serif]">

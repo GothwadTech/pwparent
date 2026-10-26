@@ -8,6 +8,7 @@
  * `./mockBackend`, `./firebaseBackend` or `../firebase/*`.
  */
 import type {AnnouncementItem, ParentProfileData, PurchaseItem, StudentProfile} from '../../types';
+import type {BatchOps} from './batchTypes';
 
 export interface SendOtpResult {
   mode: BackendMode;
@@ -40,7 +41,13 @@ export interface LoginCodeInfo {
 
 export type BackendMode = 'mock' | 'firebase';
 
-export interface Backend {
+/**
+ * The full contract the UI codes against.
+ *
+ * Batch operations live in `./batchTypes.ts` and are mixed in here, so the two
+ * halves can grow independently without either file crossing the line limit.
+ */
+export interface Backend extends BatchOps {
   readonly mode: BackendMode;
 
   // ── session ──────────────────────────────────────────────────────────────

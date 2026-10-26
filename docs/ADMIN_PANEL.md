@@ -71,6 +71,96 @@ Firebase nahi hai, isliye Email/Password provider bhi nahi. Panel
 
 ## 3. Tabs
 
+### Batches — poora academic flow ⭐
+
+Sabse bada tab, aur default. Isi me wo flow hai jo tumne maanga tha:
+**batch banao → students allot karo → attendance manage karo → test banao →
+har bachche ke marks bharo.**
+
+Model **batch-centric** hai: attendance batch ki hoti hai, test batch ka hota
+hai, aur test ke andar **batch ke saare allotted students** ki rows aati hain —
+kisi ek bachche ke andar test nahi rehta.
+
+#### Step 1 — Batch create karo
+
+`Create batch` → naam, course, start date, type (Online/Offline), aur
+"Visible to parents" (`No` = draft, parents ko nahi dikhega).
+
+#### Step 2 — Students allot karo
+
+Batch kholo → **Students** panel → `Allot students`. Picker me **har parent ke
+saare bachche** aate hain, search ke saath. Multi-select → `Allot`.
+
+> ⚠️ Picker tabhi bharega jab kam se kam ek parent sign in karke bachcha add
+> kar chuka ho. Students `parents/{uid}/children` me rehte hain jo sirf wo
+> parent bana sakta hai — admin naya student *create* nahi karta, sirf **allot**
+> karta hai.
+
+Allotment ek parent ke liye **ek document** hai (`members/{parentUid}` →
+`studentIds[]`), isliye doosra bachcha allot karne pe pehla drop nahi hota.
+Panel merge khud karta hai.
+
+#### Step 3 — Attendance (din-ba-din)
+
+**Attendance** panel → mahina chuno (◀ ▶). Har student ki line me us mahine ka
+% dikhta hai. Student pe tap karo → **poora month calendar**.
+
+Ek din pe tap karne se cycle chalta hai:
+
+```
+unmarked → P (present) → A (absent) → L (late) → unmarked
+```
+
+Clear karna ek first-class state hai — galat entry undo karne ka tareeka.
+`Mark everyone present today` se ek tap me poore batch ki aaj ki attendance.
+
+**Percentage ka rule:** unmarked din denominator me **nahi** ginte. Matlab
+mahine ke shuru me "3 din present" = 100%, 10% nahi — warna chalta mahina
+hamesha absent dikhta. **Late = present** gina jata hai.
+
+#### Step 4 — Test banao
+
+**Tests** panel → `Create test` → title, date, mode, **total marks**, status
+(scheduled/completed).
+
+**Syllabus structured hai**, ek text blob nahi. Har line: `subject` + `topic` +
+`weightage %`. Neeche live total dikhta hai, aur 100% na banne par amber
+warning.
+
+#### Step 5 — Marks bharo
+
+Test pe tap karo → **batch ke saare allotted students** ki rows, chahe marks
+bhare ho ya na ho. Jo enter nahi hua wo "Not entered yet" dikhata hai — koi
+bachcha chup-chaap gayab nahi hota.
+
+Har row: marks obtained, accuracy %, status (Attempted/Missed) → `Save`.
+Upar summary: entered/total, attempted, class average, top score. Syllabus
+subject-wise grouped.
+
+> **Percentages type nahi hote.** `scorePercent` backend me
+> `marksObtained / test.marksTotal` se derive hota hai — caller use bhej hi
+> nahi sakta, parameter type me hai hi nahi. Test ke total marks badalne pe
+> agle save se saare scores dobara derive ho jate hain. Wahi invariant jo
+> `recomputeStudent()` student scorecard pe lagata hai.
+
+> **Delete cascade karta hai.** Test delete → uski saari result rows bhi.
+> Batch delete → members, attendance, tests, results sab. Firestore cascade
+> nahi karta, isliye code explicitly karta hai — warna orphan subcollections
+> console me dikhte bhi nahi aur storage gher te rehte hain.
+
+#### Parents ko kya dikhta hai
+
+Parent apne bachche ke dashboard pe wahi batch selector dekhta hai, par **sirf
+un batches ke saath jisme uska bachcha allot hai**. Andar: attendance calendar
+(apne bachche ka), tests (batch ke saare — title, date, syllabus), aur marks
+**sirf apne bachche ke**.
+
+> **Rank deliberately nahi dikhta.** Rank nikalne ke liye poore class ke marks
+> chahiye, aur rules ek parent ko sirf **apne bachche ka** result padhne dete
+> hain (`list` admin-only hai). Isliye rank ki jagah attendance % dikhta hai —
+> real, aur parent use dekhne ka haq rakhta hai. Nakli rank dikhana usse bura
+> hota.
+
 ### Students — academic record
 
 Har student ka card expand hota hai. Editable:
@@ -176,15 +266,31 @@ se behtar hai saaf "not configured" dikhana.
 `PurchasesScreen`, `LinkedAccountsScreen`, `ProfileScreen`,
 `ParentProfileScreen`
 
+Batch model aane ke baad ye bhi **real data** pe hain:
+
+| Pehle hardcoded | Ab kahan se |
+|---|---|
+| `ChildDashboardScreen.batchOptions` (4 fake batches) | `batches/{id}` jisme `members/{parentUid}` exist karta hai |
+| `OfflineAttendanceDashboardView` ka calendar + `3/4`, `592/720` | `attendance/{studentId}` + test results |
+| `AllTestsModal` ki 8 fake tests | `batches/{id}/tests` |
+| `SubjectDetailsModal` ke fake subjects + "Rajwant Sir" | test syllabus se group kiye subjects, accuracy real results se |
+
+Sab optional props ke through — `src/hooks/useBatchView.ts` Firestore documents
+ko component ke purane shapes me map karta hai, isliye pixel-matched UI ko
+chhedna nahi pada.
+
 ### ⚠️ Abhi bhi hardcoded (jaan-boojh kar)
 
-`OfflineAttendanceDashboardView` (day calendar + ring %), `SubjectDetailsModal`
-(subject-wise lecture/DPP counts), `StudentDashboardView` ka lectures section,
-`ChildDashboardScreen.batchOptions`
+`DppSection` (DPP counts) aur `StudentDashboardView` ka lectures section.
 
-Pattern fix karne ka: optional `items?` prop with built-in default — jaise
-baaki screens me already hai. 38 components ko ek saath refactor karna risky
-tha.
+Reason: batch model **attendance, tests, syllabus aur marks** track karta hai —
+**lectures aur DPPs track hi nahi karta**. Jhootha source wire karne se behtar
+hai saaf kehna ki ye abhi sample hai. Wire karne ke liye pehle
+`batches/{id}/lectures` aur `batches/{id}/dpps` subcollections chahiye.
+
+Ek cheez **jaan-boojh kar hataayi** gayi, wire nahi ki: **rank**. Rank ke liye
+poore class ke marks chahiye jo parent padh nahi sakta — isliye us slot pe ab
+attendance % hai. Details upar.
 
 ---
 
@@ -192,20 +298,41 @@ tha.
 
 ```
 src/components/admin/
-  AdminPanelScreen.tsx   shell — gate + tabs (160 lines)
-  AdminGate.tsx          username+password / passcode (273)
-  StudentsTab.tsx        academic record + test marks (285)
-  LoginCodesTab.tsx      per-phone 6-digit codes
-  AnnouncementsTab.tsx   shared feed
-  DataTab.tsx            session, read budget, cache
-  ui.tsx                 shared primitives
+  AdminPanelScreen.tsx     shell — gate + tabs
+  AdminGate.tsx            username+password / passcode
+  BatchesTab.tsx           batch CRUD -> opens BatchDetailView
+  BatchDetailView.tsx      one batch: Students / Attendance / Tests panels
+  BatchMembersPanel.tsx    allot which children are in the batch
+  BatchAttendancePanel.tsx day-wise P/A/L calendar per student
+  BatchTestsPanel.tsx      test CRUD + structured syllabus editor
+  TestResultsPanel.tsx     per-student marks on one test
+  StudentsTab.tsx          per-child academic record
+  LoginCodesTab.tsx        per-phone 6-digit codes
+  AnnouncementsTab.tsx     shared feed
+  DataTab.tsx              session, read budget, cache
+  ui.tsx                   shared primitives
+
+src/hooks/
+  useAppData.ts            saara app state + data calls
+  useBatchView.ts          batch model -> dashboard component shapes
+
+src/lib/backend/
+  batchTypes.ts            BatchOps contract + pure helpers (date keys,
+                           attendance maths, scorePercent, syllabus weight)
+  firebaseBatches.ts       Firestore implementation
+  mockBatches.ts           localStorage implementation
 
 src/lib/
-  adminAuth.ts           registerAdmin / loginAdmin / currentAdmin
-  credentials.ts         PBKDF2 hashing + verification
-  admin.ts               passcode gate (mock), recomputeStudent, math helpers
-  backend/readCache.ts   TTL + de-dupe + stats
+  adminAuth.ts             registerAdmin / loginAdmin / currentAdmin
+  credentials.ts           PBKDF2 hashing + verification
+  admin.ts                 passcode gate (mock), recomputeStudent, maths
+  backend/readCache.ts     TTL + de-dupe + stats
 ```
+
+`OfflineAttendanceDashboardView.tsx` 484 lines pe pahunch gaya tha, isliye uske
+teen sections alag files me nikale gaye — `AttendanceCalendarSection.tsx`,
+`DppSection.tsx`, `CenterTestsSection.tsx`. Markup bilkul wahi hai, sirf data
+source badla. Repo me **koi file 500 lines cross nahi karti.**
 
 Koi bhi file 500 lines cross nahi karti — ye repo me ek hard rule hai.
 
@@ -214,7 +341,8 @@ Koi bhi file 500 lines cross nahi karti — ye repo me ek hard rule hai.
 ## 8. Tests
 
 ```bash
-npm test                                    # 74 tests
+npm test                                    # 113 tests
+npx vitest run src/tests/batches.spec.ts           # batch model (39 tests)
 npx vitest run src/tests/backend-session.spec.ts   # login codes, restore, cache
 npx vitest run src/tests/credentials.spec.ts       # PBKDF2 round trip
 npx vitest run src/tests/admin.spec.ts             # recomputeStudent

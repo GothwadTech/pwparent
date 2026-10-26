@@ -5,25 +5,32 @@
  * nothing here approaches the 500-line ceiling:
  *
  *   AdminGate.tsx        username+password (firebase) / passcode (mock)
- *   StudentsTab.tsx      academic record + test marks
+ *   BatchesTab.tsx       batch CRUD -> BatchDetailView
+ *   BatchDetailView.tsx  one batch: Students / Attendance / Tests panels
+ *   BatchMembersPanel.tsx     allot which children are in the batch
+ *   BatchAttendancePanel.tsx  day-wise P/A/L per student
+ *   BatchTestsPanel.tsx       test CRUD + structured syllabus
+ *   TestResultsPanel.tsx      per-student marks on one test
+ *   StudentsTab.tsx      per-child academic record
  *   LoginCodesTab.tsx    per-phone 6-digit login codes (replaces SMS OTP)
  *   AnnouncementsTab.tsx shared feed
  *   DataTab.tsx          session, Firestore read budget, cache control
  *   ui.tsx               shared primitives
  */
 import React, {useState} from 'react';
-import {ArrowLeft, KeyRound, Lock, Megaphone, Database, Users} from 'lucide-react';
+import {ArrowLeft, KeyRound, Lock, Megaphone, Database, Layers, Users} from 'lucide-react';
 import type {AnnouncementItem, StudentProfile} from '../../types';
 import type {Backend} from '../../lib/backend';
 import type {AdminIdentity} from '../../lib/adminAuth';
 import {AdminGate} from './AdminGate';
 import {StudentsTab} from './StudentsTab';
 import {LoginCodesTab} from './LoginCodesTab';
+import {BatchesTab} from './BatchesTab';
 import {AnnouncementsTab} from './AnnouncementsTab';
 import {DataTab} from './DataTab';
 import {Flash, useFlash} from './ui';
 
-type TabId = 'students' | 'codes' | 'announcements' | 'data';
+type TabId = 'batches' | 'students' | 'codes' | 'announcements' | 'data';
 
 interface AdminPanelScreenProps {
   backend: Backend | null;
@@ -55,7 +62,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
   onBack,
 }) => {
   const [unlocked, setUnlocked] = useState(false);
-  const [tab, setTab] = useState<TabId>('students');
+  const [tab, setTab] = useState<TabId>('batches');
   const {notice, flash} = useFlash();
 
   if (!unlocked) {
@@ -72,6 +79,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
   }
 
   const tabs: {id: TabId; label: string; icon: React.ReactNode}[] = [
+    {id: 'batches', label: 'Batches', icon: <Layers size={14} />},
     {id: 'students', label: 'Students', icon: <Users size={14} />},
     {id: 'codes', label: 'Login codes', icon: <KeyRound size={14} />},
     {id: 'announcements', label: 'Announcements', icon: <Megaphone size={14} />},
@@ -122,6 +130,8 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
       <Flash message={notice} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
+        {tab === 'batches' && backend && <BatchesTab backend={backend} flash={flash} />}
+
         {tab === 'students' && (
           <StudentsTab
             students={students}

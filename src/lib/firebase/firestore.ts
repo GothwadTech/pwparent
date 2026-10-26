@@ -43,6 +43,9 @@ export function getDb(): Firestore {
 }
 
 export const paths = {
+  /** Listing this is admin-only in the rules — it is how the Admin Panel finds
+   *  every family in order to allot students to a batch. */
+  parents: () => 'parents',
   parent: (uid: string) => `parents/${uid}`,
   children: (uid: string) => `parents/${uid}/children`,
   child: (uid: string, childId: string) => `parents/${uid}/children/${childId}`,
@@ -60,7 +63,31 @@ export const paths = {
   /** One doc per phone number: the hashed 6-digit login code. */
   credentials: () => 'credentials',
   credential: (phone: string) => `credentials/${phone}`,
+
+  /* ── batch-centric model (admin-owned, parents read their own) ────────── */
+  batches: () => 'batches',
+  batch: (batchId: string) => `batches/${batchId}`,
+  /**
+   * Keyed by PARENT uid, not student id, so `firestore.rules` can answer "may
+   * this caller read this batch?" with a single `exists()`.
+   */
+  batchMembers: (batchId: string) => `batches/${batchId}/members`,
+  batchMember: (batchId: string, parentUid: string) => `batches/${batchId}/members/${parentUid}`,
+  /**
+   * One document per student holding EVERY month, so the document id is simply
+   * the student id. That is what makes the rule expressible: "may this caller
+   * read this document?" reduces to "is this caller the parent of `studentId`?",
+   * with no string parsing of a composite id.
+   */
+  batchAttendance: (batchId: string) => `batches/${batchId}/attendance`,
+  batchAttendanceOf: (batchId: string, studentId: string) => `batches/${batchId}/attendance/${studentId}`,
+  batchTests: (batchId: string) => `batches/${batchId}/tests`,
+  batchTest: (batchId: string, testId: string) => `batches/${batchId}/tests/${testId}`,
+  batchTestResults: (batchId: string, testId: string) => `batches/${batchId}/tests/${testId}/results`,
+  batchTestResult: (batchId: string, testId: string, studentId: string) =>
+    `batches/${batchId}/tests/${testId}/results/${studentId}`,
 };
+
 
 export async function readDoc<T>(path: string): Promise<T | null> {
   const snap = await getDoc(doc(getDb(), path));

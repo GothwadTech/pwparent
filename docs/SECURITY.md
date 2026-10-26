@@ -24,8 +24,38 @@ The rules guarantee:
 | Only an admin can issue or change login codes | `isAdmin()` on `credentials/{phone}` writes |
 | Nobody can enumerate registered phone numbers | `allow list` on `credentials` is admin-only |
 | **Only one admin can ever exist** | `admins/{uid}` create is gated on `!exists(adminConfig/singleton)` |
+| A parent can only read batches their child is in | `isBatchMember(batchId)` — one `exists()` on `members/{parentUid}` |
+| A parent cannot read another family's marks or attendance | `isParentOfStudent(batchId, studentId)` checks the member doc's `studentIds` |
+| A parent cannot list a class's results | `allow list` on `results` and `attendance` is admin-only |
 | The admin slot cannot be reopened from the app | `adminConfig/singleton` is `update, delete: false` |
 | An unknown collection is unreadable | Firestore denies any unmatched path |
+
+### Batches: being in a batch is not owning it
+
+The batch tree needs two distinct checks, and collapsing them into one is the
+obvious mistake:
+
+```
+isBatchMember(batchId)      -> may this caller see the batch, its tests, its syllabus?
+isParentOfStudent(b, sId)   -> may this caller see THIS student's marks/attendance?
+```
+
+Membership grants the first, not the second. Every parent in a batch can see
+that the batch ran a test on 5 October out of 720 marks — that is batch
+information. Only the parent of `s1` may see what `s1` scored. `results` and
+`attendance` therefore use `isParentOfStudent`, and their `list` is admin-only
+so a parent cannot pull the whole class down and filter client-side.
+
+This is also why **rank is not shown to parents**. A rank needs every student's
+marks on the same paper, which is exactly what the rules forbid a parent from
+reading. The UI shows the student's own attendance percentage in that slot
+instead — inventing a rank, or leaking the class to compute a real one, would
+both be worse.
+
+**Cost:** every `exists()`/`get()` inside a rule is itself a billable document
+read. A parent reading a batch costs 2 reads, a result costs 3. All are behind
+`cachedRead`, so it is once per minute per key rather than once per render.
+Admins skip the membership check entirely.
 
 Deploy them with:
 
@@ -171,6 +201,9 @@ visitor**. `src/lib/backend/readCache.ts` is what keeps this app inside that:
 |---|---|
 | 60 s TTL per key | Navigating back to a screen costs 0 reads |
 | In-flight promise de-duplication | N simultaneous mounts = **1** read (React 19 StrictMode double-invokes effects, so this is not hypothetical) |
+| One attendance document per student (all months) | A student's whole calendar is 1 read, not 1 per month |
+| `getResult()` is a targeted `get()`, never a filtered `list()` | A parent reads 1 document per test; a list would be denied outright |
+| Switching month in the attendance panel costs 0 reads | Every month is already inside the one fetched record |
 | 30 s TTL on `credentials/{phone}` | Short enough that a newly issued code works promptly, long enough to survive a typo-and-retry |
 | `cachedWrite` invalidates after every write | No call site can forget; no stale value survives an edit |
 | Errors are **never** cached | A transient `permission-denied` does not poison the next 60 s |

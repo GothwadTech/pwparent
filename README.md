@@ -8,8 +8,9 @@
 ![Node](https://img.shields.io/badge/node-%3E%3D20.19-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
-Onboarding · Login · Login codes · Linked child accounts · Lectures & DPP
-dashboard · Weekly report · Announcements · Help centre · Purchases · Parent
+Onboarding · Login · Login codes · Linked child accounts · **Batches** ·
+**day-wise attendance** · **batch tests with syllabus + per-student marks** ·
+Lectures & DPP dashboard · Announcements · Help centre · Purchases · Parent
 profile · Admin Panel · **installable PWA** · **full-bleed fluid layout**
 
 </div>
@@ -158,12 +159,13 @@ me rehta hai, Firestore me nahi.
 **Mock mode:** `VITE_ADMIN_PASSCODE` (default `pw-admin-demo`) — bundle me
 inline, sirf dev friction.
 
-Char tabs:
+Paanch tabs:
 
 | Tab | Kaam |
 |---|---|
-| **Students** | attendance, marks, tests (raw marks → derived %), DPPs |
-| **Login codes** | ⭐ har number ke liye 6-digit code issue/replace/delete |
+| **Batches** | ⭐ batch banao → students allot karo → **din-ba-din attendance** → **test + syllabus + har bachche ke marks** |
+| **Students** | per-child academic record, DPPs |
+| **Login codes** | har number ke liye 6-digit code issue/replace/delete |
 | **Announcements** | shared feed |
 | **Data** | session, Firestore read counter, cache control |
 
@@ -176,6 +178,47 @@ Derived fields (`testsCompleted`, `avgScorePercent`, `accuracyPercent`,
 per-test `scorePercent`) admin bharta nahi — `recomputeStudent()` har save pe
 calculate karta hai, taaki scorecard kabhi apne aap se contradict na kare.
 Ye invariant test-covered hai.
+
+## 🗂️ Batch model — attendance, tests aur marks ka asli ghar
+
+Model **batch-centric** hai, student-centric nahi. Pehle `TestRecord` har
+student ke document ke *andar* embed tha aur `batch` sirf ek free-text string
+thi. Ab:
+
+```
+batches/{batchId}                        admin banata hai
+  ├─ members/{parentUid}                 allotment — studentIds[]
+  ├─ attendance/{studentId}              EK doc, saare months andar
+  └─ tests/{testId}                      test BATCH ka hai
+       ├─ syllabus[]                     {subject, topic, weightage}
+       └─ results/{studentId}            marksObtained · status · scorePercent
+```
+
+Teen design decisions jo soch-samajh ke liye gaye hain:
+
+1. **`members` parent uid se keyed hai**, student id se nahi — taaki rules ek
+   `exists()` me decide kar lein ki caller is batch ko padh sakta hai.
+2. **Attendance ka ek document per student** (saare months andar), mahine ke
+   hisaab se alag nahi. Isse rule me `attendance/{studentId}` pe seedha
+   "kya ye is student ka parent hai?" lag jata hai — composite id parse karni
+   nahi padti — aur calendar kholne pe 1 read lagta hai.
+3. **Batch me hona = batch ka owner hona, nahi.** Har parent dekh sakta hai ki
+   5 October ko test hua tha, 720 marks ka. Par `s1` ne kitna laya, ye sirf
+   `s1` ka parent dekh sakta hai — `isParentOfStudent()` wahi check karta hai.
+
+Isi wajah se **rank parents ko nahi dikhta**: rank ke liye poore class ke marks
+chahiye, jo rules deliberately deny karte hain. Us slot pe attendance % hai.
+Nakli rank dikhana ya class leak karna — dono usse bure hain.
+
+`scorePercent` **derive** hota hai (`marksObtained / marksTotal`), caller use
+bhej hi nahi sakta. Attendance % me **unmarked din denominator me nahi ginte**,
+warna chalta mahina hamesha absent dikhta. Late = present.
+
+Parents ka dashboard ab real data pe hai — `src/hooks/useBatchView.ts` Firestore
+documents ko components ke purane shapes me map karta hai, isliye pixel-matched
+UI ko chhedna nahi pada. Sirf `DppSection` aur lectures section abhi bhi sample
+hain: batch model DPPs aur lectures track hi nahi karta, to jhootha source wire
+karne se behtar hai saaf kehna.
 
 ## 📐 Layout — phone UI, poora screen
 
@@ -223,11 +266,15 @@ nikaal deta. `npm run check:build` iska guard hai.
 
 ```
 src/
-  components/          38 screens + modals (UI) + SettingsDock
-    admin/             AdminPanelScreen · AdminGate · StudentsTab ·
-                       LoginCodesTab · AnnouncementsTab · DataTab · ui
+  components/          screens + modals (UI) + SettingsDock
+    admin/             AdminPanelScreen · AdminGate · BatchesTab ·
+                       BatchDetailView · BatchMembersPanel ·
+                       BatchAttendancePanel · BatchTestsPanel ·
+                       TestResultsPanel · StudentsTab · LoginCodesTab ·
+                       AnnouncementsTab · DataTab · ui
   App.tsx              layout shell + screen router + #admin route
   hooks/useAppData.ts  saara state + saare data calls
+  hooks/useBatchView.ts batch model -> dashboard component shapes
   types.ts             shared domain types (StudentProfile, TestRecord, ...)
   lib/layout.ts        fluid full-bleed scaling (uniform, height-driven)
   lib/config.ts        env parsing, mock/firebase/unconfigured resolution
@@ -240,10 +287,14 @@ src/
     firebaseBackend.ts   Firestore implementation (no demo fallbacks)
     mockBackend.ts       localStorage implementation (dev + tests)
     readCache.ts         TTL + in-flight de-dupe + cacheStats()
+    batchTypes.ts        BatchOps contract + pure helpers (date keys,
+                         attendance maths, scorePercent, syllabus weight)
+    firebaseBatches.ts   batch ops — Firestore
+    mockBatches.ts       batch ops — localStorage
     mockData.ts          TEST FIXTURE (mock mode ka starting content)
     demoStore.ts         localStorage layer
   lib/firebase/        app / auth (ANONYMOUS) / firestore helpers + paths
-  tests/               vitest + happy-dom + Testing Library (74 tests)
+  tests/               vitest + happy-dom + Testing Library (113 tests)
     env/               intentionally empty — keeps tests env-independent
 functions/             Cloudflare Pages Functions (optional, server-side)
   _middleware.ts       /api/* CORS + /api/health

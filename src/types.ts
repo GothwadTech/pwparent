@@ -29,6 +29,131 @@ export interface AnnouncementItem {
   videoLink: string;
 }
 
+/* ==========================================================================
+   BATCH-CENTRIC MODEL
+   ==========================================================================
+   A batch is the unit everything hangs off: attendance is per batch, tests are
+   per batch, and a test's results are one document per student IN that batch.
+   Only an administrator can create or edit a batch (see firestore.rules).
+
+   Firestore layout:
+
+     batches/{batchId}                              Batch
+     batches/{batchId}/members/{parentUid}          BatchMember
+     batches/{batchId}/attendance/{studentId}       AttendanceMonth (one per month)
+     batches/{batchId}/tests/{testId}               BatchTest
+     batches/{batchId}/tests/{testId}/results/{studentId}   TestResult
+
+   `members` is keyed by PARENT uid, not student id: the rules need to answer
+   "may this caller read this batch?" with a single `exists()`, and a parent may
+   have several children in the same batch.
+   ========================================================================== */
+
+/** Day-wise attendance mark. `L` = late, counted as present in the percentage. */
+export type AttendanceMark = 'P' | 'A' | 'L';
+
+export interface Batch {
+  id: string;
+  name: string;
+  course: string;
+  batchType: 'online' | 'offline';
+  /** ISO date, `YYYY-MM-DD`. */
+  startDate: string;
+  /** Hidden from parents when false; admins always see it. */
+  active: boolean;
+  createdAt?: string;
+  createdBy?: string;
+}
+
+/**
+ * A student paired with the parent uid that owns it.
+ *
+ * The Admin Panel needs the owner uid to write an allotment, because membership
+ * documents are keyed by parent — a student id alone is not enough.
+ */
+export interface AllotableStudent extends StudentProfile {
+  parentUid: string;
+}
+
+/** One parent's children inside one batch. Keyed by parent uid in Firestore. */
+export interface BatchMember {
+  id: string;
+  parentUid: string;
+  studentIds: string[];
+  joinedAt: string;
+}
+
+/** `{'2026-10-05': 'P', '2026-10-06': 'A'}` — unmarked days are simply absent. */
+export type MonthMarks = Record<string, AttendanceMark>;
+
+/**
+ * One student's ENTIRE attendance history in one batch — a single document.
+ *
+ * Deliberately one document per student rather than one per month:
+ *
+ *   • **Rules become expressible.** `batches/{b}/attendance/{studentId}` can be
+ *     gated on "is this caller the parent of `studentId`?" directly. A
+ *     `{studentId}__{month}` document id would force the rule to split a string
+ *     to find the student, which is obscure and easy to get wrong.
+ *   • **Fewer reads.** Loading a student's calendar is one read, cached,
+ *     instead of one read per month navigated.
+ *   • **It is small.** A full year is 12 × 31 = 372 two-character entries —
+ *     kilobytes against Firestore's 1 MB document limit.
+ *
+ * The whole batch's month view is then one collection query (admin-only).
+ */
+export interface AttendanceRecord {
+  /** Always equal to `studentId` — the document id IS the student id. */
+  id: string;
+  batchId: string;
+  studentId: string;
+  /** `{'2026-10': {'2026-10-05': 'P'}, '2026-11': {...}}` */
+  months: Record<string, MonthMarks>;
+}
+
+/** One syllabus line on a test. Weightage is a percentage of the paper. */
+export interface SyllabusTopic {
+  subject: string;
+  topic: string;
+  /** 0-100. Optional: not every test is broken down by weight. */
+  weightage?: number;
+}
+
+export type BatchTestStatus = 'scheduled' | 'completed';
+
+/**
+ * A test belonging to a BATCH, not to a student.
+ *
+ * This is the inversion of the old model, where `TestRecord` was embedded in
+ * each student's document. Marks now live in `results/{studentId}` so every
+ * student allotted to the batch appears on the same test.
+ */
+export interface BatchTest {
+  id: string;
+  batchId: string;
+  title: string;
+  /** ISO date, `YYYY-MM-DD`. */
+  date: string;
+  mode: 'Online' | 'Offline';
+  marksTotal: number;
+  status: BatchTestStatus;
+  syllabus: SyllabusTopic[];
+  createdAt?: string;
+}
+
+/** One student's outcome on one batch test. */
+export interface TestResult {
+  id: string;
+  studentId: string;
+  /** Denormalised so a results list renders without reading every profile. */
+  studentName: string;
+  marksObtained?: number;
+  accuracyPercent?: number;
+  status: 'ATTEMPTED' | 'MISSED';
+  /** Derived: marksObtained / marksTotal * 100. Never typed by hand. */
+  scorePercent?: number;
+}
+
 export interface FaqItem {
   id: string;
   question: string;
@@ -57,6 +182,7 @@ export interface TestRecord {
 export interface StudentProfile {
   id: string;
   name: string;
+  /** Display name of the currently selected batch. Kept for UI compatibility. */
   batch: string;
   avatarBg?: string;
   course: string;
@@ -65,6 +191,15 @@ export interface StudentProfile {
   testsCompleted: number;
   dppsDone: number;
   videoWatchRate: string;
+
+  /**
+   * Batches this student is allotted to. A student may be in several at once,
+   * which is why this is a list and not a single `batchId`.
+   *
+   * `batch` above stays as the display name of whichever batch is currently
+   * selected, so existing components keep rendering unchanged.
+   */
+  batchIds?: string[];
 
   // ---- Admin-editable academic record (optional; falls back to UI defaults) ----
   /** Denominator shown as "testsCompleted / testsTotal". */

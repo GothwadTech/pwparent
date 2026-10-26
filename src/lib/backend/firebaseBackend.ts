@@ -31,6 +31,7 @@ import {
   verifyCredential,
 } from '../credentials';
 import {cachedRead, cachedWrite, DEFAULT_TTL_MS, invalidate, resetCache} from './readCache';
+import {createFirebaseBatchOps} from './firebaseBatches';
 
 /** Login codes are cached only long enough to cover one login attempt. */
 const CREDENTIAL_TTL_MS = 30_000;
@@ -64,6 +65,50 @@ export function createFirebaseBackend(): Backend {
   const uid = () => auth.currentUserId();
   const resolveUid = (explicit?: string | null) => explicit ?? uid();
 
+  /**
+   * Cached admin check. The batch layer needs it to decide whether a caller may
+   * `list` the whole batches collection (parents may not — the rules only allow
+   * member `get`s). Cached like any other read, so it costs 1 read per minute.
+   */
+  const isAdminUid = async (): Promise<boolean> => {
+    const id = uid();
+    if (!id) return false;
+    return cachedRead(
+      `isAdmin:${id}`,
+      () => orEmpty(`read admins/${id}`, () => readDoc(paths.admin(id)), null).then((row) => row !== null),
+      DEFAULT_TTL_MS,
+    );
+  };
+
+  // Hoisted as consts because the batch layer calls them too, and `this` inside
+  // an object literal returned from a factory is not reliably typed here.
+  const getLinkedStudentsImpl = (parentUid?: string | null): Promise<StudentProfile[]> => {
+    const id = resolveUid(parentUid);
+    if (!id) return Promise.resolve([]);
+    return cachedRead(
+      keys.children(id),
+      () => orEmpty<StudentProfile[]>('read children', () => readCollection<StudentProfile>(paths.children(id)), []),
+      DEFAULT_TTL_MS,
+    );
+  };
+
+  const saveStudentImpl = (student: StudentProfile, parentUid?: string | null): Promise<void> => {
+    const id = resolveUid(parentUid);
+    if (!id) return Promise.reject(new Error('Not signed in'));
+    const {id: _drop, ...rest} = student;
+    return cachedWrite(keys.children(id), () =>
+      writeDoc(paths.child(id, student.id), rest as unknown as Record<string, unknown>),
+    );
+  };
+
+  const batchOps = createFirebaseBatchOps({
+    currentUid: uid,
+    isAdmin: isAdminUid,
+    getLinkedStudents: getLinkedStudentsImpl,
+    saveStudent: saveStudentImpl,
+    orEmpty,
+  });
+
   const signIn = async (phone: string): Promise<Session> => {
     const digits = normalizePhone(phone);
     const user = await auth.ensureSession(); // anonymous — free on Spark, gives a real uid
@@ -92,6 +137,7 @@ export function createFirebaseBackend(): Backend {
   };
 
   return {
+    ...batchOps,
     mode: 'firebase',
 
     async signInWithPhone(phone) {
@@ -226,24 +272,9 @@ export function createFirebaseBackend(): Backend {
     },
 
     // ── children ───────────────────────────────────────────────────────────
-    async getLinkedStudents(parentUid) {
-      const id = resolveUid(parentUid);
-      if (!id) return [];
-      return cachedRead(
-        keys.children(id),
-        () => orEmpty<StudentProfile[]>('read children', () => readCollection<StudentProfile>(paths.children(id)), []),
-        DEFAULT_TTL_MS,
-      );
-    },
+    getLinkedStudents: getLinkedStudentsImpl,
 
-    async saveStudent(student, parentUid) {
-      const id = resolveUid(parentUid);
-      if (!id) throw new Error('Not signed in');
-      const {id: _drop, ...rest} = student;
-      await cachedWrite(keys.children(id), () =>
-        writeDoc(paths.child(id, student.id), rest as unknown as Record<string, unknown>),
-      );
-    },
+    saveStudent: saveStudentImpl,
 
     async deleteStudent(studentId, parentUid) {
       const id = resolveUid(parentUid);

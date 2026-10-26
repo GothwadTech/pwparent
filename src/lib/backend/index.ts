@@ -20,11 +20,34 @@ import {isFirebaseEnabled, isMisconfiguredFirebase, missingFirebaseKeys, FIREBAS
 import type {Backend, BackendMode, LoginCodeInfo, SendOtpResult, Session} from './types';
 import {emptyProfile} from './types';
 import {mockBackend} from './mockBackend';
+import {createUnconfiguredBackend} from './unconfiguredBackend';
 import {cacheStats, resetCache} from './readCache';
 
 export type {Backend, BackendMode, LoginCodeInfo, SendOtpResult, Session};
 export {emptyProfile};
 export {cacheStats, resetCache};
+
+// Batch model: types plus the pure helpers both the UI and the backends share
+// (date keys, attendance maths, syllabus weight, id generators). Re-exported so
+// components import from '../lib/backend' and never reach into the internals.
+export type {BatchOps} from './batchTypes';
+export {
+  attendancePercent,
+  dayKey,
+  daysInMonth,
+  emptyAttendanceRecord,
+  monthDays,
+  monthKey,
+  monthMarksOf,
+  newBatchId,
+  newBatchTestId,
+  overallAttendancePercent,
+  scorePercentOf,
+  summarizeAttendance,
+  syllabusWeightTotal,
+  todayKey,
+  withDayMark,
+} from './batchTypes';
 
 /** Non-null when Firebase was requested but the env is incomplete. */
 export const backendConfigError: string | null = isMisconfiguredFirebase
@@ -32,80 +55,6 @@ export const backendConfigError: string | null = isMisconfiguredFirebase
       .map((k) => FIREBASE_ENV_NAMES[k] ?? k)
       .join(', ')}. Add them in Cloudflare Pages → Settings → Environment variables, then retry the deployment.`
   : null;
-
-/**
- * Returned when the env asked for Firebase but cannot deliver it.
- *
- * Every read resolves empty and every write fails loudly, so the UI shows
- * empty states + the setup banner instead of pretending to work.
- */
-const unconfiguredBackend: Backend = {
-  mode: 'mock',
-
-  async signInWithPhone(): Promise<Session> {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-  async restoreSession(): Promise<Session | null> {
-    return null;
-  },
-  async signOut() {},
-  currentUid: () => null,
-
-  async sendOtp(): Promise<SendOtpResult> {
-    return {mode: 'mock', phone: '', registered: false, notice: backendConfigError ?? undefined};
-  },
-  async verifyOtp() {
-    return {ok: false, error: backendConfigError ?? 'Firebase is not configured.'};
-  },
-
-  async setLoginCode() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-  async deleteLoginCode() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-  async listLoginCodes(): Promise<LoginCodeInfo[]> {
-    return [];
-  },
-
-  async getParentProfile(): Promise<ParentProfileData> {
-    return emptyProfile();
-  },
-  async saveParentProfile() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-
-  async getLinkedStudents(): Promise<StudentProfile[]> {
-    return [];
-  },
-  async saveStudent() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-  async deleteStudent() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-
-  async getAnnouncements(): Promise<AnnouncementItem[]> {
-    return [];
-  },
-  async saveAnnouncement() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-  async deleteAnnouncement() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-
-  async getPurchases(): Promise<PurchaseItem[]> {
-    return [];
-  },
-  async savePurchase() {
-    throw new Error(backendConfigError ?? 'Firebase is not configured.');
-  },
-
-  clearCache() {
-    resetCache();
-  },
-};
 
 let cached: Backend | null = null;
 
@@ -119,7 +68,7 @@ export async function getBackend(): Promise<Backend> {
   if (cached) return cached;
 
   if (isMisconfiguredFirebase) {
-    cached = unconfiguredBackend;
+    cached = createUnconfiguredBackend(backendConfigError);
   } else if (isFirebaseEnabled) {
     const {createFirebaseBackend} = await import('./firebaseBackend');
     cached = createFirebaseBackend();

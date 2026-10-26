@@ -1,11 +1,28 @@
 import React from 'react';
 import { X, BookOpen, FileCheck2, Award, Clock } from 'lucide-react';
 
+/** One subject's progress row. Shape matches the built-in list below. */
+export interface SubjectProgress {
+  name: string;
+  teacher: string;
+  lecturesCompleted: number;
+  totalLectures: number;
+  dppsDone: number;
+  totalDpps: number;
+  accuracy: string;
+  color: string;
+}
+
 interface SubjectDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   area: 'lectures' | 'dpp' | 'tests';
   batchName: string;
+  /**
+   * Real subject progress. When omitted the built-in zeros render, so existing
+   * call sites are unaffected.
+   */
+  subjects?: SubjectProgress[];
 }
 
 export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
@@ -13,10 +30,11 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
   onClose,
   area,
   batchName,
+  subjects,
 }) => {
   if (!isOpen) return null;
 
-  const subjects = [
+  const fallbackSubjects: SubjectProgress[] = [
     {
       name: 'Physics',
       teacher: 'Rajwant Sir',
@@ -59,6 +77,8 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
     },
   ];
 
+  const subjectRows = subjects ?? fallbackSubjects;
+
   const titleMap = {
     lectures: 'Lectures Subject Details',
     dpp: 'Daily Practice Paper Subject Details',
@@ -96,7 +116,7 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
 
         {/* Subject Cards */}
         <div className="space-y-3 overflow-y-auto pr-1">
-          {subjects.map((subj) => (
+          {subjectRows.map((subj) => (
             <div
               key={subj.name}
               className={`p-3.5 rounded-xl bg-[#141523] border ${subj.color.split(' ')[2]} space-y-2.5`}

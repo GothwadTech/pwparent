@@ -26,6 +26,7 @@
  */
 import React, {useState} from 'react';
 import {useAppData} from './hooks/useAppData';
+import {useBatchView} from './hooks/useBatchView';
 import {fluidShellStyle, useFluidScale} from './lib/layout';
 import {SplashScreen} from './components/SplashScreen';
 import {OnboardingScreen} from './components/OnboardingScreen';
@@ -53,6 +54,13 @@ const Ambient: React.FC = () => (
 export const App: React.FC = () => {
   const app = useAppData();
   const scale = useFluidScale();
+
+  /**
+   * Batch data for whichever child is currently selected. Called
+   * unconditionally at the top level (React's rules of hooks), and it no-ops
+   * cheaply when there is no backend, no student or no uid yet.
+   */
+  const batchView = useBatchView(app.backend, app.activeStudent, app.uid);
 
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>('/assets/ic_launcher_round.webp');
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
@@ -161,6 +169,17 @@ export const App: React.FC = () => {
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
             announcements={announcements}
+            // Real batch model: the batches this child is allotted to, plus the
+            // attendance calendar, tests and subject breakdown derived from
+            // them. See src/hooks/useBatchView.ts.
+            batches={batchView.batches}
+            selectedBatchId={batchView.selectedBatchId}
+            onSelectBatch={batchView.selectBatch}
+            calendarDays={batchView.calendarDays}
+            offlineTests={batchView.offlineTests}
+            allTests={batchView.allTests}
+            subjects={batchView.subjects}
+            summary={batchView.summary}
           />
         ) : null;
 
@@ -236,7 +255,9 @@ export const App: React.FC = () => {
         phone={phoneNumber}
         admin={admin}
         configError={configError}
-        onOpenAdmin={openAdmin}
+        onOpenAdmin={() => {
+          openAdmin();
+        }}
         onSwitchNumber={handleSwitchNumber}
         onSignOut={handleLogout}
       />

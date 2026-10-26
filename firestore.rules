@@ -56,6 +56,33 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/adminConfig/singleton);
     }
 
+    /**
+     * True when the caller has been allotted into this batch.
+     *
+     * Keyed on the member document's id BEING the parent uid, so this is a
+     * single `exists()` — no query, no scan.
+     */
+    function isBatchMember(batchId) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/batches/$(batchId)/members/$(request.auth.uid));
+    }
+
+    /**
+     * True when `studentId` is one of THIS caller's children in this batch.
+     *
+     * `&&` short-circuits in rules, so the `get()` only runs once membership is
+     * already proven — it can never throw on a missing document.
+     *
+     * This is what stops one parent reading another family's attendance or
+     * marks inside the same batch. Being in the batch is not the same as
+     * owning every record in it.
+     */
+    function isParentOfStudent(batchId, studentId) {
+      return isBatchMember(batchId) &&
+        get(/databases/$(database)/documents/batches/$(batchId)/members/$(request.auth.uid))
+          .data.studentIds.hasAny([studentId]);
+    }
+
     /** Canonical Indian mobile: exactly 10 digits, no separators. */
     function validPhone(phone) {
       return phone is string && phone.matches('^[0-9]{10}$');
@@ -142,6 +169,58 @@ service cloud.firestore {
 
       // Any subcollection added later is DENIED until a rule is written for it
       // — Firestore does not cascade, so nothing here widens silently.
+    }
+
+    // ── batches ────────────────────────────────────────────────────────────
+    // Admin-owned. A parent may READ the batches they have been allotted into,
+    // but inside a batch they may only read records belonging to THEIR OWN
+    // children — never another family's attendance or marks.
+    //
+    // COST NOTE: every `exists()` / `get()` in a rule is itself a billable
+    // document read. A parent reading a batch therefore costs 2 reads (the
+    // batch + the membership check), and reading a result costs 3. Both are
+    // behind `cachedRead` in the app, so it happens once per minute per key,
+    // not once per render. Admins skip the membership check entirely.
+
+    match /batches/{batchId} {
+      allow get: if isAdmin() || isBatchMember(batchId);
+      // Parents discover their batches by `get()`ing the ids recorded on their
+      // own children's profiles — they are never allowed to list the collection.
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+
+      match /members/{parentUid} {
+        // A parent sees only their own membership document.
+        allow get: if isAdmin() || isOwner(parentUid);
+        allow list: if isAdmin();
+        allow create, update, delete: if isAdmin();
+      }
+
+      // One document per student holding every month. The id IS the student id,
+      // which is what makes `isParentOfStudent` expressible without parsing a
+      // composite key.
+      match /attendance/{studentId} {
+        allow get: if isAdmin() || isParentOfStudent(batchId, studentId);
+        // The whole-batch month grid is an admin view. A parent listing it
+        // would receive other families' records, so list is admin-only.
+        allow list: if isAdmin();
+        allow create, update, delete: if isAdmin();
+      }
+
+      match /tests/{testId} {
+        // The test itself (title, date, syllabus) is batch information: every
+        // member may read it. Marks are not — see results below.
+        allow read: if isAdmin() || isBatchMember(batchId);
+        allow create, update, delete: if isAdmin();
+
+        match /results/{studentId} {
+          allow get: if isAdmin() || isParentOfStudent(batchId, studentId);
+          // A parent reads their own child's result by targeted `get()`, never
+          // by listing the class.
+          allow list: if isAdmin();
+          allow create, update, delete: if isAdmin();
+        }
+      }
     }
 
     // ── announcements ──────────────────────────────────────────────────────
