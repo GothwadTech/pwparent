@@ -102,12 +102,45 @@ export async function readCollection<T>(path: string, ...constraints: QueryConst
   return snap.docs.map((d) => ({id: d.id, ...d.data()} as T));
 }
 
+/**
+ * Strip the one thing Firestore refuses to store: `undefined`.
+ *
+ * `setDoc()` throws "Unsupported field value: undefined" the moment ANY field
+ * anywhere in the payload is undefined — which is easy to hit from a form whose
+ * optional rows start empty (a syllabus topic with no weightage yet, say).
+ * Rather than make every caller remember to normalise, every write goes through
+ * here: object keys holding undefined are dropped, and array slots holding
+ * undefined become null (an array cannot lose a slot without shifting every
+ * index after it).
+ *
+ * Only plain objects/arrays are walked. Firestore's own sentinels
+ * (serverTimestamp, deleteField, GeoPoint, Timestamp, DocumentReference, blobs)
+ * are class instances and pass through untouched, as do primitives.
+ */
+export function sanitizeForFirestore<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => (item === undefined ? null : sanitizeForFirestore(item))) as unknown as T;
+  }
+  if (value === null || typeof value !== 'object') return value;
+  // Anything with a prototype other than Object/Array is a Firestore sentinel
+  // or a Date — hand it to the SDK exactly as it was given.
+  const proto = Object.getPrototypeOf(value) as object | null;
+  if (proto !== Object.prototype && proto !== null) return value;
+
+  const clean: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (item === undefined) continue;
+    clean[key] = sanitizeForFirestore(item);
+  }
+  return clean as unknown as T;
+}
+
 export async function writeDoc<T extends Record<string, unknown>>(
   path: string,
   data: T,
   merge = true,
 ): Promise<void> {
-  await setDoc(doc(getDb(), path), data, {merge});
+  await setDoc(doc(getDb(), path), sanitizeForFirestore(data), {merge});
 }
 
 export async function removeDoc(path: string): Promise<void> {
@@ -139,7 +172,7 @@ export async function replaceCollection<T extends Record<string, unknown>>(
 
   for (const snap of existing.docs) batch.delete(snap.ref);
   for (const [id, data] of Object.entries(items)) {
-    batch.set(doc(db, path, id), data);
+    batch.set(doc(db, path, id), sanitizeForFirestore(data));
   }
 
   await batch.commit();

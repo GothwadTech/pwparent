@@ -6,6 +6,8 @@ interface LoginScreenProps {
   initialPhoneNumber?: string;
   onSubmit: (phone: string) => void;
   onHowItWorks: () => void;
+  /** The (i) door into the settings panel. Optional so older renders still work. */
+  onOpenSettings?: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
 }
@@ -14,6 +16,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   initialPhoneNumber = '',
   onSubmit,
   onHowItWorks,
+  onOpenSettings,
   customLogoUrl,
   onOpenLogoCustomizer,
 }) => {
@@ -36,6 +39,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <AppHeader
         showHowItWorks={true}
         onHowItWorksClick={onHowItWorks}
+        onOpenSettings={onOpenSettings}
         customLogoUrl={customLogoUrl}
         onLogoClick={onOpenLogoCustomizer}
       />

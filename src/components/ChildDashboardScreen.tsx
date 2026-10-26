@@ -36,6 +36,8 @@ interface ChildDashboardScreenProps {
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
   announcements?: AnnouncementItem[];
+  /** Second door into the settings panel (Help Centre "admin" search). */
+  onOpenSettings?: () => void;
 
   batches: BatchOption[];
   selectedBatchId?: string | null;
@@ -57,6 +59,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
   customLogoUrl,
   onOpenLogoCustomizer,
   announcements,
+  onOpenSettings,
   batches,
   selectedBatchId,
   onSelectBatch,
@@ -154,6 +157,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
           <AnnouncementsView customLogoUrl={customLogoUrl} items={announcements} />
         ) : (
           <SupportHelpCentreView
+            onOpenSettings={onOpenSettings}
             onContactUs={() => {
               alert('Physics Wallah Support Ticket has been initiated for ' + selectedBatch.name);
             }}
