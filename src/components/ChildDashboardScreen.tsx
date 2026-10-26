@@ -1,9 +1,22 @@
+/**
+ * The parent app's home shell — light, matched to the reference.
+ *
+ * Fixed top bar (batch pill + child avatar), a scrolling content area that swaps
+ * between the offline dashboard, the online dashboard, announcements and support,
+ * and a fixed bottom nav. All Tests and a single test's detail are full screens
+ * pushed on top of the shell rather than bottom sheets, matching the reference.
+ *
+ * There is NO fallback batch list and NO sample data. `batches`, `summary`,
+ * `calendarDays`, `offlineTests`, `dpp` and `batchTests` all arrive from
+ * useBatchView / useDppView; when a child is in no batch the honest empty state
+ * renders instead.
+ */
 import React, { useState } from 'react';
-import { StudentProfile, MainTabId, BatchOption, AnnouncementItem } from '../types';
-import type { AllTestsRow } from './AllTestsModal';
+import { StudentProfile, MainTabId, BatchOption, AnnouncementItem, BatchTest, TestResult } from '../types';
 import type { CalendarDay, OfflineTestRow } from './OfflineAttendanceDashboardView';
 import type { SubjectProgress } from './SubjectDetailsModal';
 import type { BatchSummary } from '../hooks/useBatchView';
+import type { DppSummary } from '../hooks/useDppView';
 import { MainTopBar } from './MainTopBar';
 import { AppBottomNav } from './AppBottomNav';
 import { StudentDashboardView } from './StudentDashboardView';
@@ -12,22 +25,9 @@ import { AnnouncementsView } from './AnnouncementsView';
 import { SupportHelpCentreView } from './SupportHelpCentreView';
 import { BatchSelectModal } from './BatchSelectModal';
 import { SubjectDetailsModal } from './SubjectDetailsModal';
-import { AllTestsModal } from './AllTestsModal';
-
-/**
- * Rendered only when no `batches` prop is supplied at all — i.e. a call site
- * that has not been wired yet. A configured build always passes the real list,
- * and an EMPTY real list shows the "no batch allotted" state below instead.
- * That distinction matters: falling back to sample batches when the parent has
- * genuinely been allotted to none would be exactly the invented-data behaviour
- * this app is built to avoid.
- */
-const FALLBACK_BATCHES: BatchOption[] = [
-  { id: 'mission-30', name: 'MISSION 30 NEET 2026', batchType: 'online' },
-  { id: 'lakshya-jee', name: 'Lakshya JEE Mains 2.0', batchType: 'offline' },
-  { id: 'neet-mindmap', name: 'NEET Mind Map 2025', batchType: 'online' },
-  { id: 'vidyapeeth-neet', name: 'Vidyapeeth NEET 2026', batchType: 'offline' },
-];
+import { AllTestsScreen } from './AllTestsScreen';
+import { TestDetailScreen } from './TestDetailScreen';
+import { PAGE_BG, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
 
 interface ChildDashboardScreenProps {
   student: StudentProfile;
@@ -35,29 +35,19 @@ interface ChildDashboardScreenProps {
   onOpenProfile: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
-  /**
-   * Optional announcement feed from the Backend facade. When omitted,
-   * AnnouncementsView renders its own built-in demo list.
-   */
   announcements?: AnnouncementItem[];
 
-  /**
-   * The batches this student is actually allotted to, from
-   * `batches/{id}/members/{parentUid}`. Arrives asynchronously, which is why the
-   * selected batch is derived rather than held in initial state.
-   */
-  batches?: BatchOption[];
-  /** Controlled selection — App.tsx owns it so switching students keeps sense. */
+  batches: BatchOption[];
   selectedBatchId?: string | null;
   onSelectBatch?: (batch: BatchOption) => void;
 
-  /** Real data for the selected batch, all optional and all shape-matched. */
-  calendarDays?: CalendarDay[];
-  offlineTests?: OfflineTestRow[];
-  allTests?: AllTestsRow[];
+  calendarDays: CalendarDay[];
+  offlineTests: OfflineTestRow[];
   subjects?: SubjectProgress[];
-  /** Attempted/total, best score and attendance — all derived, never typed. */
-  summary?: BatchSummary;
+  summary: BatchSummary;
+  dpp: DppSummary;
+  /** Raw tests + this student's result, for the detail screen. */
+  batchTests: (BatchTest & { result: TestResult | null })[];
 }
 
 export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
@@ -72,39 +62,57 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
   onSelectBatch,
   calendarDays,
   offlineTests,
-  allTests,
   subjects,
   summary,
+  dpp,
+  batchTests,
 }) => {
   const [activeTab, setActiveTab] = useState<MainTabId>('dashboard');
   const [localBatchId, setLocalBatchId] = useState<string | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
-
-  // Subject details bottom sheet
   const [subjectDetailsArea, setSubjectDetailsArea] = useState<'lectures' | 'dpp' | 'tests' | null>(null);
-
-  // All tests bottom sheet
-  const [isAllTestsOpen, setIsAllTestsOpen] = useState(false);
-
-  const batchOptions = batches ?? FALLBACK_BATCHES;
+  const [allTestsOpen, setAllTestsOpen] = useState(false);
+  const [openTestId, setOpenTestId] = useState<string | null>(null);
 
   /**
    * Selection is derived, not stored: `batches` arrives after first render, so
-   * `useState(batchOptions[0])` would freeze on the wrong (or absent) batch.
-   * Parent-controlled id wins, then this component's own pick, then the first.
+   * `useState(batches[0])` would freeze on the wrong (or absent) batch.
    */
   const selectedBatch =
-    batchOptions.find((b) => b.id === (selectedBatchId ?? localBatchId)) ?? batchOptions[0] ?? null;
+    batches.find((b) => b.id === (selectedBatchId ?? localBatchId)) ?? batches[0] ?? null;
 
   const chooseBatch = (batch: BatchOption) => {
     setLocalBatchId(batch.id);
     onSelectBatch?.(batch);
   };
 
+  // ── pushed full screens ────────────────────────────────────────────────────
+  const openTest = openTestId ? batchTests.find((t) => t.id === openTestId) : undefined;
+  if (openTest) {
+    return (
+      <TestDetailScreen
+        test={openTest}
+        result={openTest.result ?? undefined}
+        onBack={() => setOpenTestId(null)}
+      />
+    );
+  }
+  if (allTestsOpen) {
+    return (
+      <AllTestsScreen
+        tests={offlineTests}
+        onBack={() => setAllTestsOpen(false)}
+        onOpenTest={setOpenTestId}
+      />
+    );
+  }
+
   return (
-    <div className="relative w-full h-full bg-[#090a10] text-white flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
-      {/* 1. Main Top Bar (Fixed at top, never scrolls) */}
-      <header className="shrink-0 z-30 w-full bg-[#0e0f16] border-b border-[#1c1d29]/50">
+    <div
+      className="relative w-full h-full flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]"
+      style={{ background: PAGE_BG, color: TEXT_PRIMARY }}
+    >
+      <header className="shrink-0 z-30 w-full">
         <MainTopBar
           selectedBatchName={selectedBatch?.name ?? 'No batch'}
           onOpenBatchSelector={() => setIsBatchModalOpen(true)}
@@ -113,14 +121,11 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
         />
       </header>
 
-      {/* 2. Main Content View according to active bottom tab - flex-1 min-h-0 container */}
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
         {!selectedBatch ? (
-          /* Real, empty state. Reaches here only when `batches` was supplied and
-             came back empty — this student is not in any batch yet. */
           <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-            <p className="text-base font-bold mb-2">No batch allotted yet</p>
-            <p className="text-xs text-neutral-400 leading-relaxed">
+            <p className="text-base font-bold mb-2" style={{ color: TEXT_PRIMARY }}>No batch allotted yet</p>
+            <p className="text-xs leading-relaxed" style={{ color: TEXT_SECONDARY }}>
               {student.name || 'This student'} has not been added to any batch. Attendance, tests and marks all come
               from the batch, so there is nothing to show until an administrator allots one.
             </p>
@@ -129,19 +134,20 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
           selectedBatch.batchType === 'offline' ? (
             <OfflineAttendanceDashboardView
               student={student}
-              batchName={selectedBatch.name}
-              onOpenSubjectDetails={(area) => setSubjectDetailsArea(area)}
-              onViewAllTests={() => setIsAllTestsOpen(true)}
+              summary={summary}
+              dpp={dpp}
               calendarDays={calendarDays}
               offlineTests={offlineTests}
-              summary={summary}
+              onOpenSubjectDetails={(area) => setSubjectDetailsArea(area)}
+              onViewAllTests={() => setAllTestsOpen(true)}
+              onOpenTest={setOpenTestId}
             />
           ) : (
             <StudentDashboardView
               student={student}
               batchName={selectedBatch.name}
               onOpenSubjectDetails={(area) => setSubjectDetailsArea(area)}
-              onViewAllTests={() => setIsAllTestsOpen(true)}
+              onViewAllTests={() => setAllTestsOpen(true)}
             />
           )
         ) : activeTab === 'announcements' ? (
@@ -155,38 +161,28 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
         )}
       </main>
 
-      {/* 3. Bottom 3-tab navigation bar (Fixed at bottom, never scrolls) */}
-      <footer className="shrink-0 z-30 w-full bg-[#0d0e15] border-t border-[#1a1c2a]">
+      <footer className="shrink-0 z-30 w-full">
         <AppBottomNav
           activeTab={activeTab}
           onSelectTab={(tab) => setActiveTab(tab)}
+          hasAnnouncements={(announcements?.length ?? 0) > 0}
         />
       </footer>
 
-      {/* 4. Batch Select Modal matching Screenshot_20260918_181001.jpg */}
       <BatchSelectModal
         isOpen={isBatchModalOpen}
         onClose={() => setIsBatchModalOpen(false)}
-        options={batchOptions}
+        options={batches}
         selectedBatchId={selectedBatch?.id ?? ''}
         onSelectBatch={chooseBatch}
       />
 
-      {/* 5. Subject Details Modal for Lectures / DPP / Tests */}
       <SubjectDetailsModal
         isOpen={subjectDetailsArea !== null}
         onClose={() => setSubjectDetailsArea(null)}
         area={subjectDetailsArea || 'lectures'}
         batchName={selectedBatch?.name ?? ''}
         subjects={subjects}
-      />
-
-      {/* 6. All Tests View Modal */}
-      <AllTestsModal
-        isOpen={isAllTestsOpen}
-        onClose={() => setIsAllTestsOpen(false)}
-        batchName={selectedBatch?.name ?? ''}
-        tests={allTests}
       />
     </div>
   );

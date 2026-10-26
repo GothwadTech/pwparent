@@ -30,17 +30,26 @@ interface TestResultsPanelProps {
 /** Local edit state for one row, kept out of the saved result until Save. */
 interface RowDraft {
   marks: string;
-  accuracy: string;
+  /** Questions answered correctly. */
+  correct: string;
+  /** Questions actually attempted. Accuracy is derived from these two. */
+  attempted: string;
+  /** Marks per syllabus line, keyed `${subject}||${topic}`. */
+  topics: Record<string, string>;
   status: 'ATTEMPTED' | 'MISSED';
 }
 
-const emptyDraft = (): RowDraft => ({marks: '', accuracy: '', status: 'ATTEMPTED'});
+const emptyDraft = (): RowDraft => ({marks: '', correct: '', attempted: '', topics: {}, status: 'ATTEMPTED'});
 
 const draftFrom = (result: TestResult | undefined): RowDraft =>
   result
     ? {
         marks: result.marksObtained === undefined ? '' : String(result.marksObtained),
-        accuracy: result.accuracyPercent === undefined ? '' : String(result.accuracyPercent),
+        correct: result.correctCount === undefined ? '' : String(result.correctCount),
+        attempted: result.attemptedCount === undefined ? '' : String(result.attemptedCount),
+        topics: Object.fromEntries(
+          Object.entries(result.topicMarks ?? {}).map(([k, v]) => [k, String(v)]),
+        ),
         status: result.status,
       }
     : emptyDraft();
@@ -70,10 +79,10 @@ const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
       <div className="space-y-2">
         {Object.entries(bySubject).map(([subject, topics]) => (
           <div key={subject}>
-            <p className="text-[11px] font-bold text-[#8E75FF] uppercase tracking-wide">{subject}</p>
+            <p className="text-[11px] font-bold text-[#5747D6] uppercase tracking-wide">{subject}</p>
             <ul className="mt-1 space-y-0.5">
               {topics.map((topic, i) => (
-                <li key={i} className="text-[12px] text-neutral-300 leading-relaxed flex justify-between gap-2">
+                <li key={i} className="text-[12px] text-neutral-700 leading-relaxed flex justify-between gap-2">
                   <span>{topic.topic || '—'}</span>
                   {typeof topic.weightage === 'number' && (
                     <span className="text-neutral-500 shrink-0">{topic.weightage}%</span>
@@ -139,15 +148,58 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
     setSavingId(student.id);
     setError('');
     try {
+      const correct = draft.correct === '' ? undefined : Number(draft.correct);
+      const attemptedCount = draft.attempted === '' ? undefined : Number(draft.attempted);
+      const topicMarks: Record<string, number> = {};
+      for (const [key, raw] of Object.entries(draft.topics)) {
+        if (raw !== '') topicMarks[key] = Number(raw);
+      }
       await backend.saveResult(batch.id, test.id, student.id, {
         studentName: student.name,
         marksObtained: draft.marks === '' ? undefined : Number(draft.marks),
-        accuracyPercent: draft.accuracy === '' ? undefined : Number(draft.accuracy),
+        // Accuracy is DERIVED from correct/attempted, never typed.
+        accuracyPercent:
+          correct !== undefined && attemptedCount ? Math.round((correct / attemptedCount) * 10000) / 100 : undefined,
+        correctCount: correct,
+        attemptedCount,
+        topicMarks: Object.keys(topicMarks).length > 0 ? topicMarks : undefined,
         status: draft.status,
       });
       const results = await backend.listResults(batch.id, test.id);
+
+      // Rank / top score / class average need EVERY student's marks, which only
+      // the administrator may read. So they are stamped here, once, from the real
+      // entered marks — the parent's device never invents or derives them.
+      const attempted = results.filter((r) => r.status === 'ATTEMPTED' && typeof r.marksObtained === 'number');
       const byId: Record<string, TestResult> = {};
-      for (const result of results) byId[result.studentId] = result;
+      if (attempted.length > 0) {
+        const top = Math.max(...attempted.map((r) => r.marksObtained ?? 0));
+        const avg = Math.round(
+          attempted.reduce((a, r) => a + (r.scorePercent ?? scorePercentOf(r.marksObtained ?? 0, test.marksTotal)), 0) /
+            attempted.length,
+        );
+        const ordered = [...attempted].sort((a, b) => (b.marksObtained ?? 0) - (a.marksObtained ?? 0));
+        for (const r of results) {
+          const place = ordered.findIndex((o) => o.studentId === r.studentId);
+          byId[r.studentId] = {...r, topScore: top, avgScore: avg, rank: place >= 0 ? place + 1 : undefined};
+          if (r.status === 'ATTEMPTED') {
+            await backend.saveResult(batch.id, test.id, r.studentId, {
+              studentName: r.studentName,
+              marksObtained: r.marksObtained,
+              accuracyPercent: r.accuracyPercent,
+              correctCount: r.correctCount,
+              attemptedCount: r.attemptedCount,
+              topicMarks: r.topicMarks,
+              status: r.status,
+              topScore: top,
+              avgScore: avg,
+              rank: place >= 0 ? place + 1 : undefined,
+            });
+          }
+        }
+      } else {
+        for (const result of results) byId[result.studentId] = result;
+      }
       setSaved(byId);
       flash(`Saved ${student.name}'s result.`);
     } catch (saveError) {
@@ -182,7 +234,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
       </button>
 
       <div className={cardCls}>
-        <p className="text-[11px] font-bold text-[#8E75FF] flex items-center gap-1.5">
+        <p className="text-[11px] font-bold text-[#5747D6] flex items-center gap-1.5">
           <ClipboardList size={12} /> {batch.name}
         </p>
         <h3 className="text-base font-bold mt-1">{test.title}</h3>
@@ -219,7 +271,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
 
       {!loading && students.length === 0 && (
         <Note>
-          Nobody is allotted to <strong className="text-neutral-300">{batch.name}</strong>, so this test has no result
+          Nobody is allotted to <strong className="text-neutral-700">{batch.name}</strong>, so this test has no result
           rows. Allot students first — a test shows exactly the students in its batch, and nobody else.
         </Note>
       )}
@@ -238,7 +290,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
           draft.marks === '' ? null : scorePercentOf(Number(draft.marks), test.marksTotal);
 
         return (
-          <div key={student.id} className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 space-y-2.5">
+          <div key={student.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-sm font-bold truncate">{student.name || '(unnamed)'}</p>
@@ -274,13 +326,24 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
               />
               <input
                 className={inputCls}
-                aria-label={`Accuracy for ${student.name}`}
+                aria-label={`Correct count for ${student.name}`}
                 inputMode="numeric"
-                placeholder="Acc %"
-                value={draft.accuracy}
+                placeholder="Correct"
+                value={draft.correct}
                 disabled={busyRow}
                 onChange={(e) =>
-                  patchDraft(student.id, {accuracy: e.target.value.replace(/[^\d.]/g, '').slice(0, 5)})
+                  patchDraft(student.id, {correct: e.target.value.replace(/[^\d]/g, '').slice(0, 4)})
+                }
+              />
+              <input
+                className={inputCls}
+                aria-label={`Attempted count for ${student.name}`}
+                inputMode="numeric"
+                placeholder="Attempted"
+                value={draft.attempted}
+                disabled={busyRow}
+                onChange={(e) =>
+                  patchDraft(student.id, {attempted: e.target.value.replace(/[^\d]/g, '').slice(0, 4)})
                 }
               />
               <select
@@ -294,6 +357,37 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
                 <option value="MISSED">Missed</option>
               </select>
             </div>
+
+            {/* Per-topic marks, in the test's own syllabus order. The subject-wise
+                accordion on the parent's detail screen sums these. */}
+            {(test.syllabus ?? []).length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-bold text-neutral-500">Topic-wise marks</p>
+                {(test.syllabus ?? []).map((line) => {
+                  const key = `${line.subject}||${line.topic}`;
+                  return (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className="flex-1 text-[11px] text-neutral-500 truncate">
+                        {line.subject} · {line.topic}
+                      </span>
+                      <input
+                        className={inputCls}
+                        aria-label={`Marks for ${line.topic}`}
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={draft.topics[key] ?? ''}
+                        disabled={busyRow}
+                        onChange={(e) =>
+                          patchDraft(student.id, {
+                            topics: {...draft.topics, [key]: e.target.value.replace(/[^\d.]/g, '').slice(0, 5)},
+                          })
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex gap-2">
               <button type="button" className={btnPrimary} disabled={busyRow} onClick={() => void saveRow(student)}>
@@ -312,7 +406,8 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
       {!loading && students.length > 0 && (
         <Note>
           Percentages are computed from the raw marks and this test&apos;s total ({test.marksTotal}) — they cannot be
-          typed. Changing the total marks on the test re-derives every score the next time it is saved.
+          typed. Accuracy is derived from Correct ÷ Attempted. Rank, top score and the class average are stamped onto
+          every attempted result automatically when you save, because only the administrator can see the whole class.
         </Note>
       )}
     </>

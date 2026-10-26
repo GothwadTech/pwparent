@@ -168,6 +168,11 @@ export interface BatchTest {
   /** ISO date, `YYYY-MM-DD`. */
   date: string;
   mode: 'Online' | 'Offline';
+  /**
+   * Which paper list the test belongs to on the All Tests screen.
+   * Defaults to Objective when absent (every test created before this field).
+   */
+  paperType?: 'Objective' | 'Subjective';
   marksTotal: number;
   status: BatchTestStatus;
   syllabus: SyllabusTopic[];
@@ -185,6 +190,30 @@ export interface TestResult {
   status: 'ATTEMPTED' | 'MISSED';
   /** Derived: marksObtained / marksTotal * 100. Never typed by hand. */
   scorePercent?: number;
+
+  /** Questions answered correctly. Admin-entered. */
+  correctCount?: number;
+  /** Questions actually attempted. Accuracy is derived from these two. */
+  attemptedCount?: number;
+  /**
+   * Class-level figures, denormalised ON PURPOSE.
+   *
+   * A rank, a top score and a class average each need EVERY student's marks on
+   * the paper — and the security rules let a parent read only their own child's
+   * result (listing `results` is admin-only). So they cannot be derived on the
+   * parent's device without breaking isolation; the administrator enters them
+   * once per result and they are stored, exactly like `studentName`.
+   */
+  rank?: number;
+  topScore?: number;
+  avgScore?: number;
+
+  /**
+   * Marks obtained per syllabus line, keyed `${subject}||${topic}`.
+   * Powers the subject-wise accordion on the test detail screen; the subject
+   * row's figure is the sum of its topics, never typed separately.
+   */
+  topicMarks?: Record<string, number>;
 }
 
 export interface FaqItem {

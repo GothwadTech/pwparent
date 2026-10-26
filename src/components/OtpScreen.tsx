@@ -96,7 +96,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       <AppHeader
         showHowItWorks={true}
         onHowItWorksClick={onHowItWorks}
@@ -105,19 +105,19 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
       />
 
       <div className="flex-1 px-5 pt-8 flex flex-col">
-        <h1 className="text-[28px] sm:text-[30px] font-bold text-white tracking-tight leading-snug">
+        <h1 className="text-[28px] sm:text-[30px] font-bold text-[#17181C] tracking-tight leading-snug">
           Enter your code
         </h1>
 
-        <div className="mt-3 flex items-center space-x-2 text-[14.5px] text-neutral-300">
+        <div className="mt-3 flex items-center space-x-2 text-[14.5px] text-neutral-700">
           <span>
-            For <strong className="font-semibold text-white">{formattedPhone}</strong>
+            For <strong className="font-semibold text-[#17181C]">{formattedPhone}</strong>
           </span>
           <button
             type="button"
             onClick={onEditPhone}
             aria-label="Edit mobile number"
-            className="p-1 rounded-md text-neutral-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded-md text-neutral-700 hover:text-neutral-900 hover:bg-black/[0.05] transition-colors"
           >
             <Pencil size={15} />
           </button>
@@ -142,10 +142,10 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
               onPaste={index === 0 ? handlePaste : undefined}
               disabled={!registered || isVerifying}
               aria-label={`Digit ${index + 1}`}
-              className={`flex-1 min-w-0 aspect-square max-w-[68px] text-center text-2xl font-bold bg-[#11121c] rounded-xl border transition-all duration-200 outline-none disabled:opacity-40 ${
+              className={`flex-1 min-w-0 aspect-square max-w-[68px] text-center text-2xl font-bold bg-white rounded-xl border transition-all duration-200 outline-none disabled:opacity-40 ${
                 digit
-                  ? 'border-[#8E75FF] text-white shadow-md shadow-purple-950/20'
-                  : 'border-[#262838] text-white focus:border-[#8E75FF] focus:ring-1 focus:ring-[#8E75FF]/40'
+                  ? 'border-[#5747D6] text-[#17181C] shadow-md shadow-purple-950/20'
+                  : 'border-[#E4E6EB] text-[#17181C] focus:border-[#5747D6] focus:ring-1 focus:ring-[#8E75FF]/40'
               }`}
             />
           ))}
@@ -155,15 +155,15 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
         {notice && (
           <div
             className={`mt-6 flex items-start gap-2 px-3 py-2.5 rounded-lg border ${
-              registered ? 'bg-[#12131d] border-[#2f3246]' : 'bg-[#2a1a10] border-[#4d3419]'
+              registered ? 'bg-white border-[#E4E6EB]' : 'bg-[#2a1a10] border-[#4d3419]'
             }`}
           >
             {registered ? (
-              <ArrowRight size={14} className="text-[#8E75FF] shrink-0 mt-0.5" />
+              <ArrowRight size={14} className="text-[#5747D6] shrink-0 mt-0.5" />
             ) : (
               <AlertTriangle size={14} className="text-[#facc15] shrink-0 mt-0.5" />
             )}
-            <p className="text-[11.5px] text-neutral-300 leading-relaxed">{notice}</p>
+            <p className="text-[11.5px] text-neutral-700 leading-relaxed">{notice}</p>
           </div>
         )}
 
@@ -178,7 +178,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2 ${
             registered && isComplete && !isVerifying
               ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
-              : 'bg-[#3b3b4f]/70 text-neutral-400 cursor-not-allowed opacity-80'
+              : 'bg-[#3b3b4f]/70 text-neutral-600 cursor-not-allowed opacity-80'
           }`}
         >
           {isVerifying && <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />}

@@ -41,19 +41,19 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Bar matching Screenshot_20260918_180825.jpg */}
-      <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#0d0e15] border-b border-[#1c1d29]/40 z-20">
+      <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#F4F5F7] border-b border-[#E4E6EB]/40 z-20">
         <div className="flex items-center">
           <button
             type="button"
             onClick={onBack}
-            className="p-1 -ml-1 text-white hover:text-neutral-300 transition-colors flex items-center justify-center"
+            className="p-1 -ml-1 text-[#17181C] hover:text-neutral-700 transition-colors flex items-center justify-center"
             aria-label="Back"
           >
             <ChevronLeft size={26} strokeWidth={2.2} />
           </button>
-          <h1 className="ml-2 text-lg font-bold text-white tracking-tight">
+          <h1 className="ml-2 text-lg font-bold text-[#17181C] tracking-tight">
             Parent&apos;s Profile
           </h1>
         </div>
@@ -64,8 +64,8 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           onClick={() => setIsEditing(!isEditing)}
           className={`p-2 rounded-lg transition-colors ${
             isEditing
-              ? 'text-[#A088FF] bg-[#A088FF]/10'
-              : 'text-neutral-300 hover:text-white'
+              ? 'text-[#5747D6] bg-[#A088FF]/10'
+              : 'text-neutral-700 hover:text-neutral-900'
           }`}
           title={isEditing ? 'Cancel edit' : 'Edit profile'}
         >
@@ -77,7 +77,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
       <div className="flex-1 px-5 pt-6 pb-6 overflow-y-auto">
         {/* Success saved banner */}
         {showSavedToast && (
-          <div className="mb-4 p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center space-x-2 animate-in fade-in">
+          <div className="mb-4 p-3 rounded-xl bg-emerald-950/60 border  text-[#1E7E43] text-xs flex items-center space-x-2 animate-in fade-in">
             <Check size={16} />
             <span>Profile changes saved successfully!</span>
           </div>
@@ -86,8 +86,8 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
         {/* Form Fields Stack */}
         <div className="space-y-5">
           {/* Field 1: Name */}
-          <div className="relative rounded-lg border border-[#3b3d4f] focus-within:border-[#8E75FF] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#0d0e15] px-1 text-[11px] font-medium text-neutral-400">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
               Name
             </label>
             <input
@@ -97,20 +97,20 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full bg-transparent text-[15px] font-medium text-white placeholder-neutral-500 focus:outline-none disabled:text-neutral-200"
+              className="w-full bg-transparent text-[15px] font-medium text-[#17181C] placeholder-neutral-500 focus:outline-none disabled:text-neutral-800"
               placeholder="Enter parent name"
             />
           </div>
 
           {/* Field 2: Mobile number */}
-          <div className="relative rounded-lg border border-[#3b3d4f] focus-within:border-[#8E75FF] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#0d0e15] px-1 text-[11px] font-medium text-neutral-400">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
               Mobile number
             </label>
             <div className="flex items-center space-x-3 text-[15px]">
-              <div className="flex items-center space-x-1 text-white font-semibold pr-2 border-r border-[#262838]">
+              <div className="flex items-center space-x-1 text-[#17181C] font-semibold pr-2 border-r border-[#E4E6EB]">
                 <span>{formData.countryCode || 'IN +91'}</span>
-                <ChevronDown size={14} className="text-neutral-400" />
+                <ChevronDown size={14} className="text-neutral-600" />
               </div>
               <input
                 type="tel"
@@ -122,15 +122,15 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
                     mobileNumber: e.target.value.replace(/\D/g, '').slice(0, 10),
                   })
                 }
-                className="w-full bg-transparent text-[15px] font-medium text-white placeholder-neutral-500 focus:outline-none disabled:text-neutral-200"
+                className="w-full bg-transparent text-[15px] font-medium text-[#17181C] placeholder-neutral-500 focus:outline-none disabled:text-neutral-800"
                 placeholder="Mobile number"
               />
             </div>
           </div>
 
           {/* Field 3: Email */}
-          <div className="relative rounded-lg border border-[#3b3d4f] focus-within:border-[#8E75FF] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
-            <label className="absolute -top-2.5 left-3 bg-[#0d0e15] px-1 text-[11px] font-medium text-neutral-400">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+            <label className="absolute -top-2.5 left-3 bg-[#F4F5F7] px-1 text-[11px] font-medium text-neutral-600">
               Email
             </label>
             <input
@@ -140,7 +140,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full bg-transparent text-[15px] font-medium text-white placeholder-neutral-500 focus:outline-none disabled:text-neutral-200"
+              className="w-full bg-transparent text-[15px] font-medium text-[#17181C] placeholder-neutral-500 focus:outline-none disabled:text-neutral-800"
               placeholder="name@gmail.com"
             />
           </div>
@@ -151,13 +151,13 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="w-full flex items-center space-x-3 text-neutral-300 hover:text-white py-2 transition-colors group"
+            className="w-full flex items-center space-x-3 text-neutral-700 hover:text-neutral-900 py-2 transition-colors group"
           >
             <Settings
               size={20}
-              className="text-neutral-400 group-hover:text-white transition-colors"
+              className="text-neutral-600 group-hover:text-neutral-900 transition-colors"
             />
-            <span className="text-[15px] font-medium text-neutral-200 group-hover:text-white">
+            <span className="text-[15px] font-medium text-neutral-800 group-hover:text-neutral-900">
               Profile Settings
             </span>
           </button>
@@ -166,11 +166,11 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
 
       {/* Bottom Action Bar when Editing (Screenshot_20260918_180854.jpg) */}
       {isEditing && (
-        <div className="p-4 bg-[#0d0e15] border-t border-[#1e2030] flex items-center space-x-3 z-20">
+        <div className="p-4 bg-[#F4F5F7] border-t border-[#E4E6EB] flex items-center space-x-3 z-20">
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 py-3.5 rounded-xl bg-black border border-[#2b2d3d] text-white font-semibold text-sm hover:bg-[#161722] active:scale-[0.98] transition-all"
+            className="flex-1 py-3.5 rounded-xl bg-black border border-[#2b2d3d] text-[#17181C] font-semibold text-sm hover:bg-[#161722] active:scale-[0.98] transition-all"
           >
             Cancel
           </button>
@@ -198,7 +198,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
             <button
               type="button"
               onClick={() => setIsSettingsOpen(false)}
-              className="w-11 h-11 rounded-full bg-black/90 border border-neutral-700 text-white flex items-center justify-center shadow-lg hover:bg-neutral-800 transition-colors"
+              className="w-11 h-11 rounded-full bg-black/90 border border-[#E4E6EB] text-[#17181C] flex items-center justify-center shadow-lg hover:bg-neutral-100 transition-colors"
               aria-label="Close"
             >
               <X size={20} strokeWidth={2.4} />
@@ -206,7 +206,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           </div>
 
           {/* Bottom sheet content */}
-          <div className="relative z-10 w-full max-w-[420px] mx-auto bg-[#0d0e15] rounded-t-3xl border-t border-neutral-800 p-5 pt-3 pb-8 shadow-2xl">
+          <div className="relative z-10 w-full max-w-[420px] mx-auto bg-[#F4F5F7] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
             {/* Top drag handle pill */}
             <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-5" />
 
@@ -217,13 +217,13 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
                 setIsSettingsOpen(false);
                 onDeleteProfile();
               }}
-              className="w-full py-3.5 px-4 rounded-xl border border-neutral-800 hover:border-red-900/60 bg-[#141520] flex items-center space-x-3 text-left transition-colors group"
+              className="w-full py-3.5 px-4 rounded-xl border border-[#E4E6EB] hover:border-red-900/60 bg-[#141520] flex items-center space-x-3 text-left transition-colors group"
             >
               <Trash2
                 size={19}
-                className="text-neutral-400 group-hover:text-red-400 transition-colors"
+                className="text-neutral-600 group-hover:text-[#B02A43] transition-colors"
               />
-              <span className="text-sm font-semibold text-neutral-200 group-hover:text-red-300">
+              <span className="text-sm font-semibold text-neutral-800 group-hover:text-red-300">
                 Delete Profile
               </span>
             </button>

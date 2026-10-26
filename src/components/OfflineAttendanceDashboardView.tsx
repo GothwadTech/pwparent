@@ -1,28 +1,27 @@
 /**
- * Offline / centre dashboard — now a thin composition of three sections.
+ * Offline / centre dashboard — a thin composition of three sections separated by
+ * thick neutral bands, matched to the reference look.
  *
- * This file was 484 lines and about to cross the repo's 500-line ceiling once
- * real data props were threaded through, so each section moved to its own file:
+ *   AttendanceCalendarSection   donut + day counts + weekly strip + legend
+ *   DppSection                  lavender roll-up + monthly assigned/attempted bars
+ *   CenterTestsSection          lavender roll-up + recent-tests timeline
  *
- *   AttendanceCalendarSection.tsx   day-wise calendar + legend + day banner
- *   DppSection.tsx                  Daily Practice Paper (still sample figures)
- *   CenterTestsSection.tsx          test summary card + timeline
+ * There is NO fallback or sample data in here. Every figure is a prop supplied
+ * from `useBatchView` / `useDppView`; when a batch has nothing entered yet the
+ * sections render honest zeros and empty states. The old built-in "sample week"
+ * and hardcoded scores were demo data and are gone.
  *
- * The pixel-matched markup is unchanged. What changed is the data: every prop
- * below is optional with a built-in fallback, so an unwired call site renders
- * exactly what it did before, while a configured build passes real documents
- * from `batches/{id}` (see src/hooks/useBatchView.ts).
- *
- * `CalendarDay` and `OfflineTestRow` stay EXPORTED FROM HERE even though the
- * calendar now lives elsewhere — useBatchView imports them from this module,
- * and moving them would churn three files for no gain.
+ * `CalendarDay` and `OfflineTestRow` stay EXPORTED FROM HERE because useBatchView
+ * and ChildDashboardScreen import them from this module.
  */
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { StudentProfile } from '../types';
 import type { BatchSummary } from '../hooks/useBatchView';
+import type { DppSummary } from '../hooks/useDppView';
 import { AttendanceCalendarSection } from './AttendanceCalendarSection';
 import { DppSection } from './DppSection';
 import { CenterTestsSection } from './CenterTestsSection';
+import { SECTION_BAND } from '../lib/uiTheme';
 
 /** One day cell in the attendance calendar. */
 export interface CalendarDay {
@@ -37,93 +36,92 @@ export interface CalendarDay {
 export interface OfflineTestRow {
   id: string;
   name: string;
+  /** Display date, e.g. "13-9-2026". */
   date: string;
   mode: string;
+  /** "230/720". Empty when not attempted. */
   marks: string;
-  /**
-   * Empty when a rank cannot be computed honestly. Computing one needs every
-   * student's marks on the paper, and the rules let a parent read only their
-   * own child's result — so this is left blank and the UI shows a dash.
-   */
+  /** "32%". Empty when not attempted. */
+  scorePercent: string;
+  /** Class rank as entered by the admin. Empty when unknown. */
   rank: string;
-  status: string;
+  status: 'ATTEMPTED' | 'MISSED' | 'RESULT_AWAITING';
+  /** Which list of the All Tests screen this test belongs to. */
+  paperType: 'Objective' | 'Subjective';
 }
 
 interface OfflineAttendanceDashboardViewProps {
   student: StudentProfile;
-  batchName: string;
+  summary: BatchSummary;
+  dpp: DppSummary;
+  calendarDays: CalendarDay[];
+  offlineTests: OfflineTestRow[];
   onOpenSubjectDetails: (subjectArea: 'lectures' | 'dpp' | 'tests') => void;
   onViewAllTests: () => void;
-  /**
-   * Real day-wise marks from `batches/{id}/attendance/{studentId}`, mapped to
-   * this component's cell shape. When omitted the sample week below renders.
-   */
-  calendarDays?: CalendarDay[];
-  /** Real tests for the selected batch, joined with this student's marks. */
-  offlineTests?: OfflineTestRow[];
-  /** Week/month tabs above the calendar. Derived from `calendarDays` when omitted. */
-  weeks?: { label: string; range: string }[];
-  /** Attempted/total, best score and attendance — all derived, none typed. */
-  summary?: BatchSummary;
+  onOpenTest: (testId: string) => void;
 }
 
-// ── fallbacks: rendered ONLY when no real data is supplied ──────────────────
-// A configured build always passes the props, so these never reach a parent who
-// has been allotted to a batch. They exist so unwired call sites and the test
-// suite keep rendering instead of crashing on an empty list.
+/** Split an ordered day list into weeks of seven for the weekly pager. */
+function chunkWeeks(days: CalendarDay[]): CalendarDay[][] {
+  const out: CalendarDay[][] = [];
+  for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
+  return out;
+}
 
-const FALLBACK_WEEKS = [
-  { label: '8 Jun - 14 Jun', range: 'Current Week' },
-  { label: '1 Jun - 7 Jun', range: 'Previous Week' },
-];
-
-const FALLBACK_CALENDAR: CalendarDay[] = [
-  { dayNum: 8, dayLabel: 'M', status: 'absent', dateStr: '8 June (Monday)', details: 'Absent • Offline Class marked absent' },
-  { dayNum: 9, dayLabel: 'T', status: 'no_class', dateStr: '9 June (Tuesday)', details: 'No Class • Scheduled self-study day' },
-  { dayNum: 10, dayLabel: 'W', status: 'present', dateStr: '10 June (Wednesday)', details: 'Present • Physics & Chemistry attended' },
-  { dayNum: 11, dayLabel: 'T', status: 'present', dateStr: '11 June (Thursday)', details: 'Present • Mathematics & DPP discussion attended' },
-  { dayNum: 12, dayLabel: 'F', status: 'present', dateStr: '12 June (Friday)', details: 'Present • Full day center attendance recorded' },
-  { dayNum: 13, dayLabel: 'S', status: 'no_class', dateStr: '13 June (Saturday)', details: 'No Class • Weekend revision' },
-  { dayNum: 14, dayLabel: 'S', status: 'no_class', dateStr: '14 June (Sunday)', details: 'No Class • Center weekly off' },
-];
-
-const FALLBACK_TESTS: OfflineTestRow[] = [
-  { id: '1', name: 'Center Test 04 : Full Syllabus', date: '11-6-2026', mode: 'Center Offline', marks: '592/720', rank: 'AIR 142', status: 'ATTENDED' },
-  { id: '2', name: 'Center Test 03 : Physics & Chem', date: '04-6-2026', mode: 'Center Offline', marks: '248/360', rank: 'AIR 198', status: 'ATTENDED' },
-  { id: '3', name: 'Center Test 02 : Optics & Mechanics', date: '28-5-2026', mode: 'Center Offline', marks: '110/180', rank: 'AIR 220', status: 'ATTENDED' },
-  { id: '4', name: 'Center Test 01 : Diagnostic Test', date: '14-5-2026', mode: 'Center Offline', marks: '0/720', rank: '--', status: 'MISSED' },
-];
-
-const FALLBACK_SUMMARY: BatchSummary = {
-  testsAttempted: 3,
-  testsTotal: 4,
-  bestScore: '592/720',
-  attendancePercent: '86%',
-};
+/** "26 Oct - 1 Nov" from a week slice, reading the month word out of dateStr. */
+function weekLabel(week: CalendarDay[]): string {
+  const monthOf = (d: CalendarDay) => (d.dateStr.match(/([A-Za-z]+)\s*\(/)?.[1] ?? '').slice(0, 3);
+  if (week.length === 0) return '';
+  const first = week[0];
+  const last = week[week.length - 1];
+  const fm = monthOf(first);
+  const lm = monthOf(last);
+  return fm === lm ? `${first.dayNum} - ${last.dayNum} ${lm}` : `${first.dayNum} ${fm} - ${last.dayNum} ${lm}`;
+}
 
 export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboardViewProps> = ({
   student,
-  onOpenSubjectDetails,
-  onViewAllTests,
+  summary,
+  dpp,
   calendarDays,
   offlineTests,
-  weeks,
-  summary,
+  onOpenSubjectDetails,
+  onViewAllTests,
+  onOpenTest,
 }) => {
+  const weeks = useMemo(() => chunkWeeks(calendarDays), [calendarDays]);
+  // The week containing today opens by default; otherwise the first week.
+  const todayIdx = calendarDays.findIndex((d) => d.dayNum === new Date().getDate());
+  const [weekIndex, setWeekIndex] = useState(() =>
+    todayIdx >= 0 ? Math.floor(todayIdx / 7) : 0,
+  );
+  const clamped = Math.min(weekIndex, Math.max(0, weeks.length - 1));
+  const currentWeek = weeks[clamped] ?? [];
+
+  const band = <div className="h-2 w-full" style={{ background: SECTION_BAND }} />;
+
   return (
-    <div className="flex-1 w-full px-4 pt-3 pb-8 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full pb-6 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
       <AttendanceCalendarSection
-        student={student}
-        calendarDays={calendarDays ?? FALLBACK_CALENDAR}
-        weeks={weeks ?? FALLBACK_WEEKS}
+        summary={summary}
+        days={currentWeek}
+        weekLabel={weekLabel(currentWeek)}
+        onPrevWeek={() => setWeekIndex((i) => Math.max(0, i - 1))}
+        onNextWeek={() => setWeekIndex((i) => Math.min(weeks.length - 1, i + 1))}
+        canPrevWeek={clamped > 0}
+        canNextWeek={clamped < weeks.length - 1}
       />
 
-      <DppSection onOpenSubjectDetails={onOpenSubjectDetails} />
+      {band}
+      <DppSection summary={dpp} onOpenSubjectDetails={() => onOpenSubjectDetails('dpp')} />
 
+      {band}
       <CenterTestsSection
-        offlineTests={offlineTests ?? FALLBACK_TESTS}
-        summary={summary ?? FALLBACK_SUMMARY}
+        offlineTests={offlineTests}
+        summary={summary}
         onViewAllTests={onViewAllTests}
+        onOpenTest={onOpenTest}
+        onOpenSubjectDetails={() => onOpenSubjectDetails('tests')}
       />
     </div>
   );

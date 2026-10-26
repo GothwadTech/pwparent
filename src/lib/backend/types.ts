@@ -25,6 +25,20 @@ export interface SendOtpResult {
   notice?: string;
 }
 
+/** One month of DPP activity for one student in one batch. */
+export interface DppMonthEntry {
+  assigned: number;
+  attempted: number;
+  /** 0-100, over the attempted DPPs of that month. */
+  questionsAttemptedPercent: number;
+  accuracyPercent: number;
+}
+
+/** `batches/{id}/dpp/{studentId}` — months keyed `YYYY-MM`. */
+export interface DppRecord {
+  months: Record<string, DppMonthEntry>;
+}
+
 export interface Session {
   uid: string;
   phone: string;
@@ -119,6 +133,9 @@ export interface Backend extends BatchOps {
 
   // ── diagnostics ──────────────────────────────────────────────────────────
   /** Empties the read cache. Firestore read totals come from `cacheStats()`. */
+  /** DPP record for one student in one batch; null when never entered. */
+  getDppRecord(batchId: string, studentId: string): Promise<DppRecord | null>;
+  saveDppRecord(batchId: string, studentId: string, record: DppRecord): Promise<void>;
   clearCache(): void;
 }
 

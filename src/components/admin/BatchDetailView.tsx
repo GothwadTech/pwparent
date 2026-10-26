@@ -72,11 +72,11 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
 
   return (
     <div className="-mx-4 -my-4 flex flex-col h-full min-h-0">
-      <header className="shrink-0 px-4 pt-3 pb-2 border-b border-[#1c1d29] bg-[#0a0b10]">
+      <header className="shrink-0 px-4 pt-3 pb-2 border-b border-[#E4E6EB] bg-[#F4F5F7]">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-white mb-2"
+          className="inline-flex items-center gap-1.5 text-[11px] text-neutral-600 hover:text-neutral-900 mb-2"
         >
           <ArrowLeft size={13} /> All batches
         </button>
@@ -92,7 +92,7 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
               type="button"
               onClick={() => setPanel(p.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                panel === p.id ? 'bg-[#8E75FF] text-white' : 'bg-[#181926] text-neutral-400 hover:text-white'
+                panel === p.id ? 'bg-[#5747D6] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               {p.icon}

@@ -27,6 +27,7 @@
 import React, {useState} from 'react';
 import {useAppData} from './hooks/useAppData';
 import {useBatchView} from './hooks/useBatchView';
+import {useDppView} from './hooks/useDppView';
 import {fluidShellStyle, useFluidScale} from './lib/layout';
 import {OnboardingScreen} from './components/OnboardingScreen';
 import {LoginScreen} from './components/LoginScreen';
@@ -41,13 +42,6 @@ import {HowItWorksModal} from './components/HowItWorksModal';
 import {LogoCustomizerModal} from './components/LogoCustomizerModal';
 
 /** Ambient wash. Outside the scaled shell so it always covers the window. */
-const Ambient: React.FC = () => (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[60vmax] h-[60vmax] bg-[#005677]/15 rounded-full blur-[140px]" />
-    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[50vmax] h-[50vmax] bg-purple-950/20 rounded-full blur-[140px]" />
-  </div>
-);
-
 export const App: React.FC = () => {
   const app = useAppData();
   const scale = useFluidScale();
@@ -58,6 +52,7 @@ export const App: React.FC = () => {
    * cheaply when there is no backend, no student or no uid yet.
    */
   const batchView = useBatchView(app.backend, app.activeStudent, app.uid);
+  const dppSummary = useDppView(batchView.selectedBatchId, app.activeStudent?.id ?? null);
 
   const [customLogoUrl, setCustomLogoUrl] = useState<string | null>('/assets/ic_launcher_round.webp');
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
@@ -150,9 +145,10 @@ export const App: React.FC = () => {
             onSelectBatch={batchView.selectBatch}
             calendarDays={batchView.calendarDays}
             offlineTests={batchView.offlineTests}
-            allTests={batchView.allTests}
             subjects={batchView.subjects}
             summary={batchView.summary}
+            dpp={dppSummary}
+            batchTests={batchView.tests}
           />
         ) : null;
 
@@ -204,13 +200,12 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden bg-[#050608] text-white relative font-['Plus_Jakarta_Sans',sans-serif]">
-      <Ambient />
+    <div className="w-full h-[100dvh] overflow-hidden bg-[#F4F5F7] text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif]">
 
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main
         style={fluidShellStyle(scale)}
-        className="bg-[#0a0b10] flex flex-col relative z-10 overflow-hidden"
+        className="bg-[#F4F5F7] flex flex-col relative z-10 overflow-hidden"
       >
         {renderCurrentScreen()}
       </main>
@@ -242,9 +237,9 @@ export const App: React.FC = () => {
 
       {isTermsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="bg-[#12131d] border border-[#232535] rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl">
+          <div className="bg-white border border-[#E4E6EB] rounded-2xl max-w-sm w-full p-6 text-[#17181C] shadow-2xl">
             <h3 className="text-lg font-bold mb-2">Terms and Conditions</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed mb-4">
+            <p className="text-xs text-neutral-600 leading-relaxed mb-4">
               This is a demonstration build of a parent&apos;s companion app. It is not affiliated with, or endorsed
               by, any coaching organisation. Login codes are issued by an administrator of this deployment; no SMS is
               sent or read at any point.
@@ -252,7 +247,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsTermsOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-[#8E75FF] hover:bg-[#7d62fc] font-semibold text-sm transition-colors text-white"
+              className="w-full py-2.5 rounded-xl bg-[#5747D6] hover:bg-[#4b3bc4] font-semibold text-sm transition-colors text-white"
             >
               Close
             </button>

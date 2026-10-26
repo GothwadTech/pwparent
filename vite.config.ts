@@ -36,8 +36,8 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         orientation: 'any',
-        theme_color: '#005677',
-        background_color: '#050608',
+        theme_color: '#F4F5F7',
+        background_color: '#F4F5F7',
         categories: ['education', 'productivity'],
         icons: [
           {src: '/icons/pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any'},

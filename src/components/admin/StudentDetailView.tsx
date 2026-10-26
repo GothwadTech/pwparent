@@ -20,6 +20,7 @@ import React, {useMemo, useState} from 'react';
 import {ArrowLeft, Layers, Plus, Save, Trash2, UserRound} from 'lucide-react';
 import type {AllotableStudent, Batch, TestRecord} from '../../types';
 import type {Backend} from '../../lib/backend';
+import {DppPanel} from './DppPanel';
 import {newTestId, normalizePercentText, recomputeStudent} from '../../lib/admin';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 import {LoginCodesTab} from './LoginCodesTab';
@@ -52,6 +53,8 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [showCodes, setShowCodes] = useState(false);
+  const [showDpp, setShowDpp] = useState(false);
+  const [dppBatchId, setDppBatchId] = useState<string | null>(null);
 
   const patch = (change: Partial<AllotableStudent>) => setDraft((prev) => ({...prev, ...change}));
 
@@ -140,11 +143,11 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
 
   return (
     <div className="-mx-4 -my-4 flex flex-col h-full min-h-0">
-      <header className="shrink-0 px-4 pt-3 pb-3 border-b border-[#1c1d29] bg-[#0a0b10]">
+      <header className="shrink-0 px-4 pt-3 pb-3 border-b border-[#E4E6EB] bg-[#F4F5F7]">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-white mb-2"
+          className="inline-flex items-center gap-1.5 text-[11px] text-neutral-600 hover:text-neutral-900 mb-2"
         >
           <ArrowLeft size={13} /> Back to students
         </button>
@@ -159,7 +162,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
         {error && <Note tone="warn">{error}</Note>}
 
         {/* ── record ─────────────────────────────────────────────────────── */}
-        <div className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2.5">
           <p className="text-xs font-bold">Academic record</p>
 
           <Field label="Name" htmlFor={`name-${sid}`}>
@@ -217,9 +220,9 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
         </div>
 
         {/* ── batches: picked from what exists ───────────────────────────── */}
-        <div className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 space-y-2">
+        <div className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2">
           <p className="text-xs font-bold flex items-center gap-1.5">
-            <Layers size={13} className="text-[#8E75FF]" /> Batches
+            <Layers size={13} className="text-[#5747D6]" /> Batches
           </p>
 
           {batches.length === 0 && <Note>No batches exist yet. Create one under Batches first.</Note>}
@@ -233,13 +236,13 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
                 disabled={busy}
                 onClick={() => void toggleBatch(batch)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-colors ${
-                  on ? 'bg-[#8E75FF]/15 border-[#8E75FF]/50' : 'bg-[#0d0e16] border-[#232535] hover:border-[#3a3d52]'
+                  on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#F4F5F7] border-[#E4E6EB] hover:border-[#E4E6EB]'
                 }`}
                 aria-pressed={on}
               >
                 <span
                   className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                    on ? 'bg-[#8E75FF] border-[#8E75FF] text-white' : 'border-[#3a3d52] text-transparent'
+                    on ? 'bg-[#5747D6] border-[#5747D6] text-white' : 'border-[#E4E6EB] text-transparent'
                   }`}
                 >
                   ✓
@@ -256,7 +259,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
         </div>
 
         {/* ── test rows ──────────────────────────────────────────────────── */}
-        <div className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 space-y-2">
+        <div className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2">
           <div className="flex items-center justify-between">
             <span className={labelCls}>Test records</span>
             <button type="button" className={btnGhost} onClick={addTest}>
@@ -267,7 +270,7 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
           {(draft.tests ?? []).length === 0 && <Note>No test rows yet.</Note>}
 
           {(draft.tests ?? []).map((test) => (
-            <div key={test.id} className="bg-[#0d0e16] border border-[#232535] rounded-lg p-2.5 space-y-2">
+            <div key={test.id} className="bg-[#F4F5F7] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <input
                   className={inputCls}
@@ -364,6 +367,35 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
               studentId={draft.id}
               parentUid={draft.parentUid}
             />
+          )}
+        </div>
+
+        {/* ── DPP record for this child, per batch ───────────────────────── */}
+        <div className="space-y-2">
+          <button type="button" className={`${btnGhost} w-full`} onClick={() => setShowDpp((v) => !v)}>
+            {showDpp ? 'Hide DPP record' : 'Show this student’s DPP record'}
+          </button>
+          {showDpp && (
+            <div className="space-y-2">
+              <select
+                className={inputCls}
+                aria-label="Batch for the DPP record"
+                value={dppBatchId ?? draft.batchIds?.[0] ?? batches[0]?.id ?? ''}
+                onChange={(e) => setDppBatchId(e.target.value)}
+              >
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              {(dppBatchId ?? draft.batchIds?.[0] ?? batches[0]?.id) && (
+                <DppPanel
+                  backend={backend}
+                  batchId={(dppBatchId ?? draft.batchIds?.[0] ?? batches[0]?.id) as string}
+                  studentId={draft.id}
+                  flash={flash}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

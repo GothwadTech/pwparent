@@ -92,23 +92,23 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#0d0e17] rounded-t-3xl border-t border-neutral-800 p-5 pt-3 pb-8 shadow-2xl max-h-[85vh] flex flex-col">
+      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#0d0e17] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl max-h-[85vh] flex flex-col">
         {/* Top Handle */}
         <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-3" />
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-neutral-800 mb-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E4E6EB] mb-4">
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">
+            <h2 className="text-base font-bold text-[#17181C] tracking-tight">
               {titleMap[area]}
             </h2>
-            <p className="text-xs text-neutral-400">{batchName}</p>
+            <p className="text-xs text-neutral-600">{batchName}</p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full bg-neutral-800/80 text-neutral-300 hover:text-white"
+            className="p-1.5 rounded-full bg-neutral-100 text-neutral-700 hover:text-neutral-900"
           >
             <X size={18} />
           </button>
@@ -123,12 +123,12 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white">{subj.name}</h3>
-                  <span className="text-[11px] text-neutral-400">
+                  <h3 className="text-sm font-bold text-[#17181C]">{subj.name}</h3>
+                  <span className="text-[11px] text-neutral-600">
                     Faculty: {subj.teacher}
                   </span>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-neutral-800/80 text-neutral-300">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-neutral-100 text-neutral-700">
                   {area === 'lectures' && `${subj.lecturesCompleted}/${subj.totalLectures} Lrc`}
                   {area === 'dpp' && `${subj.dppsDone}/${subj.totalDpps} DPPs`}
                   {area === 'tests' && `Accuracy ${subj.accuracy}`}
@@ -136,9 +136,9 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#8E75FF]"
+                  className="h-full bg-[#5747D6]"
                   style={{
                     width:
                       area === 'lectures'
@@ -148,7 +148,7 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-0.5">
+              <div className="flex items-center justify-between text-[11px] text-neutral-600 pt-0.5">
                 <span className="flex items-center space-x-1">
                   <Clock size={12} />
                   <span>Watch: 0h 0m</span>

@@ -43,7 +43,7 @@ export const AnnouncementsTab: React.FC<AnnouncementsTabProps> = ({
       </button>
 
       {draft && (
-        <div className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
           <Field label="Author" htmlFor="ann-author">
             <input
               id="ann-author"
@@ -102,7 +102,7 @@ export const AnnouncementsTab: React.FC<AnnouncementsTabProps> = ({
       {announcements.length === 0 && <Note>No announcements yet.</Note>}
 
       {announcements.map((item) => (
-        <div key={item.id} className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5">
+        <div key={item.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-bold truncate">{item.author || '(no author)'}</p>
@@ -120,13 +120,13 @@ export const AnnouncementsTab: React.FC<AnnouncementsTabProps> = ({
               <Trash2 size={12} />
             </button>
           </div>
-          <p className="mt-2 text-[12px] text-neutral-300 leading-relaxed break-words">{item.content}</p>
+          <p className="mt-2 text-[12px] text-neutral-700 leading-relaxed break-words">{item.content}</p>
           {item.videoLink && (
             <a
               href={item.videoLink}
               target="_blank"
               rel="noreferrer noopener"
-              className="mt-1.5 inline-block text-[11px] text-[#8E75FF] hover:underline truncate max-w-full"
+              className="mt-1.5 inline-block text-[11px] text-[#5747D6] hover:underline truncate max-w-full"
             >
               {item.videoLink}
             </a>

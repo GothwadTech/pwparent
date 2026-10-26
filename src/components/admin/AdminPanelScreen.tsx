@@ -85,10 +85,10 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
   ];
 
   return (
-    <div className="w-full h-full bg-[#0a0b10] text-white flex flex-col select-none">
-      <header className="shrink-0 border-b border-[#1c1d29]">
+    <div className="w-full h-full bg-[#F4F5F7] text-[#17181C] flex flex-col select-none">
+      <header className="shrink-0 border-b border-[#E4E6EB]">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-white/5">
+          <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-black/[0.03]">
             <ArrowLeft size={18} />
           </button>
           <div className="flex-1 min-w-0">
@@ -101,7 +101,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
           <button
             type="button"
             onClick={() => setUnlocked(false)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#181926] hover:bg-[#222436] border border-[#2f3246] text-neutral-300 text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-[#F1F2F4] border border-[#E4E6EB] text-neutral-700 text-xs font-semibold transition-colors"
             aria-label="Lock admin panel"
           >
             <Lock size={13} /> Lock
@@ -115,7 +115,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
               type="button"
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                tab === t.id ? 'bg-[#8E75FF] text-white' : 'bg-[#181926] text-neutral-400 hover:text-white'
+                tab === t.id ? 'bg-[#5747D6] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               {t.icon}

@@ -1,7 +1,15 @@
+/**
+ * Top bar of the parent app — light, matched to the reference.
+ *
+ * Left: the batch selector as a bordered white pill with a chevron (it opens the
+ * batch picker; the batch is always chosen, never typed). Right: the child's
+ * avatar with their name beneath, opening the profile.
+ */
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { StudentAvatar } from './StudentAvatar';
 import { StudentProfile } from '../types';
+import { CARD_BORDER, HEADER_BG, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
 
 interface MainTopBarProps {
   selectedBatchName: string;
@@ -17,32 +25,39 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <div className="w-full px-4 pt-3 pb-2.5 flex items-center justify-between bg-[#0e0f16] border-b border-[#1c1d29]/40 z-30 select-none">
+    <div
+      className="w-full px-4 pt-3 pb-3 flex items-center justify-between z-30 select-none"
+      style={{ background: HEADER_BG }}
+    >
       {/* Batch dropdown pill selector */}
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#141522] border border-[#2b2d40] hover:border-[#4d4f6c] transition-colors max-w-[260px]"
+        className="flex items-center space-x-2 px-4 py-3 rounded-lg bg-white border max-w-[260px]"
+        style={{ borderColor: CARD_BORDER }}
         title="Select Batch"
       >
-        <span className="text-xs font-bold text-white tracking-wide truncate">
+        <span className="text-[15px] font-semibold truncate" style={{ color: TEXT_PRIMARY }}>
           {selectedBatchName}
         </span>
-        <ChevronDown size={15} className="text-neutral-400 shrink-0" />
+        <ChevronDown size={17} style={{ color: TEXT_PRIMARY }} className="shrink-0" />
       </button>
 
-      {/* Student Profile Avatar & Name */}
+      {/* Student avatar + name */}
       <button
         type="button"
         onClick={onOpenProfile}
-        className="flex flex-col items-center group focus:outline-none"
+        className="flex flex-col items-center focus:outline-none"
         title="Open Profile"
       >
-        <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-[#3a3c56] group-hover:ring-[#8E75FF] transition-all flex items-center justify-center bg-[#181a29]">
-          <StudentAvatar type="boy" size={32} />
+        <div
+          className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border"
+          style={{ borderColor: CARD_BORDER }}
+        >
+          <StudentAvatar type="boy" size={40} />
         </div>
-        <span className="text-[10.5px] font-semibold text-neutral-300 group-hover:text-white mt-0.5 tracking-tight">
-          {activeStudent.name.split(' ')[0]}
+        <span className="text-[13px] mt-1" style={{ color: TEXT_SECONDARY }}>
+          {activeStudent.name || 'No Name'}
         </span>
       </button>
     </div>

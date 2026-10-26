@@ -184,7 +184,7 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
     <>
       <Note tone="warn">
         <ShieldAlert size={12} className="inline mr-1 -mt-0.5 text-[#facc15]" />
-        Codes are stored as <strong className="text-neutral-200">PBKDF2-SHA256 digests</strong>, never in
+        Codes are stored as <strong className="text-neutral-800">PBKDF2-SHA256 digests</strong>, never in
         plaintext, and <code>credentials/{'{phone}'}</code> is <code>get</code>-only in the rules so the collection
         cannot be enumerated. A saved code cannot be read back — write it down when you issue it, or replace it.
       </Note>
@@ -195,9 +195,9 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
             Just issued — shown once
           </p>
           {issued.name && <p className="text-sm font-bold">{issued.name}</p>}
-          <p className="text-xs font-mono text-neutral-300">+91 {issued.phone}</p>
+          <p className="text-xs font-mono text-neutral-700">+91 {issued.phone}</p>
           <p className="text-2xl font-mono font-bold tracking-[0.3em] text-[#4ade80]">{issued.code}</p>
-          <p className="text-[11px] text-neutral-400 leading-relaxed">
+          <p className="text-[11px] text-neutral-600 leading-relaxed">
             Give this to the family now. It is not stored anywhere readable, so it will not appear in the list below.
           </p>
           <button type="button" className={btnGhost} onClick={() => setIssued(null)}>
@@ -206,9 +206,9 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
         </div>
       )}
 
-      <form onSubmit={(e) => void save(e)} className="bg-[#11121c] border border-[#8E75FF]/35 rounded-xl p-3.5 space-y-2.5">
+      <form onSubmit={(e) => void save(e)} className="bg-white border border-[#5747D6]/35 rounded-xl p-3.5 space-y-2.5">
         <p className="text-xs font-bold flex items-center gap-1.5">
-          <Plus size={13} className="text-[#8E75FF]" /> Issue or replace a login code
+          <Plus size={13} className="text-[#5747D6]" /> Issue or replace a login code
         </p>
 
         <Field label="Name" htmlFor="code-name">
@@ -273,7 +273,7 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
       </form>
 
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-600">
           {studentId ? 'Numbers for this student' : 'Registered'}{' '}
           {scoped.mine.length > 0 && `(${scoped.mine.length} ${scoped.mine.length === 1 ? 'number' : 'numbers'})`}
         </span>
@@ -302,9 +302,9 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
       )}
 
       {groups.map((group) => (
-        <div key={group.label} className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5 space-y-2.5">
+        <div key={group.label} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2.5">
           <p className="text-sm font-bold flex items-center gap-1.5">
-            <User size={13} className="text-[#8E75FF] shrink-0" />
+            <User size={13} className="text-[#5747D6] shrink-0" />
             <span className="truncate">{group.label}</span>
             {group.entries.length > 1 && (
               <span className="text-[10px] font-semibold text-neutral-500 ml-auto shrink-0">
@@ -314,8 +314,8 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
           </p>
 
           {group.entries.map((entry) => (
-            <div key={entry.phone} className="border-t border-[#262838] pt-2.5">
-              <p className="text-xs font-mono text-neutral-300">+91 {entry.phone}</p>
+            <div key={entry.phone} className="border-t border-[#E4E6EB] pt-2.5">
+              <p className="text-xs font-mono text-neutral-700">+91 {entry.phone}</p>
               <p className="text-[11px] text-neutral-500 truncate">
                 {/* The digest is not reversible, so there is nothing to show. */}
                 code <span className="font-mono">••••••</span>

@@ -20,6 +20,10 @@ import {loadSlice, saveSlice} from './demoStore';
 import {resetCache} from './readCache';
 import {MOCK_OTP, mockAnnouncements, mockParentProfile, mockPurchases, mockStudents} from './mockData';
 import {normalizePhone} from '../credentials';
+import type {DppRecord} from './types';
+
+/** In-memory DPP store, keyed `${batchId}/${studentId}`. */
+const mockDpp = new Map<string, DppRecord>();
 import {createMockBatchOps} from './mockBatches';
 
 /** Small delay so loading states are actually observable in mock mode. */
@@ -228,6 +232,14 @@ export const mockBackend: Backend = {
   async savePurchase(item) {
     await delay();
     saveSlice('purchases', upsert(loadSlice<PurchaseItem[]>('purchases', mockPurchases), item, true));
+  },
+
+  async getDppRecord(batchId: string, studentId: string) {
+    return mockDpp.get(`${batchId}/${studentId}`) ?? null;
+  },
+
+  async saveDppRecord(batchId: string, studentId: string, record: DppRecord) {
+    mockDpp.set(`${batchId}/${studentId}`, record);
   },
 
   clearCache() {

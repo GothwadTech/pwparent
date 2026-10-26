@@ -127,9 +127,9 @@ export const StudentCreatePanel: React.FC<StudentCreatePanelProps> = ({
   };
 
   return (
-    <form onSubmit={(e) => void create(e)} className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
+    <form onSubmit={(e) => void create(e)} className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
       <p className="text-xs font-bold flex items-center gap-1.5">
-        <UserPlus size={13} className="text-[#8E75FF]" /> New student
+        <UserPlus size={13} className="text-[#5747D6]" /> New student
       </p>
 
       {loadError && <Note tone="warn">{loadError}</Note>}

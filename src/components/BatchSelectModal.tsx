@@ -32,7 +32,7 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-black/90 border border-neutral-700 text-white flex items-center justify-center shadow-xl hover:bg-neutral-800 transition-colors"
+          className="w-10 h-10 rounded-full bg-black/90 border border-[#E4E6EB] text-[#17181C] flex items-center justify-center shadow-xl hover:bg-neutral-100 transition-colors"
           aria-label="Close"
         >
           <X size={20} strokeWidth={2.5} />
@@ -40,15 +40,15 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
       </div>
 
       {/* Bottom Sheet Modal matching screenshot */}
-      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#0a0b12] rounded-t-3xl border-t border-neutral-800 p-5 pt-3 pb-8 shadow-2xl">
+      <div className="relative z-10 w-full max-w-[430px] mx-auto bg-[#F4F5F7] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
         {/* Top drag handle indicator */}
         <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-4" />
 
-        <h2 className="text-base font-bold text-white text-center mb-4 tracking-tight">
+        <h2 className="text-base font-bold text-[#17181C] text-center mb-4 tracking-tight">
           Select an Option
         </h2>
 
-        <div className="text-xs font-semibold text-neutral-400 mb-3 px-1">
+        <div className="text-xs font-semibold text-neutral-600 mb-3 px-1">
           Batches
         </div>
 
@@ -66,8 +66,8 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
                 }}
                 className={`w-full p-3.5 rounded-xl flex items-center justify-between transition-all text-left ${
                   isSelected
-                    ? 'bg-[#292348] border border-[#7C63FF]/50 text-white'
-                    : 'bg-[#12131e] border border-[#202233] hover:border-[#353852] text-neutral-200'
+                    ? 'bg-[#292348] border border-[#7C63FF]/50 text-[#17181C]'
+                    : 'bg-[#12131e] border border-[#202233] hover:border-[#353852] text-neutral-800'
                 }`}
               >
                 <span className="text-sm font-semibold tracking-tight">

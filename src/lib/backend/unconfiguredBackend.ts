@@ -132,6 +132,13 @@ export function createUnconfiguredBackend(configError: string | null): Backend {
       throw new Error(explain);
     },
 
+    async getDppRecord() {
+      throw new Error(explain);
+    },
+    async saveDppRecord() {
+      throw new Error(explain);
+    },
+
     clearCache() {
       resetCache();
     },

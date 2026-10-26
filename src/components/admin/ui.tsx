@@ -53,7 +53,7 @@ interface NoteProps {
 export const Note: React.FC<NoteProps> = ({tone = 'info', children}) => (
   <p
     className={`text-[11px] leading-relaxed px-3 py-2.5 rounded-lg border ${
-      tone === 'warn' ? 'bg-[#1a1710] border-[#3d3419] text-neutral-300' : 'bg-[#0d0e16] border-[#232535] text-neutral-500'
+      tone === 'warn' ? 'bg-[#FBF1D7] border-[#F2DFA8] text-[#8A6D1A]' : 'bg-[#F4F5F7] border-[#E4E6EB] text-neutral-500'
     }`}
   >
     {children}

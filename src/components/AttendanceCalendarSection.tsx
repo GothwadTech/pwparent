@@ -1,259 +1,193 @@
 /**
- * Attendance calendar — split out of OfflineAttendanceDashboardView.
+ * Attendance section of the offline dashboard — matched to the reference look.
  *
- * The parent file was at 484 lines and about to cross the repo's 500-line
- * ceiling, so each of its three sections now lives on its own. The markup here
- * is unchanged: it is still the pixel-matched clone, only its data source is
- * real (`batches/{id}/attendance/{studentId}`) instead of a hardcoded sample
- * week.
+ * Layout, top to bottom: an emoji + title row with a streak pill on the right,
+ * a donut showing average attendance, the two all-time day counts, then the
+ * weekly strip (week pager, seven letter+date columns, legend).
  *
- * Week and selected-day state live HERE rather than in the parent because
- * nothing outside this section reads them.
+ * Everything is light and every figure is a prop. Nothing here is invented: if
+ * the batch has no marks yet the donut reads 0% and the counts read 0, which is
+ * honest, and the week strip still renders so the parent can see the shape.
  */
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Flame } from 'lucide-react';
-import type { StudentProfile } from '../types';
+import React from 'react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import type { BatchSummary } from '../hooks/useBatchView';
 import type { CalendarDay } from './OfflineAttendanceDashboardView';
+import {
+  ACCENT, CAL_TODAY_CHIP_BG, CAL_TODAY_CHIP_BORDER, CAL_TODAY_COL_BG,
+  CAL_TODAY_COL_BORDER, CARD_BORDER, LEGEND_ABSENT, LEGEND_NO_CLASS,
+  LEGEND_PRESENT, LEGEND_TODAY, PROGRESS_TRACK, STREAK_BG, STREAK_BORDER,
+  STREAK_TEXT, TEXT_PRIMARY, TEXT_SECONDARY,
+} from '../lib/uiTheme';
 
 interface AttendanceCalendarSectionProps {
-  student: StudentProfile;
-  /** Real day marks mapped to this component's cell shape. */
-  calendarDays: CalendarDay[];
-  weeks: { label: string; range: string }[];
+  summary: BatchSummary;
+  days: CalendarDay[];
+  weekLabel: string;
+  onPrevWeek?: () => void;
+  onNextWeek?: () => void;
+  canPrevWeek?: boolean;
+  canNextWeek?: boolean;
 }
 
-export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps> = ({
-  student,
-  calendarDays,
-  weeks,
-}) => {
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
-  // Default to the last marked day rather than a magic index: the sample data
-  // happened to have 7 entries, a real month has 28-31.
-  const [selectedDayNum, setSelectedDayNum] = useState<number>(
-    calendarDays[calendarDays.length - 1]?.dayNum ?? 1,
-  );
+const LEGEND = [
+  { color: LEGEND_TODAY, label: 'Today' },
+  { color: LEGEND_NO_CLASS, label: 'No Class' },
+  { color: LEGEND_PRESENT, label: 'Present' },
+  { color: LEGEND_ABSENT, label: 'Absent' },
+];
 
-  // An empty calendar is a real state now (nobody marked yet), so every lookup
-  // has to tolerate it instead of indexing into a 7-item sample.
-  const selectedDayInfo =
-    calendarDays.find((d) => d.dayNum === selectedDayNum) ??
-    calendarDays[calendarDays.length - 1] ??
-    null;
+/** A ring whose filled arc is `percent` of the circumference. */
+const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
+  const radius = 84;
+  const stroke = 22;
+  const circumference = 2 * Math.PI * radius;
+  const filled = (Math.min(100, Math.max(0, percent)) / 100) * circumference;
 
   return (
-      <section className="space-y-3">
-        {/* Header row with Attendance title & 2-day streak */}
+    <div className="relative w-[210px] h-[210px] mx-auto">
+      <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
+        <circle cx="100" cy="100" r={radius} fill="none" stroke={PROGRESS_TRACK} strokeWidth={stroke} opacity="0.55" />
+        <circle
+          cx="100" cy="100" r={radius} fill="none"
+          stroke={ACCENT} strokeWidth={stroke} strokeLinecap="butt"
+          strokeDasharray={`${filled} ${circumference - filled}`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[44px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+          {percent}%
+        </span>
+        <span className="text-[15px] font-semibold mt-2" style={{ color: TEXT_PRIMARY }}>
+          Average attendance
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps> = ({
+  summary, days, weekLabel, onPrevWeek, onNextWeek, canPrevWeek, canNextWeek,
+}) => {
+  const todayIndex = days.findIndex((d) => d.status !== 'no_class' && d.dayNum === new Date().getDate());
+
+  return (
+    <section className="px-4 pt-4 space-y-5">
+      {/* Title + streak pill */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <span className="text-[20px] leading-none">📅</span>
+          <h2 className="text-[19px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+            Attendance
+          </h2>
+        </div>
+        {summary.streakDays > 0 && (
+          <div
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-full border"
+            style={{ background: STREAK_BG, borderColor: STREAK_BORDER }}
+          >
+            <span className="text-[14px] leading-none">🔥</span>
+            <span className="text-[13px] font-bold" style={{ color: STREAK_TEXT }}>
+              {summary.streakDays} day streak
+            </span>
+          </div>
+        )}
+      </div>
+
+      <AttendanceDonut percent={summary.avgAttendance} />
+
+      {/* All-time day counts */}
+      <div className="grid grid-cols-2 items-center py-1">
+        <div className="text-center">
+          <div className="text-[26px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+            {summary.studyDays}
+          </div>
+          <div className="text-[15px] mt-2" style={{ color: TEXT_PRIMARY }}>Total Study Days</div>
+        </div>
+        <div className="text-center border-l" style={{ borderColor: CARD_BORDER }}>
+          <div className="text-[26px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+            {summary.presentDays}
+          </div>
+          <div className="text-[15px] mt-2" style={{ color: TEXT_PRIMARY }}>Total Present Days</div>
+        </div>
+      </div>
+
+      {/* Weekly report */}
+      <div className="space-y-3">
+        <h3 className="text-[15px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+          Weekly Report
+        </h3>
+
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">📅</span>
-            <h2 className="text-base font-bold text-white tracking-tight">
-              Attendance
-            </h2>
-          </div>
-
-          <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400">
-            <Flame size={14} className="fill-amber-400 text-amber-500 shrink-0" />
-            <span className="text-xs font-bold tracking-tight">2 day streak</span>
-          </div>
+          <button
+            type="button"
+            onClick={onPrevWeek}
+            disabled={!canPrevWeek}
+            aria-label="Previous week"
+            className="w-9 h-9 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
+            style={{ borderColor: CARD_BORDER }}
+          >
+            <ArrowLeft size={17} style={{ color: TEXT_PRIMARY }} />
+          </button>
+          <span className="text-[16px]" style={{ color: TEXT_SECONDARY }}>{weekLabel}</span>
+          <button
+            type="button"
+            onClick={onNextWeek}
+            disabled={!canNextWeek}
+            aria-label="Next week"
+            className="w-9 h-9 rounded-full bg-white border flex items-center justify-center disabled:opacity-40"
+            style={{ borderColor: CARD_BORDER }}
+          >
+            <ArrowRight size={17} style={{ color: canNextWeek ? TEXT_PRIMARY : '#C6C9CF' }} />
+          </button>
         </div>
 
-        {/* Main Attendance Card */}
-        <div className="bg-[#151624] border border-[#2b2d42] rounded-3xl p-5 shadow-lg space-y-5">
-          {/* Circular attendance percentage ring */}
-          <div className="flex flex-col items-center justify-center pt-2">
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 160 160">
-                {/* Background track */}
-                <circle
-                  cx="80"
-                  cy="80"
-                  r="62"
-                  stroke="#222436"
-                  strokeWidth="15"
-                  fill="transparent"
-                />
-                {/* Active purple ring: 79% */}
-                <circle
-                  cx="80"
-                  cy="80"
-                  r="62"
-                  stroke="#6254F6"
-                  strokeWidth="15"
-                  strokeDasharray={2 * Math.PI * 62}
-                  strokeDashoffset={2 * Math.PI * 62 * (1 - 0.79)}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-
-              {/* Text inside the ring */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-3xl font-extrabold text-white tracking-tight">
-                  79%
-                </span>
-                <span className="text-xs text-neutral-400 font-medium mt-0.5">
-                  Average attendance
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 2 Stats columns below the ring */}
-          <div className="grid grid-cols-2 gap-0 pt-2 border-t border-[#23253b] items-center text-center">
-            <div className="py-2 border-r border-[#23253b]">
-              <div className="text-2xl font-black text-white">100</div>
-              <div className="text-xs text-neutral-400 font-medium mt-0.5">
-                Total Study Days
-              </div>
-            </div>
-            <div className="py-2">
-              <div className="text-2xl font-black text-white">79</div>
-              <div className="text-xs text-neutral-400 font-medium mt-0.5">
-                Total Present Days
-              </div>
-            </div>
-          </div>
-
-          {/* Weekly Report Header & Calendar */}
-          <div className="pt-3 border-t border-[#23253b] space-y-3.5">
-            <div className="text-xs font-bold text-neutral-300">
-              Weekly Report
-            </div>
-
-            {/* Date Range Navigation: < 8 Jun - 14 Jun > */}
-            <div className="flex items-center justify-between px-2 text-neutral-300">
-              <button
-                type="button"
-                onClick={() => setSelectedWeekIndex(selectedWeekIndex === 0 ? 1 : 0)}
-                className="w-8 h-8 rounded-full border border-[#2e3047] flex items-center justify-center hover:bg-[#222438] active:scale-95 transition-all text-neutral-400"
-                title="Previous Week"
+        <div className="grid grid-cols-7 gap-1.5">
+          {days.map((d, i) => {
+            const isToday = i === todayIndex;
+            return (
+              <div
+                key={d.dateStr}
+                className="flex flex-col items-center py-2 rounded-lg border"
+                style={{
+                  background: isToday ? CAL_TODAY_COL_BG : 'transparent',
+                  borderColor: isToday ? CAL_TODAY_COL_BORDER : 'transparent',
+                }}
               >
-                <ChevronLeft size={16} />
-              </button>
-
-              <span className="text-xs font-bold tracking-wide text-neutral-200">
-                {weeks[selectedWeekIndex].label}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setSelectedWeekIndex(selectedWeekIndex === 1 ? 0 : 1)}
-                className="w-8 h-8 rounded-full border border-[#2e3047] flex items-center justify-center hover:bg-[#222438] active:scale-95 transition-all text-neutral-400"
-                title="Next Week"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
-            {/* 7 Days of the Week: M T W T F S S with dots & selected day capsule */}
-            <div className="flex items-center justify-between gap-1 pt-1">
-              {calendarDays.map((day) => {
-                const isSelected = selectedDayNum === day.dayNum;
-
-                // Status styling
-                let borderStyle = 'border-[#2d2f45] bg-[#1a1b2c]/60';
-                let dotColor = 'bg-neutral-500';
-                let numTextColor = 'text-neutral-300';
-
-                if (day.status === 'absent') {
-                  borderStyle = 'border-red-500/40 bg-red-500/10';
-                  dotColor = 'bg-red-400';
-                  numTextColor = 'text-red-400';
-                } else if (day.status === 'present') {
-                  borderStyle = 'border-emerald-500/40 bg-emerald-500/10';
-                  dotColor = 'bg-emerald-400';
-                  numTextColor = 'text-emerald-300';
-                }
-
-                if (isSelected) {
-                  // Pill capsule container covering both number and day label
-                  return (
-                    <button
-                      key={day.dayNum}
-                      type="button"
-                      onClick={() => setSelectedDayNum(day.dayNum)}
-                      className="flex flex-col items-center justify-between py-2 px-2.5 rounded-full border-2 border-indigo-400 bg-indigo-950/40 shadow-md shadow-indigo-950/50 min-w-[40px] transition-transform scale-105"
-                      title={day.dateStr}
-                    >
-                      <span className="text-xs font-black text-white">{day.dayNum}</span>
-                      <div className={`w-1.5 h-1.5 rounded-full my-1 ${dotColor}`} />
-                      <span className="text-[11px] font-bold text-indigo-200">{day.dayLabel}</span>
-                    </button>
-                  );
-                }
-
-                return (
-                  <button
-                    key={day.dayNum}
-                    type="button"
-                    onClick={() => setSelectedDayNum(day.dayNum)}
-                    className="flex flex-col items-center group cursor-pointer focus:outline-none"
-                    title={day.dateStr}
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-xl border flex flex-col items-center justify-center transition-all group-hover:border-neutral-400 ${borderStyle}`}
-                    >
-                      <span className={`text-xs font-bold ${numTextColor}`}>
-                        {day.dayNum}
-                      </span>
-                      <div className={`w-1 h-1 rounded-full mt-0.5 ${dotColor}`} />
-                    </div>
-                    <span className="text-[11px] font-medium text-neutral-400 mt-1.5">
-                      {day.dayLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Attendance Legend: No Class | Present | Absent */}
-            <div className="flex items-center justify-center space-x-5 pt-2 text-[11px] text-neutral-400">
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-2 rounded-full bg-neutral-500" />
-                <span>No Class</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span>Present</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span>Absent</span>
-              </div>
-            </div>
-
-            {/* Selected Day Status Details Banner */}
-            {selectedDayInfo ? (
-              <div className="p-3 rounded-xl bg-[#1c1d2e] border border-[#2d2f48] text-xs flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-white block mb-0.5">{selectedDayInfo.dateStr}</span>
-                  <span className="text-neutral-400 text-[11px]">{selectedDayInfo.details}</span>
-                </div>
-                <span
-                  className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                    selectedDayInfo.status === 'present'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : selectedDayInfo.status === 'absent'
-                      ? 'bg-red-500/20 text-red-300 border border-red-500/40'
-                      : 'bg-neutral-700/40 text-neutral-300'
-                  }`}
+                <span className="text-[15px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                  {d.dayLabel}
+                </span>
+                <div
+                  className="mt-2 w-11 h-11 rounded-lg border flex flex-col items-center justify-center"
+                  style={{
+                    background: isToday ? CAL_TODAY_CHIP_BG : '#FFFFFF',
+                    borderColor: isToday ? CAL_TODAY_CHIP_BORDER : CARD_BORDER,
+                  }}
                 >
-                  {selectedDayInfo.status.toUpperCase()}
-                </span>
+                  <span className="text-[14px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                    {d.dayNum}
+                  </span>
+                  {d.status === 'present' && (
+                    <span className="w-1.5 h-1.5 rounded-full mt-0.5" style={{ background: LEGEND_PRESENT }} />
+                  )}
+                  {d.status === 'absent' && (
+                    <span className="w-1.5 h-1.5 rounded-full mt-0.5" style={{ background: LEGEND_ABSENT }} />
+                  )}
+                </div>
               </div>
-            ) : (
-              /* An empty calendar is a real state now, not a bug: nobody has
-                 marked this student yet. Say so instead of crashing on a
-                 missing day — the old `|| calendarDays[4]` fallback only ever
-                 worked because the sample week was hardcoded to 7 entries. */
-              <div className="p-3 rounded-xl bg-[#1c1d2e] border border-[#2d2f48] text-xs text-neutral-400">
-                No attendance marked for this period yet.
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
-      </section>
+
+        <div className="flex items-center justify-start space-x-5 pt-1">
+          {LEGEND.map((l) => (
+            <div key={l.label} className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
+              <span className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{l.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };

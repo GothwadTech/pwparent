@@ -25,18 +25,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLogout,
 }) => {
   return (
-    <div className="relative w-full h-full min-h-full bg-[#0d0e15] text-white flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top App Bar matching Screenshot_20260918_180819.jpg */}
-      <div className="w-full px-4 pt-4 pb-3 flex items-center bg-[#0d0e15] border-b border-[#1c1d29]/40 z-20">
+      <div className="w-full px-4 pt-4 pb-3 flex items-center bg-[#F4F5F7] border-b border-[#E4E6EB]/40 z-20">
         <button
           type="button"
           onClick={onBack}
-          className="p-1 -ml-1 text-white hover:text-neutral-300 transition-colors flex items-center justify-center"
+          className="p-1 -ml-1 text-[#17181C] hover:text-neutral-700 transition-colors flex items-center justify-center"
           aria-label="Back"
         >
           <ChevronLeft size={26} strokeWidth={2.2} />
         </button>
-        <h1 className="ml-2 text-lg font-bold text-white tracking-tight">
+        <h1 className="ml-2 text-lg font-bold text-[#17181C] tracking-tight">
           Profile
         </h1>
       </div>
@@ -44,8 +44,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Student Profile Section with subtle purple gradient */}
-        <div className="px-5 pt-5 pb-6 bg-gradient-to-b from-[#1c1a32]/80 to-[#10111a] border-b border-[#1e2030]">
-          <h2 className="text-[14px] font-semibold text-neutral-200 mb-4">
+        <div className="px-5 pt-5 pb-6 bg-gradient-to-b from-[#1c1a32]/80 to-[#10111a] border-b border-[#E4E6EB]">
+          <h2 className="text-[14px] font-semibold text-neutral-800 mb-4">
             {students.length === 1 ? 'Student' : 'Student Profile'}
           </h2>
 
@@ -70,8 +70,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     <div
                       className={`w-15 h-15 rounded-full p-0.5 flex items-center justify-center transition-all ${
                         isSelected
-                          ? 'ring-2 ring-[#7C63FF] bg-[#1a1b29]'
-                          : 'bg-[#151622]'
+                          ? 'ring-2 ring-[#7C63FF] bg-white'
+                          : 'bg-white'
                       }`}
                     >
                       <StudentAvatar type="boy" size={54} />
@@ -87,7 +87,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
                   <span
                     className={`mt-2 text-xs font-medium truncate max-w-[68px] ${
-                      isSelected ? 'text-white' : 'text-neutral-400'
+                      isSelected ? 'text-[#17181C]' : 'text-neutral-600'
                     }`}
                   >
                     {student.name}
@@ -100,14 +100,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
 
         {/* Menu Items List */}
-        <div className="divide-y divide-[#181a27] bg-[#0d0e15]">
+        <div className="divide-y divide-[#181a27] bg-[#F4F5F7]">
           {/* Ayush's Purchases */}
           <button
             type="button"
             onClick={onOpenPurchases}
-            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-[#141522] transition-colors text-left"
+            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
           >
-            <span className="text-[15px] font-semibold text-white">
+            <span className="text-[15px] font-semibold text-[#17181C]">
               {activeStudent.name}&apos;s Purchases
             </span>
             <ChevronRight size={19} className="text-neutral-500" />
@@ -117,9 +117,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <button
             type="button"
             onClick={onOpenParentProfile}
-            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-[#141522] transition-colors text-left"
+            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
           >
-            <span className="text-[15px] font-semibold text-white">
+            <span className="text-[15px] font-semibold text-[#17181C]">
               Parent Profile
             </span>
             <ChevronRight size={19} className="text-neutral-500" />
@@ -129,9 +129,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <button
             type="button"
             onClick={onOpenTerms}
-            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-[#141522] transition-colors text-left"
+            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
           >
-            <span className="text-[15px] font-semibold text-white">
+            <span className="text-[15px] font-semibold text-[#17181C]">
               Terms and Conditions
             </span>
             <ChevronRight size={19} className="text-neutral-500" />
@@ -141,12 +141,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-[#141522] transition-colors text-left"
+            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
           >
-            <span className="text-[15px] font-semibold text-white">
+            <span className="text-[15px] font-semibold text-[#17181C]">
               Logout
             </span>
-            <LogOut size={19} className="text-neutral-400" />
+            <LogOut size={19} className="text-neutral-600" />
           </button>
         </div>
       </div>

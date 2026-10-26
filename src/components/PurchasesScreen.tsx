@@ -179,7 +179,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack, items 
                   Successful
                 </span>
               </div>
-              <div className="text-[11px] text-neutral-400 mb-3 pl-7 -mt-2">
+              <div className="text-[11px] text-neutral-600 mb-3 pl-7 -mt-2">
                 {item.date}
               </div>
 
@@ -195,7 +195,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack, items 
                   <div className="text-[9px] font-bold leading-tight line-clamp-2">
                     {item.title}
                   </div>
-                  <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-white/20 rounded-full blur-xs" />
+                  <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-black/[0.08] rounded-full blur-xs" />
                 </div>
 
                 {/* Course Details */}
@@ -217,7 +217,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack, items 
                 </div>
 
                 {/* Arrow */}
-                <ChevronRight size={18} className="text-neutral-400 shrink-0" />
+                <ChevronRight size={18} className="text-neutral-600 shrink-0" />
               </div>
             </div>
           ))

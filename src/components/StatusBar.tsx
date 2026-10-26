@@ -15,13 +15,13 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   return (
     <div
       className={`w-full px-5 pt-3 pb-1 flex items-center justify-between text-xs tracking-tight select-none z-30 transition-colors ${
-        isTealBg ? 'text-white/95' : 'text-neutral-200'
+        isTealBg ? 'text-[#17181C]' : 'text-neutral-800'
       }`}
     >
       {/* Left: Time and Notification badge */}
       <div className="flex items-center space-x-1.5 font-medium">
         <span className="font-semibold tracking-normal text-[13px]">{time}</span>
-        <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] font-bold flex items-center justify-center text-white">
+        <span className="w-4 h-4 rounded-full bg-black/[0.08] text-[10px] font-bold flex items-center justify-center text-[#17181C]">
           1
         </span>
       </div>
