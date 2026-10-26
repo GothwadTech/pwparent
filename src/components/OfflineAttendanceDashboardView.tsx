@@ -98,7 +98,7 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
   const clamped = Math.min(weekIndex, Math.max(0, weeks.length - 1));
   const currentWeek = weeks[clamped] ?? [];
 
-  const band = <div className="h-2 w-full" style={{ background: SECTION_BAND }} />;
+  const band = <div className="h-3 w-full" style={{ background: SECTION_BAND }} />;
 
   return (
     <div className="flex-1 w-full pb-4 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
