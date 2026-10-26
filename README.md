@@ -293,6 +293,13 @@ Admin me login codes ek alag tab nahi hain: wo us bachche ke details me hain aur
 **sirf usi bachche ke numbers** dikhate hain. Pehle global list dikhti thi,
 isliye ek bachche ka code doosre ke screen pe bhi dikh jaata tha.
 
+Ye narrowing **har parent screen** pe hoti hai, sirf login pe nahi. Binding se
+sahi bachcha select ho jaata tha, par Profile section pura sibling list render
+kar raha tha — isliye doosre bachche ki profile wahan bhi dikh jaati thi. Ab
+`src/lib/studentScope.ts` ka `visibleStudentsFor()` har screen ko **exactly ek**
+bachcha deta hai (bound → pehle se khula → pehla). Kuch delete nahi hota: admin
+panel `listAllStudents()` se sabko dekhta rehta hai.
+
 **Splash screen bhi nahi hai** — pehla paint hi usable screen hota hai
 (pehli baar onboarding, uske baad seedha login). `src/lib/firstVisit.ts`.
 

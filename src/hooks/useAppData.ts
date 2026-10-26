@@ -14,7 +14,7 @@
  * moving between screens costs zero additional Firestore reads. Nothing here
  * has to remember that.
  */
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {AnnouncementItem, ParentProfileData, PurchaseItem, ScreenId, StudentProfile} from '../types';
 import {
   activeBackendMode,
@@ -27,6 +27,7 @@ import {
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
 import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
+import {visibleStudentsFor} from '../lib/studentScope';
 import {currentAdmin, type AdminIdentity} from '../lib/adminAuth';
 
 /** Where "back" from the Admin Panel should land. */
@@ -91,6 +92,15 @@ export function useAppData(): AppData {
 
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [activeStudent, setActiveStudent] = useState<StudentProfile | null>(null);
+  /**
+   * The child THIS LOGIN NUMBER is bound to.
+   *
+   * Held in state, not just passed through hydration, because every screen has
+   * to agree on it — not only the first one rendered after login. Anonymous auth
+   * hands the same uid to every number used in one browser, so `students` can
+   * legitimately hold siblings; this is what says which one of them you are.
+   */
+  const [boundStudentId, setBoundStudentId] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [purchases, setPurchases] = useState<PurchaseItem[]>([]);
   const [parentProfile, setParentProfile] = useState<ParentProfileData>(emptyProfile());
@@ -109,7 +119,7 @@ export function useAppData(): AppData {
   /**
    * Pull every collection for one uid. One network round trip, all cached.
    *
-   * `boundStudentId` is the child this LOGIN NUMBER is bound to. It decides
+   * `sessionStudentId` is the child this LOGIN NUMBER is bound to. It decides
    * which dashboard opens, because the rule is one number -> one student and
    * there is no picker screen to fall back on. Anonymous auth cannot supply it:
    * `ensureSession()` hands the same uid to every number used in one browser, so
@@ -119,7 +129,7 @@ export function useAppData(): AppData {
   const hydrate = useCallback(async (
     instance: Backend,
     targetUid: string | null | undefined,
-    boundStudentId?: string | null,
+    sessionStudentId?: string | null,
   ) => {
     const key = targetUid ?? '';
     sessionRef.current = key;
@@ -144,7 +154,7 @@ export function useAppData(): AppData {
       // of last resort, not a choice being made for the user.
       setActiveStudent(
         (prev) =>
-          (boundStudentId ? kids.find((s) => s.id === boundStudentId) : undefined) ??
+          (sessionStudentId ? kids.find((s) => s.id === sessionStudentId) : undefined) ??
           kids.find((s) => s.id === prev?.id) ??
           kids[0] ??
           null,
@@ -170,6 +180,7 @@ export function useAppData(): AppData {
       if (restored) {
         setUid(restored.uid);
         setPhoneNumber(restored.phone);
+        setBoundStudentId(restored.studentId ?? null);
         await hydrate(instance, restored.uid, restored.studentId ?? null);
         // Straight to the child. No picker: one number is one student.
         if (!cancelled) setScreen('dashboard');
@@ -237,6 +248,7 @@ export function useAppData(): AppData {
       if (!result.ok) throw new Error(result.error ?? 'Verification failed.');
 
       setUid(result.uid ?? null);
+      setBoundStudentId(result.studentId ?? null);
       await hydrate(backend, result.uid, result.studentId ?? null);
       // The number decided the child, so there is nothing left to pick.
       setScreen('dashboard');
@@ -254,6 +266,7 @@ export function useAppData(): AppData {
     sessionRef.current = null;
     setUid(null);
     setAdmin(null);
+    setBoundStudentId(null);
     setScreen('login');
   }, [backend]);
 
@@ -263,6 +276,9 @@ export function useAppData(): AppData {
     sessionRef.current = null;
     setPhoneNumber('');
     setOtpResult(null);
+    // A different number means a different child — never carry the old binding
+    // into the next session, or the previous family's profile would show up.
+    setBoundStudentId(null);
     backend?.clearCache();
     setScreen('login');
   }, [backend]);
@@ -270,6 +286,7 @@ export function useAppData(): AppData {
   const handleDeleteParentProfile = useCallback(() => {
     setStudents([]);
     setActiveStudent(null);
+    setBoundStudentId(null);
     setUid(null);
     void backend?.signOut().catch(() => undefined);
     setScreen('login');
@@ -284,6 +301,21 @@ export function useAppData(): AppData {
     markOnboarded();
     setScreen('login');
   }, []);
+
+  /**
+   * What the PARENT app is allowed to see: exactly one child.
+   *
+   * `students` may hold siblings, because anonymous auth gives the same uid to
+   * every number used in one browser and children live under that uid. Handing
+   * the whole list to the UI is what made another family's child appear in this
+   * parent's Profile section. The rule lives in `src/lib/studentScope.ts` so it
+   * is one named, unit-tested decision rather than something every screen has to
+   * remember to do.
+   */
+  const visibleStudents = useMemo<StudentProfile[]>(
+    () => visibleStudentsFor(students, boundStudentId, activeStudent),
+    [students, boundStudentId, activeStudent],
+  );
 
   // ── mutations ──────────────────────────────────────────────────────────────
 
@@ -349,11 +381,12 @@ export function useAppData(): AppData {
     admin,
     configError: backendConfigError,
     refreshAdmin,
-    students,
-    // ChildDashboardScreen expects a non-null student; it is only rendered
-    // The bound child is already selected during hydration; this only keeps a
-    // later refresh from clearing it.
-    activeStudent: (activeStudent ?? students[0] ?? null) as StudentProfile,
+    // One child only — see `visibleStudents`.
+    students: visibleStudents,
+    // ChildDashboardScreen expects a non-null student, and is only rendered when
+    // there is one. The bound child was already picked during hydration; this
+    // fallback just keeps a later refresh from clearing it.
+    activeStudent: (activeStudent ?? visibleStudents[0] ?? null) as StudentProfile,
     announcements,
     purchases,
     parentProfile,

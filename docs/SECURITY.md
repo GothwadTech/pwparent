@@ -95,6 +95,16 @@ showing all of them behind a picker.
 `restoreSession` re-reads it, and `useAppData.hydrate` selects that child before
 any screen renders. The number decides; the browser does not.
 
+**Binding alone was not enough.** Selecting the right child at login still left
+the full sibling list in app state, and the Profile section rendered that list —
+so another child's profile was visible even after the binding landed. Every
+parent-facing screen now receives a list narrowed to exactly one child by
+`visibleStudentsFor()` in `src/lib/studentScope.ts`: the bound child, else the
+one already open, else the first. It is a pure function with its own unit tests,
+so the rule is one named decision instead of something each component must
+remember to do. Nothing is deleted — the admin panel still reaches every child
+through `listAllStudents()`.
+
 Re-pointing a number that is already bound to a different child is **refused**
 unless the caller passes `rebind: true` explicitly. Silent re-binding is exactly
 how one child's code ends up opening another child's record, so it has to be a
