@@ -32,6 +32,8 @@ import {
 } from '../credentials';
 import type {StoredCredential} from '../credentials';
 import {cachedRead, cachedWrite, DEFAULT_TTL_MS, invalidate, resetCache} from './readCache';
+import {getDppRecordImpl, saveDppRecordImpl} from './dppOps';
+import type {DppRecord} from './types';
 import {createFirebaseBatchOps} from './firebaseBatches';
 
 /** Login codes are cached only long enough to cover one login attempt. */
@@ -363,6 +365,14 @@ export function createFirebaseBackend(): Backend {
       await cachedWrite(keys.purchases(id), () =>
         writeDoc(paths.purchase(id, item.id), rest as unknown as Record<string, unknown>),
       );
+    },
+
+    async getDppRecord(batchId: string, studentId: string) {
+      return getDppRecordImpl(batchId, studentId);
+    },
+
+    async saveDppRecord(batchId: string, studentId: string, record: DppRecord) {
+      await saveDppRecordImpl(batchId, studentId, record);
     },
 
     clearCache() {

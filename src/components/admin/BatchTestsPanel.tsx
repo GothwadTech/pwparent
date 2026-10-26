@@ -30,6 +30,7 @@ function blankTest(existing: BatchTest[]): BatchTest {
     title: '',
     date: new Date().toISOString().slice(0, 10),
     mode: 'Online',
+    paperType: 'Objective',
     marksTotal: 300,
     status: 'scheduled',
     syllabus: [],
@@ -60,7 +61,7 @@ const SyllabusEditor: React.FC<{
       {syllabus.length === 0 && <Note>No syllabus yet — optional, but students see it on the test card.</Note>}
 
       {syllabus.map((topic, index) => (
-        <div key={index} className="bg-[#0d0e16] border border-[#232535] rounded-lg p-2.5 space-y-2">
+        <div key={index} className="bg-[#F4F5F7] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <input
               className={inputCls}
@@ -221,7 +222,7 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
       )}
 
       {draft && (
-        <div className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Title" htmlFor="test-title" className="col-span-2">
               <input
@@ -261,6 +262,17 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
                 <option value="Offline">Offline</option>
               </select>
             </Field>
+            <Field label="Paper" htmlFor="test-paper">
+              <select
+                id="test-paper"
+                className={inputCls}
+                value={draft.paperType ?? 'Objective'}
+                onChange={(e) => setDraft({...draft, paperType: e.target.value as BatchTest['paperType']})}
+              >
+                <option value="Objective">Objective</option>
+                <option value="Subjective">Subjective</option>
+              </select>
+            </Field>
             <Field label="Status" htmlFor="test-status">
               <select
                 id="test-status"
@@ -290,10 +302,10 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
       {tests.map((test) => {
         const weight = syllabusWeightTotal(test.syllabus);
         return (
-          <div key={test.id} className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5">
+          <div key={test.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5">
             <button type="button" className="w-full flex items-center gap-3 text-left" onClick={() => setOpenedId(test.id)}>
-              <div className="w-9 h-9 rounded-lg bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center shrink-0">
-                <ClipboardList size={15} className="text-[#8E75FF]" />
+              <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
+                <ClipboardList size={15} className="text-[#5747D6]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{test.title}</p>
@@ -304,13 +316,13 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
               <ChevronRight size={15} className="text-neutral-500 shrink-0" />
             </button>
 
-            <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[#1e202e]">
+            <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[#E4E6EB]">
               <p className="text-[11px] text-neutral-500">
                 {(test.syllabus?.length ?? 0) > 0
                   ? `${test.syllabus.length} topic${test.syllabus.length === 1 ? '' : 's'}${weight ? ` · ${weight}%` : ''}`
                   : 'No syllabus'}
                 {' · '}
-                <span className="text-neutral-300 font-semibold">{resultCounts[test.id] ?? 0}</span> results entered
+                <span className="text-neutral-700 font-semibold">{resultCounts[test.id] ?? 0}</span> results entered
               </p>
               <div className="flex gap-2 shrink-0">
                 <button type="button" className={btnGhost} onClick={() => setDraft(test)}>

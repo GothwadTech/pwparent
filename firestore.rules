@@ -199,6 +199,14 @@ service cloud.firestore {
       // One document per student holding every month. The id IS the student id,
       // which is what makes `isParentOfStudent` expressible without parsing a
       // composite key.
+      // DPP record for one student. Same isolation as attendance: a parent
+      // reads only their own child's; the administrator reads and writes all.
+      match /dpp/{studentId} {
+        allow get: if isAdmin() || isParentOfStudent(batchId, studentId);
+        allow list: if isAdmin();
+        allow create, update, delete: if isAdmin();
+      }
+
       match /attendance/{studentId} {
         allow get: if isAdmin() || isParentOfStudent(batchId, studentId);
         // The whole-batch month grid is an admin view. A parent listing it

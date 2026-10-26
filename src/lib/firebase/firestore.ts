@@ -63,6 +63,8 @@ export const paths = {
   /** One doc per phone number: the hashed 6-digit login code. */
   credentials: () => 'credentials',
   credential: (phone: string) => `credentials/${phone}`,
+  /** One DPP record per student per batch: month-wise assigned/attempted. */
+  dpp: (batchId: string, studentId: string) => `batches/${batchId}/dpp/${studentId}`,
 
   /* ── batch-centric model (admin-owned, parents read their own) ────────── */
   batches: () => 'batches',

@@ -28,7 +28,7 @@ export const AnnouncementsScreen: React.FC<AnnouncementsScreenProps> = () => {
   ];
 
   return (
-    <div className="flex-1 bg-[#0a0b10] text-white flex flex-col overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 bg-[#F4F5F7] text-[#17181C] flex flex-col overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
       <div className="divide-y divide-[#1e202f]">
         {announcements.map((item) => (
           <article
@@ -39,14 +39,14 @@ export const AnnouncementsScreen: React.FC<AnnouncementsScreenProps> = () => {
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center space-x-3">
                 {/* PW circular badge */}
-                <div className="w-9 h-9 rounded-full bg-black border border-neutral-700 flex items-center justify-center text-white font-black text-xs shadow-xs">
+                <div className="w-9 h-9 rounded-full bg-black border border-[#E4E6EB] flex items-center justify-center text-[#17181C] font-black text-xs shadow-xs">
                   PW
                 </div>
                 <div>
-                  <h3 className="text-[14px] font-bold text-white tracking-tight">
+                  <h3 className="text-[14px] font-bold text-[#17181C] tracking-tight">
                     {item.author}
                   </h3>
-                  <div className="text-[11px] text-neutral-400">
+                  <div className="text-[11px] text-neutral-600">
                     {item.timeAgo}
                   </div>
                 </div>

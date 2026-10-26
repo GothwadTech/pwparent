@@ -41,20 +41,20 @@ const Shell: React.FC<{title: string; subtitle: string; icon: React.ReactNode; o
   onBack,
   children,
 }) => (
-  <div className="w-full h-full bg-[#0a0b10] text-white flex flex-col select-none">
-    <header className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-[#1c1d29]">
-      <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-white/5">
+  <div className="w-full h-full bg-[#F4F5F7] text-[#17181C] flex flex-col select-none">
+    <header className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-[#E4E6EB]">
+      <button type="button" onClick={onBack} aria-label="Back" className="p-1.5 rounded-lg hover:bg-black/[0.03]">
         <ArrowLeft size={18} />
       </button>
       <h1 className="text-base font-bold">Admin</h1>
     </header>
     <div className="flex-1 overflow-y-auto px-5 py-8">
       <div className="mx-auto w-full max-w-sm flex flex-col">
-        <div className="w-14 h-14 rounded-2xl bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center mb-4 mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center mb-4 mx-auto">
           {icon}
         </div>
         <h2 className="text-lg font-bold text-center">{title}</h2>
-        <p className="mt-2 text-xs text-neutral-400 leading-relaxed text-center">{subtitle}</p>
+        <p className="mt-2 text-xs text-neutral-600 leading-relaxed text-center">{subtitle}</p>
         <div className="mt-6">{children}</div>
       </div>
     </div>
@@ -108,7 +108,7 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       <Shell
         title="Restricted area"
         subtitle="Mock mode has no Firebase Auth, so this build uses the local passcode gate."
-        icon={<KeyRound size={22} className="text-[#8E75FF]" />}
+        icon={<KeyRound size={22} className="text-[#5747D6]" />}
         onBack={onBack}
       >
         <form onSubmit={submitPasscode} className="space-y-3">
@@ -128,9 +128,9 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
             Unlock
           </button>
           <Note tone="warn">
-            Default <code className="text-neutral-300">{ADMIN_PASSCODE}</code>, changeable with{' '}
-            <code className="text-neutral-300">VITE_ADMIN_PASSCODE</code>. This is a client-side gate, not real
-            security — set <code className="text-neutral-300">VITE_BACKEND_MODE=firebase</code> for username +
+            Default <code className="text-neutral-700">{ADMIN_PASSCODE}</code>, changeable with{' '}
+            <code className="text-neutral-700">VITE_ADMIN_PASSCODE</code>. This is a client-side gate, not real
+            security — set <code className="text-neutral-700">VITE_BACKEND_MODE=firebase</code> for username +
             password auth.
           </Note>
         </form>
@@ -143,11 +143,11 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       <Shell
         title="Checking admin status…"
         subtitle="Reading Firestore to see whether an administrator already exists."
-        icon={<KeyRound size={22} className="text-[#8E75FF] animate-pulse" />}
+        icon={<KeyRound size={22} className="text-[#5747D6] animate-pulse" />}
         onBack={onBack}
       >
-        <div className="h-1 w-full rounded-full bg-[#1a1b2a] overflow-hidden">
-          <div className="h-full w-1/3 bg-[#8E75FF] animate-pulse" />
+        <div className="h-1 w-full rounded-full bg-white overflow-hidden">
+          <div className="h-full w-1/3 bg-[#5747D6] animate-pulse" />
         </div>
       </Shell>
     );
@@ -195,9 +195,9 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       }
       icon={
         registering ? (
-          <UserPlus size={22} className="text-[#8E75FF]" />
+          <UserPlus size={22} className="text-[#5747D6]" />
         ) : (
-          <KeyRound size={22} className="text-[#8E75FF]" />
+          <KeyRound size={22} className="text-[#5747D6]" />
         )
       }
       onBack={onBack}
@@ -254,12 +254,12 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
         {registering ? (
           <Note tone="warn">
             <ShieldAlert size={12} className="inline mr-1 -mt-0.5 text-[#facc15]" />
-            <strong className="text-neutral-200">Whoever registers first wins, permanently.</strong> Do this
+            <strong className="text-neutral-800">Whoever registers first wins, permanently.</strong> Do this
             immediately after your first deploy. Resetting later means deleting the user in Firebase console →
             Authentication → Users, and the <code>adminConfig/singleton</code> document in Firestore.
             <br />
             <br />
-            Requires <strong className="text-neutral-200">Email/Password</strong> enabled in Authentication →
+            Requires <strong className="text-neutral-800">Email/Password</strong> enabled in Authentication →
             Sign-in method.
           </Note>
         ) : (

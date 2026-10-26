@@ -44,27 +44,27 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-[#12131d] border border-[#2b2e40] rounded-2xl max-w-sm w-full p-5 text-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white border border-[#2b2e40] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-[#202230]">
           <div className="flex items-center space-x-2">
-            <Image size={18} className="text-[#8E75FF]" />
-            <h3 className="font-bold text-base text-white">Custom App Logo</h3>
+            <Image size={18} className="text-[#5747D6]" />
+            <h3 className="font-bold text-base text-[#17181C]">Custom App Logo</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.05] transition-colors"
           >
             <X size={18} />
           </button>
         </div>
 
-        <p className="mt-3 text-xs text-neutral-300 leading-relaxed">
+        <p className="mt-3 text-xs text-neutral-700 leading-relaxed">
           Upload your custom logo anytime. It will instantly appear on the app header and navigation bars.
         </p>
 
         {/* Live Preview */}
-        <div className="mt-4 p-4 rounded-xl bg-[#090a10] border border-[#222436] flex flex-col items-center justify-center">
+        <div className="mt-4 p-4 rounded-xl bg-[#F4F5F7] border border-[#E4E6EB] flex flex-col items-center justify-center">
           <span className="text-[11px] text-neutral-500 mb-2 font-medium">PREVIEW ON SPLASH BG</span>
           <div className="w-18 h-18 rounded-full bg-[#005677] flex items-center justify-center p-2 shadow-inner">
             <PWLogo size={52} customLogoUrl={urlInput || '/assets/ic_launcher_round.webp'} />
@@ -73,15 +73,15 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
         {/* Quick select provided icons */}
         <div className="mt-3">
-          <span className="text-[11px] text-neutral-400 font-medium block mb-1.5">Select App Icon:</span>
+          <span className="text-[11px] text-neutral-600 font-medium block mb-1.5">Select App Icon:</span>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setUrlInput('/assets/ic_launcher_round.webp')}
               className={`p-2 rounded-xl border flex items-center space-x-2 text-left transition-colors ${
                 urlInput === '/assets/ic_launcher_round.webp' || !urlInput
-                  ? 'border-[#8E75FF] bg-[#8E75FF]/10 text-white'
-                  : 'border-[#222436] bg-[#12131d] text-neutral-400 hover:text-white'
+                  ? 'border-[#5747D6] bg-[#5747D6]/10 text-white'
+                  : 'border-[#E4E6EB] bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <img src="/assets/ic_launcher_round.webp" alt="Round" className="w-7 h-7 rounded-full object-contain" />
@@ -96,8 +96,8 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
               onClick={() => setUrlInput('/assets/ic_launcher.webp')}
               className={`p-2 rounded-xl border flex items-center space-x-2 text-left transition-colors ${
                 urlInput === '/assets/ic_launcher.webp'
-                  ? 'border-[#8E75FF] bg-[#8E75FF]/10 text-white'
-                  : 'border-[#222436] bg-[#12131d] text-neutral-400 hover:text-white'
+                  ? 'border-[#5747D6] bg-[#5747D6]/10 text-white'
+                  : 'border-[#E4E6EB] bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <img src="/assets/ic_launcher.webp" alt="Square" className="w-7 h-7 rounded-md object-contain" />
@@ -111,8 +111,8 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
         {/* File Upload Button */}
         <div className="mt-4">
-          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#434863] hover:border-[#8E75FF] bg-[#161826] cursor-pointer text-xs font-semibold text-neutral-200 hover:text-white transition-all">
-            <Upload size={16} className="text-[#8E75FF]" />
+          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#434863] hover:border-[#5747D6] bg-white cursor-pointer text-xs font-semibold text-neutral-800 hover:text-neutral-900 transition-all">
+            <Upload size={16} className="text-[#5747D6]" />
             <span>Upload Image from Device</span>
             <input
               type="file"
@@ -125,7 +125,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
         {/* Or Paste URL */}
         <div className="mt-3">
-          <label className="block text-[11px] text-neutral-400 mb-1">
+          <label className="block text-[11px] text-neutral-600 mb-1">
             Or Paste Image URL:
           </label>
           <input
@@ -133,7 +133,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full bg-[#090a10] border border-[#2a2c3d] focus:border-[#8E75FF] rounded-xl px-3 py-2 text-xs text-white outline-none"
+            className="w-full bg-[#F4F5F7] border border-[#2a2c3d] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
           />
         </div>
 
@@ -142,7 +142,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            className="w-1/3 py-2.5 rounded-xl border border-[#2a2c3d] text-neutral-400 hover:text-white text-xs font-medium flex items-center justify-center space-x-1 transition-colors"
+            className="w-1/3 py-2.5 rounded-xl border border-[#2a2c3d] text-neutral-600 hover:text-neutral-900 text-xs font-medium flex items-center justify-center space-x-1 transition-colors"
           >
             <RotateCcw size={13} />
             <span>Default</span>

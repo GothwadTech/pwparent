@@ -43,7 +43,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       {/* App Header: PW Logo + Parent's App */}
       <AppHeader
         customLogoUrl={customLogoUrl}
@@ -68,7 +68,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
             {/* Content Text */}
             <div className="mt-8">
-              <h1 className="text-[26px] sm:text-[28px] font-bold text-white tracking-tight leading-snug">
+              <h1 className="text-[26px] sm:text-[28px] font-bold text-[#17181C] tracking-tight leading-snug">
                 {slides[slide].title}
               </h1>
               <p className="mt-3 text-[#9ca3af] text-[15px] leading-relaxed max-w-[340px]">

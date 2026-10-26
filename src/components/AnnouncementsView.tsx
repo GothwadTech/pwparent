@@ -56,10 +56,10 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-white tracking-tight">
+                <h3 className="text-sm font-bold text-[#17181C] tracking-tight">
                   {item.author}
                 </h3>
-                <p className="text-[11px] text-neutral-400">{item.timeAgo}</p>
+                <p className="text-[11px] text-neutral-600">{item.timeAgo}</p>
               </div>
             </div>
 
@@ -72,7 +72,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
 
           {/* Announcement content */}
           <div className="pl-12 space-y-1">
-            <p className="text-[13px] text-neutral-200 leading-relaxed font-medium">
+            <p className="text-[13px] text-neutral-800 leading-relaxed font-medium">
               {item.content}
             </p>
             <a

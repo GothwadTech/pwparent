@@ -43,6 +43,18 @@ export interface BatchSummary {
   bestScore: string;
   /** Overall attendance percentage across every month. Empty when unmarked. */
   attendancePercent: string;
+  /** Same percentage as a number (0-100), for the donut. 0 when unmarked. */
+  avgAttendance: number;
+  /** Days that had a class (P/A/L marks). Unmarked days are not counted. */
+  studyDays: number;
+  /** Of those, days marked Present or Late. */
+  presentDays: number;
+  /** Consecutive present days ending at the most recent marked day. */
+  streakDays: number;
+  /** Mean scorePercent across attempted tests, e.g. "52%". Empty when none. */
+  avgScorePercent: string;
+  /** Mean accuracy across attempted tests, e.g. "95.56%". Empty when none. */
+  avgAccuracyPercent: string;
 }
 
 export interface BatchView {
@@ -54,6 +66,8 @@ export interface BatchView {
   weeks: {label: string; range: string}[];
   allTests: AllTestsRow[];
   offlineTests: OfflineTestRow[];
+  /** The raw tests joined with this student's result, for the detail screen. */
+  tests: TestWithResult[];
   subjects: SubjectProgress[];
   summary: BatchSummary;
   /** Refresh after returning from the Admin Panel. */
@@ -90,7 +104,7 @@ const SUBJECT_COLORS = [
   'from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400',
 ];
 
-interface TestWithResult extends BatchTest {
+export interface TestWithResult extends BatchTest {
   result: TestResult | null;
 }
 
@@ -264,18 +278,38 @@ export function useBatchView(
         id: t.id,
         name: t.title,
         date: displayDate(t.date),
-        mode: t.mode === 'Offline' ? 'Center Offline' : 'Online',
+        mode: t.mode,
         marks:
           t.result && typeof t.result.marksObtained === 'number'
             ? `${t.result.marksObtained}/${t.marksTotal}`
-            : `--/${t.marksTotal}`,
-        // Rank needs the whole class's marks, which a parent may not read.
-        // Empty string hides the column rather than inventing a number.
-        rank: '',
-        status: t.result ? t.result.status : t.status === 'scheduled' ? 'UPCOMING' : 'NOT ENTERED',
+            : '',
+        scorePercent:
+          t.result && typeof t.result.scorePercent === 'number'
+            ? `${Number.isInteger(t.result.scorePercent) ? t.result.scorePercent : t.result.scorePercent.toFixed(0)}%`
+            : '',
+        // Rank is stored ON the result by the administrator. It cannot be derived
+        // here: ranking needs every student's marks and the rules let a parent
+        // read only their own child's result.
+        rank: t.result && typeof t.result.rank === 'number' ? String(t.result.rank) : '',
+        // No result row yet means the result is not announced — never MISSED,
+        // which is a statement the parent's device cannot make.
+        status: !t.result
+          ? 'RESULT_AWAITING'
+          : t.result.status === 'ATTEMPTED'
+            ? 'ATTEMPTED'
+            : 'MISSED',
+        paperType: t.paperType ?? 'Objective',
       })),
     [tests],
   );
+
+  /** "52%" from a list of percentages; empty when nothing was entered. */
+  const avgOf = (vals: (number | undefined)[]): string => {
+    const nums = vals.filter((v): v is number => typeof v === 'number');
+    if (nums.length === 0) return '';
+    const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+    return `${Number.isInteger(mean) ? mean : mean.toFixed(2)}%`;
+  };
 
   const summary = useMemo<BatchSummary>(() => {
     const entered = tests.filter((t) => t.result);
@@ -290,17 +324,33 @@ export function useBatchView(
     // compute an all-time percentage. The keys are meaningless here; only the
     // marks are read.
     const allMarks = Object.values(attendanceMonths).flatMap((m) => Object.values(m));
-    const percent = allMarks.length
-      ? Math.round(
-          (allMarks.filter((m) => m === 'P' || m === 'L').length / allMarks.length) * 100,
-        )
-      : 0;
+    const present = allMarks.filter((m) => m === 'P' || m === 'L').length;
+    const percent = allMarks.length ? Math.round((present / allMarks.length) * 100) : 0;
+
+    // Streak: walk the marked days newest-first and count how long the run of
+    // present/late days holds. Only real marks are read — an unmarked day ends
+    // the run rather than being assumed present.
+    const dayEntries = Object.entries(attendanceMonths).flatMap(([month, days]) =>
+      Object.entries(days).map(([day, mark]) => [`${month}-${day}`, mark] as const),
+    );
+    dayEntries.sort((a, b) => (a[0] < b[0] ? 1 : -1));
+    let streak = 0;
+    for (const [, mark] of dayEntries) {
+      if (mark === 'P' || mark === 'L') streak += 1;
+      else break;
+    }
 
     return {
       testsAttempted: attempted.length,
       testsTotal: tests.length,
       bestScore: bestTest && best > 0 ? `${best}/${bestTest.marksTotal}` : '',
       attendancePercent: allMarks.length > 0 ? `${percent}%` : '',
+      avgAttendance: percent,
+      studyDays: allMarks.length,
+      presentDays: present,
+      streakDays: streak,
+      avgScorePercent: avgOf(attempted.map((x) => x.result?.scorePercent)),
+      avgAccuracyPercent: avgOf(attempted.map((x) => x.result?.accuracyPercent)),
     };
   }, [tests, attendanceMonths]);
 
@@ -354,6 +404,7 @@ export function useBatchView(
     weeks,
     allTests,
     offlineTests,
+    tests,
     subjects,
     summary,
     reload,

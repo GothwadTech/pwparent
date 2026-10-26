@@ -56,7 +56,7 @@ const Action: React.FC<{icon: React.ReactNode; label: string; hint?: string; onC
     className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl border text-left transition-colors ${
       danger
         ? 'bg-[#2a1620] border-[#4d2436] hover:bg-[#3a1d2b] text-[#ff9bb3]'
-        : 'bg-[#11121c] border-[#262838] hover:bg-[#161824] text-white'
+        : 'bg-white border-[#E4E6EB] hover:bg-[#161824] text-[#17181C]'
     }`}
   >
     <span className={danger ? 'text-[#ff9bb3]' : 'text-[#8E75FF]'}>{icon}</span>
@@ -95,9 +95,9 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
         title="Settings"
         aria-label="Open settings"
         className="fixed bottom-3 right-3 z-40 inline-flex items-center gap-1.5 px-2.5 py-1
-                   rounded-full bg-black/55 border border-white/10 backdrop-blur-sm
-                   text-[10px] font-semibold tracking-wide text-neutral-400
-                   hover:text-white hover:border-[#8E75FF]/50 transition-colors select-none"
+                   rounded-full bg-black/55 border border-[#E4E6EB] backdrop-blur-sm
+                   text-[10px] font-semibold tracking-wide text-neutral-600
+                   hover:text-neutral-900 hover:border-[#5747D6]/50 transition-colors select-none"
       >
         <span className="w-1.5 h-1.5 rounded-full" style={{backgroundColor: dot}} />
         <Settings size={11} />
@@ -106,28 +106,28 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs">
-          <div className="w-full sm:max-w-sm max-h-[88dvh] overflow-y-auto bg-[#0d0e16] border border-[#232535] sm:rounded-2xl rounded-t-2xl p-5 text-white shadow-2xl">
+          <div className="w-full sm:max-w-sm max-h-[88dvh] overflow-y-auto bg-[#F4F5F7] border border-[#E4E6EB] sm:rounded-2xl rounded-t-2xl p-5 text-[#17181C] shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold">Settings</h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close settings"
-                className="p-1.5 rounded-lg hover:bg-white/5 text-neutral-400"
+                className="p-1.5 rounded-lg hover:bg-black/[0.03] text-neutral-600"
               >
                 <X size={16} />
               </button>
             </div>
 
             {configError && (
-              <p className="mb-4 text-[11px] leading-relaxed px-3 py-2.5 rounded-lg bg-[#2a1a10] border border-[#4d3419] text-neutral-300">
+              <p className="mb-4 text-[11px] leading-relaxed px-3 py-2.5 rounded-lg bg-[#2a1a10] border border-[#4d3419] text-neutral-700">
                 <AlertTriangle size={12} className="inline mr-1 -mt-0.5 text-[#facc15]" />
                 {configError}
               </p>
             )}
 
             <p className={labelCls}>Session</p>
-            <div className="space-y-1.5 mb-4 px-3.5 py-3 rounded-xl bg-[#11121c] border border-[#262838]">
+            <div className="space-y-1.5 mb-4 px-3.5 py-3 rounded-xl bg-white border border-[#E4E6EB]">
               <Row label="Backend" value={configError ? 'unconfigured' : mode} />
               <Row label="Number" value={phone ? `+91 ${phone}` : '—'} />
               <Row label="Admin" value={admin?.username ?? '—'} />
@@ -135,7 +135,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
             </div>
 
             <p className={labelCls}>Firestore reads</p>
-            <div className="space-y-1.5 mb-4 px-3.5 py-3 rounded-xl bg-[#11121c] border border-[#262838]">
+            <div className="space-y-1.5 mb-4 px-3.5 py-3 rounded-xl bg-white border border-[#E4E6EB]">
               <Row label="Network reads" value={stats.reads} />
               <Row label="Served from cache" value={stats.hits} />
               <Row label="Hit rate" value={stats.hitRate} />
@@ -145,7 +145,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                   backend?.clearCache();
                   setStats(cacheStats());
                 }}
-                className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-[#8E75FF] hover:underline"
+                className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-[#5747D6] hover:underline"
               >
                 <RefreshCw size={11} /> Clear cache
               </button>

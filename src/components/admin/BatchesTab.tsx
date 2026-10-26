@@ -38,7 +38,7 @@ const BatchForm: React.FC<{
   onCancel: () => void;
   busy: boolean;
 }> = ({batch, onChange, onSave, onCancel, busy}) => (
-  <div className="bg-[#11121c] border border-[#8E75FF]/40 rounded-xl p-3.5 space-y-2.5">
+  <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
     {/* Only two fields, on purpose. Course duplicated the name, start date
         drove nothing, and "visible to parents" was meaningless — allotment is
         already the only thing that makes a batch visible to a parent. */}
@@ -195,14 +195,14 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) =>
       )}
 
       {batches.map((batch) => (
-        <div key={batch.id} className="bg-[#11121c] border border-[#262838] rounded-xl p-3.5">
+        <div key={batch.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5">
           <button
             type="button"
             className="w-full flex items-center gap-3 text-left"
             onClick={() => setOpenedId(batch.id)}
           >
-            <div className="w-9 h-9 rounded-lg bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center shrink-0">
-              <Layers size={15} className="text-[#8E75FF]" />
+            <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
+              <Layers size={15} className="text-[#5747D6]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate">{batch.name}</p>
@@ -213,7 +213,7 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) =>
             <ChevronRight size={15} className="text-neutral-500 shrink-0" />
           </button>
 
-          <div className="flex gap-2 mt-3 pt-3 border-t border-[#1e202e]">
+          <div className="flex gap-2 mt-3 pt-3 border-t border-[#E4E6EB]">
             <button type="button" className={btnGhost} onClick={() => setDraft(batch)}>
               Edit
             </button>

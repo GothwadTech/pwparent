@@ -109,7 +109,7 @@ const StudentCalendar: React.FC<{
               title={`${day}${mark ? ` — ${style?.label}` : ' — unmarked'}`}
               aria-label={`${day}${mark ? `, ${style?.label}` : ', unmarked'}`}
               className={`aspect-square rounded-lg border text-[11px] font-bold flex items-center justify-center transition-colors disabled:opacity-50 ${
-                style?.bg ?? 'bg-[#0d0e16] border-[#232535] text-neutral-400 hover:border-[#3a3d52]'
+                style?.bg ?? 'bg-[#F4F5F7] border-[#E4E6EB] text-neutral-600 hover:border-[#E4E6EB]'
               } ${isToday ? 'ring-1 ring-[#8E75FF]' : ''}`}
             >
               {Number(day.slice(-2))}
@@ -208,7 +208,7 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
           <ChevronLeft size={13} />
         </button>
         <span className="text-sm font-bold flex items-center gap-1.5">
-          <CalendarDays size={14} className="text-[#8E75FF]" />
+          <CalendarDays size={14} className="text-[#5747D6]" />
           {monthLabel(month)}
         </span>
         <button type="button" className={btnGhost} onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Next month">
@@ -226,7 +226,7 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
 
       {!loading && students.length === 0 && (
         <Note>
-          Nobody is allotted to this batch, so there is no attendance to mark. Go to the <strong className="text-neutral-300">Students</strong>{' '}
+          Nobody is allotted to this batch, so there is no attendance to mark. Go to the <strong className="text-neutral-700">Students</strong>{' '}
           panel and allot someone first.
         </Note>
       )}
@@ -262,9 +262,9 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
                 key={student.id}
                 type="button"
                 onClick={() => setOpenStudent(student.id)}
-                className={`${cardCls} w-full flex items-center gap-3 text-left hover:border-[#3a3d52] transition-colors`}
+                className={`${cardCls} w-full flex items-center gap-3 text-left hover:border-[#E4E6EB] transition-colors`}
               >
-                <div className="w-9 h-9 rounded-lg bg-[#8E75FF]/15 border border-[#8E75FF]/30 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
                   {summary.marked === 0 ? (
                     <Minus size={14} className="text-neutral-500" />
                   ) : summary.percent >= 75 ? (

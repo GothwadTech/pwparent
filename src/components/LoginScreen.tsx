@@ -31,7 +31,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#0a0b10] text-white flex flex-col justify-between overflow-hidden select-none">
+    <div className="relative w-full h-full min-h-full bg-[#F4F5F7] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       {/* Header with PW Logo and "How it works" */}
       <AppHeader
         showHowItWorks={true}
@@ -43,7 +43,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* Main Form Content */}
       <div className="flex-1 px-5 pt-8 flex flex-col">
         {/* Title */}
-        <h1 className="text-[28px] sm:text-[30px] font-bold text-white tracking-tight leading-snug">
+        <h1 className="text-[28px] sm:text-[30px] font-bold text-[#17181C] tracking-tight leading-snug">
           Enter your number
         </h1>
 
@@ -52,15 +52,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div
             className={`relative flex items-center bg-[#0e1017] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
               isFocused || phoneNumber.length > 0
-                ? 'border-[#8E75FF] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
+                ? 'border-[#5747D6] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
                 : 'border-[#2f3242]'
             }`}
           >
             {/* Floating label cut into top border */}
             <span
-              className={`absolute -top-2.5 left-4 px-1.5 text-[11px] font-medium bg-[#0a0b10] transition-colors ${
+              className={`absolute -top-2.5 left-4 px-1.5 text-[11px] font-medium bg-[#F4F5F7] transition-colors ${
                 isFocused || phoneNumber.length > 0
-                  ? 'text-[#8E75FF]'
+                  ? 'text-[#5747D6]'
                   : 'text-[#9ca3af]'
               }`}
             >
@@ -68,11 +68,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </span>
 
             {/* Country Selector: IN +91 */}
-            <div className="flex items-center space-x-1.5 pr-3 text-neutral-200 cursor-default select-none border-r border-[#262938]">
+            <div className="flex items-center space-x-1.5 pr-3 text-neutral-800 cursor-default select-none border-r border-[#262938]">
               <span className="text-[15px] font-semibold tracking-wide">
                 IN +91
               </span>
-              <ChevronDown size={15} className="text-neutral-400" />
+              <ChevronDown size={15} className="text-neutral-600" />
             </div>
 
             {/* Phone Number Input */}
@@ -88,7 +88,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder="Enter mobile number"
-              className="flex-1 bg-transparent pl-3.5 pr-2 py-0.5 text-white font-medium text-[16px] outline-none placeholder:text-neutral-600 tracking-wide"
+              className="flex-1 bg-transparent pl-3.5 pr-2 py-0.5 text-[#17181C] font-medium text-[16px] outline-none placeholder:text-neutral-600 tracking-wide"
             />
           </div>
 
@@ -114,7 +114,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] ${
             isValid
               ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
-              : 'bg-[#3b3b4f]/70 text-neutral-400 cursor-not-allowed opacity-80'
+              : 'bg-[#3b3b4f]/70 text-neutral-600 cursor-not-allowed opacity-80'
           }`}
         >
           Get OTP
@@ -123,11 +123,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         {/* Terms note */}
         <p className="mt-4 text-[12px] text-[#8e95a5] text-center leading-relaxed font-normal">
           By Continuing you agree to our{' '}
-          <span className="text-white hover:underline cursor-pointer">
+          <span className="text-[#17181C] hover:underline cursor-pointer">
             Terms of use
           </span>{' '}
           &{' '}
-          <span className="text-white hover:underline cursor-pointer">
+          <span className="text-[#17181C] hover:underline cursor-pointer">
             Privacy Policy
           </span>
         </p>

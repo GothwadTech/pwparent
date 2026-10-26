@@ -32,7 +32,7 @@ export const ContactSupportModal: React.FC<ContactSupportModalProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-600 hover:text-neutral-700 transition-colors"
           aria-label="Close"
         >
           <X size={20} />

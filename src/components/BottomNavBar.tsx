@@ -12,7 +12,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   onChangeTab,
 }) => {
   return (
-    <nav className="w-full bg-[#0a0b10] border-t border-[#1a1c2b] px-6 py-2 flex items-center justify-around z-30 select-none">
+    <nav className="w-full bg-[#F4F5F7] border-t border-[#1a1c2b] px-6 py-2 flex items-center justify-around z-30 select-none">
       {/* Dashboard Tab */}
       <button
         type="button"
@@ -25,14 +25,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           className={`transition-colors ${
             activeTab === 'dashboard'
               ? 'text-[#9D86FF]'
-              : 'text-[#6f7488] group-hover:text-neutral-300'
+              : 'text-[#6f7488] group-hover:text-neutral-700'
           }`}
         />
         <span
           className={`text-[11px] font-semibold transition-colors ${
             activeTab === 'dashboard'
               ? 'text-[#9D86FF]'
-              : 'text-[#6f7488] group-hover:text-neutral-300'
+              : 'text-[#6f7488] group-hover:text-neutral-700'
           }`}
         >
           Dashboard
@@ -52,7 +52,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             className={`transition-colors ${
               activeTab === 'announcements'
                 ? 'text-[#9D86FF]'
-                : 'text-[#6f7488] group-hover:text-neutral-300'
+                : 'text-[#6f7488] group-hover:text-neutral-700'
             }`}
           />
           {/* Notification red dot badge */}
@@ -62,7 +62,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           className={`text-[11px] font-semibold transition-colors ${
             activeTab === 'announcements'
               ? 'text-[#9D86FF]'
-              : 'text-[#6f7488] group-hover:text-neutral-300'
+              : 'text-[#6f7488] group-hover:text-neutral-700'
           }`}
         >
           Announcements
@@ -81,14 +81,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
           className={`transition-colors ${
             activeTab === 'support'
               ? 'text-[#9D86FF]'
-              : 'text-[#6f7488] group-hover:text-neutral-300'
+              : 'text-[#6f7488] group-hover:text-neutral-700'
           }`}
         />
         <span
           className={`text-[11px] font-semibold transition-colors ${
             activeTab === 'support'
               ? 'text-[#9D86FF]'
-              : 'text-[#6f7488] group-hover:text-neutral-300'
+              : 'text-[#6f7488] group-hover:text-neutral-700'
           }`}
         >
           Support

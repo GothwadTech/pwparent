@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+/* The app is light, always. One theme — there is no dark variant and no toggle.
+   These base rules keep the canvas, the PWA standalone window and the overscroll
+   area the same near-white as every screen, so no dark edge can peek through. */
+html,
+body,
+#root {
+  min-height: 100%;
+  background-color: #F4F5F7;
+  color: #17181C;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
