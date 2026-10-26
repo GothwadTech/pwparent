@@ -51,6 +51,34 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    /**
+     * The family subtree this login number is bound to, or null.
+     *
+     * An admin creates a child under `parents/{P}` and issues the number's
+     * login code from that child's screen, stamping
+     * `credentials/{phone}.parentUid = P`. The parent's session uid is whatever
+     * their device/identity produced, so "my data" is the credential's binding,
+     * not `request.auth.uid` — otherwise a parent who logs in from a second
+     * phone (or after a cleared profile) reads an empty subtree and sees an
+     * empty dashboard even though every record exists.
+     *
+     * The caller's phone is read from their own profile shell, which the app
+     * writes at sign-in; four document gets, all behind the app's read cache.
+     */
+    function boundParentUid() {
+      if (!signedIn()) return null;
+      if (!exists(/databases/$(database)/documents/parents/$(request.auth.uid))) return null;
+      let phone = get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.mobileNumber;
+      if (!(phone is string)) return null;
+      if (!exists(/databases/$(database)/documents/credentials/$(phone))) return null;
+      return get(/databases/$(database)/documents/credentials/$(phone)).data.parentUid;
+    }
+
+    /** True when `uid` is the family this login code was issued for. */
+    function isBoundParent(uid) {
+      return boundParentUid() == uid;
+    }
+
     /** True only while no admin has ever been created. */
     function adminSlotIsOpen() {
       return !exists(/databases/$(database)/documents/adminConfig/singleton);
@@ -121,7 +149,7 @@ service cloud.firestore {
     }
 
     match /admins/{uid} {
-      allow get: if isOwner(uid) || isAdmin();
+      allow get: if isOwner(uid) || isAdmin() || isBoundParent(uid);
       // The first admin creates their own marker while the slot is open. After
       // that this is permanently closed — no second admin can ever be added.
       allow create: if isOwner(uid) && adminSlotIsOpen() && validAdminDoc();
@@ -149,22 +177,22 @@ service cloud.firestore {
     // subtree because the Admin Panel exists to manage other people's records.
 
     match /parents/{uid} {
-      allow get: if isOwner(uid) || isAdmin();
-      allow create, update: if isOwner(uid) || isAdmin();
+      allow get: if isOwner(uid) || isAdmin() || isBoundParent(uid);
+      allow create, update: if isOwner(uid) || isAdmin() || isBoundParent(uid);
       // Deletion is a console operation — the app signs out instead.
       allow delete: if false;
       allow list: if isAdmin();
 
       match /children/{childId} {
-        allow read: if isOwner(uid) || isAdmin();
-        allow create, update: if isOwner(uid) || isAdmin();
-        allow delete: if isOwner(uid) || isAdmin();
+        allow read: if isOwner(uid) || isAdmin() || isBoundParent(uid);
+        allow create, update: if isOwner(uid) || isAdmin() || isBoundParent(uid);
+        allow delete: if isOwner(uid) || isAdmin() || isBoundParent(uid);
       }
 
       match /purchases/{itemId} {
-        allow read: if isOwner(uid) || isAdmin();
-        allow create, update: if isOwner(uid) || isAdmin();
-        allow delete: if isOwner(uid) || isAdmin();
+        allow read: if isOwner(uid) || isAdmin() || isBoundParent(uid);
+        allow create, update: if isOwner(uid) || isAdmin() || isBoundParent(uid);
+        allow delete: if isOwner(uid) || isAdmin() || isBoundParent(uid);
       }
 
       // Any subcollection added later is DENIED until a rule is written for it

@@ -150,24 +150,24 @@ export const App: React.FC = () => {
               >
                 <IconClipboard size={26} />
               </div>
-              <p className="text-[15px] font-extrabold mb-2">Dashboard khali mila</p>
+              <p className="text-[15px] font-extrabold mb-2">No student record loaded</p>
               <p className="text-[12px] leading-relaxed text-[#6B7280] mb-5">
-                Is number se linked student ka record load nahi ho paya. Network ya read
-                *fail ho sakta hai — dobara try karo, ya dusre number se login karo.
+                The student linked to this number could not be loaded. This usually
+                means a read failed — try again, or log in with a different number.
               </p>
               <button
                 type="button"
                 onClick={() => void refreshData()}
                 className="w-full py-3 rounded-xl bg-[#5747D6] text-white text-[13px] font-bold mb-2"
               >
-                Dobara try karein
+                Try again
               </button>
               <button
                 type="button"
                 onClick={handleSwitchNumber}
                 className="w-full py-3 rounded-xl border border-[#E4E6EB] text-[13px] font-bold"
               >
-                Number badlein
+                Use a different number
               </button>
             </div>
           );
