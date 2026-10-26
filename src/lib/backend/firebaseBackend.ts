@@ -25,6 +25,7 @@ import {paths, readCollection, readDoc, removeDoc, writeDoc} from '../firebase/f
 import * as auth from '../firebase/auth';
 import * as identity from '../firebase/identity';
 import {clearStoredSession, readStoredSession, writeStoredSession} from '../sessionStore';
+import {familyUidFor} from '../familyScope';
 import {
   CREDENTIAL_VERSION,
   createCredential,
@@ -50,6 +51,7 @@ const keys = {
   parent: (uid: string) => `parent:${uid}`,
   announcements: () => 'announcements',
   credential: (phone: string) => `cred:${phone}`,
+  family: (uid: string) => `familyUid:${uid}`,
 };
 
 /**
@@ -85,10 +87,53 @@ export function createFirebaseBackend(): Backend {
     );
   };
 
+  /**
+   * The family subtree THIS session owns — the credential's binding wins over
+   * the auth uid, because the admin stamps `credentials/{phone}.parentUid`
+   * from the child's own record while the session uid is whatever the device
+   * produced. Without this, a parent on a second phone (or a cleared profile)
+   * logs in fine and then reads an empty `parents/{sessionUid}` subtree.
+   */
+  const familyUidForSession = async (): Promise<string | null> => {
+    const id = uid();
+    if (!id) return null;
+    return cachedRead(
+      keys.family(id),
+      async () => {
+        const shell = await orEmpty<ParentProfileData | null>(
+          'read parents/{uid}',
+          () => readDoc<ParentProfileData>(paths.parent(id)),
+          null,
+        );
+        const phone = normalizePhone(shell?.mobileNumber ?? '');
+        if (!phone) return id;
+        const cred = await orEmpty<StoredCredential | null>(
+          'read credentials/{phone}',
+          () => readDoc<StoredCredential>(paths.credential(phone)),
+          null,
+        );
+        return familyUidFor(id, cred?.parentUid);
+      },
+      DEFAULT_TTL_MS,
+    );
+  };
+
+  /**
+   * "Which subtree am I acting on?" Remaps the caller's OWN uid to the bound
+   * family uid; any other uid (an admin editing another family) passes through
+   * untouched, or the admin would be silently teleported into their own row.
+   */
+  const ownFamily = async (explicit?: string | null): Promise<string | null> => {
+    const id = explicit ?? uid();
+    if (!id) return null;
+    if (explicit && explicit !== uid()) return explicit;
+    return familyUidForSession();
+  };
+
   // Hoisted as consts because the batch layer calls them too, and `this` inside
   // an object literal returned from a factory is not reliably typed here.
-  const getLinkedStudentsImpl = (parentUid?: string | null): Promise<StudentProfile[]> => {
-    const id = resolveUid(parentUid);
+  const getLinkedStudentsImpl = async (parentUid?: string | null): Promise<StudentProfile[]> => {
+    const id = await ownFamily(parentUid);
     if (!id) return Promise.resolve([]);
     return cachedRead(
       keys.children(id),
@@ -97,8 +142,8 @@ export function createFirebaseBackend(): Backend {
     );
   };
 
-  const saveStudentImpl = (student: StudentProfile, parentUid?: string | null): Promise<void> => {
-    const id = resolveUid(parentUid);
+  const saveStudentImpl = async (student: StudentProfile, parentUid?: string | null): Promise<void> => {
+    const id = await ownFamily(parentUid);
     if (!id) return Promise.reject(new Error('Not signed in'));
     const {id: _drop, ...rest} = student;
     return cachedWrite(keys.children(id), () =>
@@ -131,39 +176,62 @@ export function createFirebaseBackend(): Backend {
    * survives a cleared browser profile. Without it this is a resume, not a
    * login, and the already-restored session is simply reused.
    */
-  const signIn = async (phone: string, studentId?: string | null, code?: string | null): Promise<Session> => {
+  const signIn = async (
+    phone: string,
+    studentId?: string | null,
+    code?: string | null,
+    familyHint?: string | null,
+  ): Promise<Session> => {
     const digits = normalizePhone(phone);
     // Wait for Firebase to finish restoring its persisted user FIRST: peeking at
     // `currentUser` before that resolved minted a fresh anonymous uid per reload.
     const user = code
       ? (await identity.claimIdentity(digits, code)).user
       : await auth.ensureSession();
-    const path = paths.parent(user.uid);
+    const now = new Date().toISOString();
+
+    // Profile SHELL at the auth uid: the security rules read the caller's phone
+    // from here to resolve which family the login code binds them to.
+    invalidate(keys.parent(user.uid));
+    invalidate(keys.family(user.uid));
+    await cachedWrite(keys.parent(user.uid), () =>
+      writeDoc(paths.parent(user.uid), {
+        mobileNumber: digits,
+        signInMethod: 'anonymous+login-code',
+        lastLoginAt: now,
+      } as unknown as Record<string, unknown>),
+    );
+
+    // The family this login OWNS: the credential's binding, not the session uid.
+    const family =
+      (familyHint
+        ? familyUidFor(user.uid, familyHint)
+        : await familyUidForSession()) ?? user.uid;
 
     const existing = await cachedRead(
-      keys.parent(user.uid),
-      () => orEmpty<ParentProfileData | null>('read parents/{uid}', () => readDoc<ParentProfileData>(path), null),
+      keys.parent(family),
+      () => orEmpty<ParentProfileData | null>('read parents/{uid}', () => readDoc<ParentProfileData>(paths.parent(family)), null),
       DEFAULT_TTL_MS,
     );
     const isNewUser = !existing;
 
-    await cachedWrite(keys.parent(user.uid), () =>
-      writeDoc(path, {
+    await cachedWrite(keys.parent(family), () =>
+      writeDoc(paths.parent(family), {
         ...(existing ?? {}),
         name: existing?.name ?? '',
         countryCode: existing?.countryCode ?? 'IN +91',
         mobileNumber: digits,
         email: existing?.email ?? '',
         signInMethod: 'anonymous+login-code',
-        lastLoginAt: new Date().toISOString(),
+        lastLoginAt: now,
       } as unknown as Record<string, unknown>),
     );
 
     // Remember it on this device so the next reload resumes instantly instead of
     // flashing the login form while Auth initialises from IndexedDB.
-    writeStoredSession({uid: user.uid, phone: digits, studentId: studentId ?? null});
+    writeStoredSession({uid: family, phone: digits, studentId: studentId ?? null});
 
-    return {uid: user.uid, phone: digits, isNewUser, studentId: studentId ?? null};
+    return {uid: family, phone: digits, isNewUser, studentId: studentId ?? null};
   };
 
   return {
@@ -182,8 +250,11 @@ export function createFirebaseBackend(): Backend {
       // with an empty `parents/{uid}` subtree.
       const restoredUser = await auth.whenAuthReady();
       const marker = readStoredSession();
-      const existingUid = restoredUser?.uid ?? auth.currentUserId();
-      if (!existingUid) return null;
+      const authUid = restoredUser?.uid ?? auth.currentUserId();
+      if (!authUid) return null;
+
+      // The bound family uid, not the raw auth uid — see familyUidForSession.
+      const existingUid = (await familyUidForSession()) ?? authUid;
 
       const profile = await cachedRead(
         keys.parent(existingUid),
@@ -192,7 +263,7 @@ export function createFirebaseBackend(): Backend {
       );
       // The marker is the fallback for a profile read that came back empty or
       // was denied: this device's own last session still knows the number. It is
-      // only trusted when it describes the SAME uid Auth just restored.
+      // only trusted when it describes the SAME family Auth just restored.
       const digits = normalizePhone(
         profile?.mobileNumber ?? (marker?.uid === existingUid ? marker.phone : ''),
       );
@@ -276,7 +347,7 @@ export function createFirebaseBackend(): Backend {
       // The verified code travels with the sign-in: it is what lets the session
       // become a permanent, cross-device identity instead of a browser-local
       // anonymous one. See src/lib/firebase/identity.ts.
-      const session = await signIn(phone, stored.studentId ?? null, code);
+      const session = await signIn(phone, stored.studentId ?? null, code, stored.parentUid ?? null);
       return {ok: true, uid: session.uid, studentId: session.studentId ?? null};
     },
 
@@ -333,7 +404,7 @@ export function createFirebaseBackend(): Backend {
 
     // ── parent profile ─────────────────────────────────────────────────────
     async getParentProfile(parentUid) {
-      const id = resolveUid(parentUid);
+      const id = await ownFamily(parentUid);
       if (!id) return emptyProfile();
       const stored = await cachedRead(
         keys.parent(id),
@@ -344,7 +415,7 @@ export function createFirebaseBackend(): Backend {
     },
 
     async saveParentProfile(data, parentUid) {
-      const id = resolveUid(parentUid);
+      const id = await ownFamily(parentUid);
       if (!id) throw new Error('Not signed in');
       await cachedWrite(keys.parent(id), () =>
         writeDoc(paths.parent(id), {...data} as unknown as Record<string, unknown>),
@@ -357,7 +428,7 @@ export function createFirebaseBackend(): Backend {
     saveStudent: saveStudentImpl,
 
     async deleteStudent(studentId, parentUid) {
-      const id = resolveUid(parentUid);
+      const id = await ownFamily(parentUid);
       if (!id) throw new Error('Not signed in');
       await cachedWrite(keys.children(id), () => removeDoc(paths.child(id, studentId)));
     },
@@ -384,7 +455,7 @@ export function createFirebaseBackend(): Backend {
 
     // ── purchases ──────────────────────────────────────────────────────────
     async getPurchases(parentUid) {
-      const id = resolveUid(parentUid);
+      const id = await ownFamily(parentUid);
       if (!id) return [];
       return cachedRead(
         keys.purchases(id),
@@ -394,7 +465,7 @@ export function createFirebaseBackend(): Backend {
     },
 
     async savePurchase(item, parentUid) {
-      const id = resolveUid(parentUid);
+      const id = await ownFamily(parentUid);
       if (!id) throw new Error('Not signed in');
       const {id: _drop, ...rest} = item;
       await cachedWrite(keys.purchases(id), () =>
