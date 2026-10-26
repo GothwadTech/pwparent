@@ -11,6 +11,7 @@
  */
 import React from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import {IconCalendarClock, IconFlame} from './icons/AppIcons';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { CalendarDay } from './OfflineAttendanceDashboardView';
 import {
@@ -76,7 +77,7 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       {/* Title + streak pill */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <span className="text-[15px] leading-none">📅</span>
+          <IconCalendarClock size={18} />
           <h2 className="text-[14px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
             Attendance
           </h2>
@@ -86,7 +87,7 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
             className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full border"
             style={{ background: STREAK_BG, borderColor: STREAK_BORDER }}
           >
-            <span className="text-[12px] leading-none">🔥</span>
+            <IconFlame size={14} />
             <span className="text-[11px] font-bold" style={{ color: STREAK_TEXT }}>
               {summary.streakDays} day streak
             </span>

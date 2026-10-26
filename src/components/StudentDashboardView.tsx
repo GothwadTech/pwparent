@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Play, ArrowRight } from 'lucide-react';
+import {IconBook, IconClipboard, IconTestPaper} from './icons/AppIcons';
 import { StudentProfile } from '../types';
 
 interface StudentDashboardViewProps {
@@ -57,7 +58,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       {/* ---------------- 1. LECTURES SECTION (Screenshot_20260918_180905.jpg) ---------------- */}
       <section className="space-y-3">
         <div className="flex items-center space-x-2">
-          <span className="text-base">📖</span>
+          <IconBook size={18} />
           <h2 className="text-base font-bold text-[#17181C] tracking-tight">
             Lectures
           </h2>
@@ -179,7 +180,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       {/* ---------------- 2. DAILY PRACTICE PAPER (Screenshot_20260918_180910.jpg) ---------------- */}
       <section className="space-y-3 pt-2 border-t border-[#E4E6EB]">
         <div className="flex items-center space-x-2">
-          <span className="text-base">📋</span>
+          <IconClipboard size={18} />
           <h2 className="text-base font-bold text-[#17181C] tracking-tight">
             Daily Practice Paper
           </h2>
@@ -270,7 +271,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       {/* ---------------- 3. TEST SECTION (Screenshot_20260918_180910.jpg & 180913.jpg) ---------------- */}
       <section className="space-y-3 pt-2 border-t border-[#E4E6EB]">
         <div className="flex items-center space-x-2">
-          <span className="text-base">📑</span>
+          <IconTestPaper size={18} />
           <h2 className="text-base font-bold text-[#17181C] tracking-tight">
             Test
           </h2>

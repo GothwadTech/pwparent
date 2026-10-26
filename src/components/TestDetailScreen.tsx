@@ -12,6 +12,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronUp, ChevronDown } from 'lucide-react';
+import {IconBars, IconChartLine, IconCheckCircle, IconPodium, IconStar, IconTarget} from './icons/AppIcons';
 import type { BatchTest, TestResult } from '../types';
 import {
   ACCENT, CARD_BORDER, HEADER_BG, TEXT_PRIMARY, TILE_BG,
@@ -24,7 +25,7 @@ interface TestDetailScreenProps {
 }
 
 interface Tile {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
 }
@@ -36,12 +37,12 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   const tiles: Tile[] = [
-    { icon: '📈', label: 'Score', value: typeof result?.marksObtained === 'number' ? `${result.marksObtained} / ${test.marksTotal}` : '—' },
-    { icon: '🎯', label: 'Accuracy', value: dash(result?.accuracyPercent) },
-    { icon: '✅', label: 'Correct', value: dash(result?.correctCount) },
-    { icon: '🏅', label: 'Rank', value: dash(result?.rank) },
-    { icon: '⭐', label: 'Top Score', value: typeof result?.topScore === 'number' ? `${result.topScore}/${test.marksTotal}` : '—' },
-    { icon: '📊', label: 'Avg Score', value: dash(result?.avgScore) },
+    { icon: <IconChartLine size={18} />, label: 'Score', value: typeof result?.marksObtained === 'number' ? `${result.marksObtained} / ${test.marksTotal}` : '—' },
+    { icon: <IconTarget size={18} />, label: 'Accuracy', value: dash(result?.accuracyPercent) },
+    { icon: <IconCheckCircle size={18} />, label: 'Correct', value: dash(result?.correctCount) },
+    { icon: <IconPodium size={18} />, label: 'Rank', value: dash(result?.rank) },
+    { icon: <IconStar size={18} />, label: 'Top Score', value: typeof result?.topScore === 'number' ? `${result.topScore}/${test.marksTotal}` : '—' },
+    { icon: <IconBars size={18} />, label: 'Avg Score', value: dash(result?.avgScore) },
   ];
 
   /** Syllabus grouped by subject, order preserved, each topic's marks attached. */

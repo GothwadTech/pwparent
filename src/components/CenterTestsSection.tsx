@@ -11,6 +11,7 @@
  */
 import React from 'react';
 import { ArrowRight, Play } from 'lucide-react';
+import {IconTestPaper} from './icons/AppIcons';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { OfflineTestRow } from './OfflineAttendanceDashboardView';
 import {
@@ -36,7 +37,7 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
   return (
     <section className="px-3 pt-3 space-y-3">
       <div className="flex items-center space-x-2">
-        <span className="text-[15px] leading-none">📑</span>
+        <IconTestPaper size={18} />
         <h2 className="text-[14px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           Test
         </h2>

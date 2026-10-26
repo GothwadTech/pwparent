@@ -11,6 +11,7 @@
  */
 import React from 'react';
 import { Play } from 'lucide-react';
+import {IconClipboard} from './icons/AppIcons';
 import type { DppSummary } from '../hooks/useDppView';
 import {
   BAR_ASSIGNED, BAR_ATTEMPTED, CARD_BORDER, FIGURE, PROGRESS_FILL,
@@ -55,7 +56,7 @@ export const DppSection: React.FC<DppSectionProps> = ({ summary, onOpenSubjectDe
   return (
     <section className="px-3 pt-3 space-y-3">
       <div className="flex items-center space-x-2">
-        <span className="text-[15px] leading-none">📋</span>
+        <IconClipboard size={18} />
         <h2 className="text-[14px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
           Daily Practice Paper
         </h2>
