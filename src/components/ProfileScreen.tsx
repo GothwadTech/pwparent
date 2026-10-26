@@ -46,13 +46,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Student Profile Section with subtle purple gradient */}
         <div className="px-5 pt-5 pb-6 bg-gradient-to-b from-[#1c1a32]/80 to-[#10111a] border-b border-[#1e2030]">
           <h2 className="text-[14px] font-semibold text-neutral-200 mb-4">
-            Student Profile
+            {students.length === 1 ? 'Student' : 'Student Profile'}
           </h2>
 
           {/* Horizontal Avatars List */}
           <div className="flex items-center space-x-6 overflow-x-auto py-1">
+            {/* One number logs in as one child, so this list has a single entry.
+                The ring + checkmark are a SELECTION affordance — with nothing to
+                choose between they only imply other children exist, which is the
+                exact confusion this screen used to cause. */}
             {students.map((student) => {
-              const isSelected = student.id === activeStudent.id;
+              const onlyOne = students.length === 1;
+              const isSelected = !onlyOne && student.id === activeStudent.id;
               return (
                 <button
                   key={student.id}
