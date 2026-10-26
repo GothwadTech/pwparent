@@ -30,6 +30,7 @@ import {
   normalizePhone,
   verifyCredential,
 } from '../credentials';
+import type {StoredCredential} from '../credentials';
 import {cachedRead, cachedWrite, DEFAULT_TTL_MS, invalidate, resetCache} from './readCache';
 import {createFirebaseBatchOps} from './firebaseBatches';
 
@@ -109,7 +110,18 @@ export function createFirebaseBackend(): Backend {
     orEmpty,
   });
 
-  const signIn = async (phone: string): Promise<Session> => {
+  /**
+   * Open a session for one number.
+   *
+   * `studentId` is the child this number is bound to. It comes from the
+   * credential document, NOT from the uid: `ensureSession()` is anonymous auth,
+   * so every number used in the same browser resolves to the SAME uid and
+   * therefore the same `parents/{uid}` subtree. Without the binding, logging in
+   * as the brother's number and then the sister's showed both children — which
+   * is exactly the "one student's code reaches the other student" report. The
+   * number decides the child; the browser does not.
+   */
+  const signIn = async (phone: string, studentId?: string | null): Promise<Session> => {
     const digits = normalizePhone(phone);
     const user = await auth.ensureSession(); // anonymous — free on Spark, gives a real uid
     const path = paths.parent(user.uid);
@@ -133,7 +145,7 @@ export function createFirebaseBackend(): Backend {
       } as unknown as Record<string, unknown>),
     );
 
-    return {uid: user.uid, phone: digits, isNewUser};
+    return {uid: user.uid, phone: digits, isNewUser, studentId: studentId ?? null};
   };
 
   return {
@@ -158,7 +170,15 @@ export function createFirebaseBackend(): Backend {
       const digits = normalizePhone(profile?.mobileNumber ?? '');
       if (!digits) return null;
 
-      return {uid: existingUid, phone: digits, isNewUser: false};
+      // Re-read the binding so a restored session lands on the same single child
+      // it was issued for. Cached, so it costs nothing on repeat navigation.
+      const cred = await cachedRead(
+        keys.credential(digits),
+        () => orEmpty<StoredCredential | null>('read credentials/{phone}', () => readDoc<StoredCredential>(paths.credential(digits)), null),
+        DEFAULT_TTL_MS,
+      );
+
+      return {uid: existingUid, phone: digits, isNewUser: false, studentId: cred?.studentId ?? null};
     },
 
     async signOut() {
@@ -219,14 +239,34 @@ export function createFirebaseBackend(): Backend {
       const ok = await verifyCredential(code, phone, stored);
       if (!ok) return {ok: false, error: 'Incorrect code.'};
 
-      const session = await signIn(phone);
-      return {ok: true, uid: session.uid};
+      const session = await signIn(phone, stored.studentId ?? null);
+      return {ok: true, uid: session.uid, studentId: session.studentId ?? null};
     },
 
-    async setLoginCode(phone, code, name) {
+    async setLoginCode(phone, code, meta) {
       const digits = normalizePhone(phone);
       if (!uid()) throw new Error('Sign in as admin first.');
-      const record = await createCredential(code, digits, name);
+
+      // One number -> one child. Refuse to silently re-point a number that is
+      // already bound elsewhere: that is how a code issued for one student ends
+      // up logging in as another. Re-binding has to be a deliberate act, so the
+      // caller must say so explicitly.
+      if (meta?.studentId) {
+        invalidate(keys.credential(digits));
+        const existing = await orEmpty<StoredCredential | null>(
+          'read credentials/{phone}',
+          () => readDoc<StoredCredential>(paths.credential(digits)),
+          null,
+        );
+        if (existing?.studentId && existing.studentId !== meta.studentId && !meta.rebind) {
+          throw new Error(
+            'This number is already bound to a different student. Remove that code first, ' +
+              'or re-issue it from that student’s own details.',
+          );
+        }
+      }
+
+      const record = await createCredential(code, digits, meta);
       await cachedWrite(keys.credential(digits), () =>
         writeDoc(paths.credential(digits), record as unknown as Record<string, unknown>, false),
       );
@@ -249,6 +289,8 @@ export function createFirebaseBackend(): Backend {
         createdAt: typeof row.createdAt === 'string' ? row.createdAt : '',
         currentVersion: row.v === CREDENTIAL_VERSION,
         name: typeof row.name === 'string' && row.name.trim() ? row.name.trim() : undefined,
+        studentId: typeof row.studentId === 'string' && row.studentId ? row.studentId : undefined,
+        parentUid: typeof row.parentUid === 'string' && row.parentUid ? row.parentUid : undefined,
       }));
     },
 

@@ -17,7 +17,7 @@ import {
  */
 describe('credentials: the name label', () => {
   it('stores a name alongside the digest without changing verification', async () => {
-    const record = await createCredential('246810', '9876543210', 'Ananya Sharma');
+    const record = await createCredential('246810', '9876543210', {name: 'Ananya Sharma'});
     expect(record.name).toBe('Ananya Sharma');
     expect(isStoredCredential(record)).toBe(true);
     // The name is a label, not part of the secret: the same code still verifies
@@ -32,8 +32,8 @@ describe('credentials: the name label', () => {
   });
 
   it('trims the name and treats whitespace-only as absent', async () => {
-    expect((await createCredential('246810', '9876543210', '  Ananya  ')).name).toBe('Ananya');
-    expect('name' in (await createCredential('246810', '9876543210', '   '))).toBe(false);
+    expect((await createCredential('246810', '9876543210', {name: '  Ananya  '})).name).toBe('Ananya');
+    expect('name' in (await createCredential('246810', '9876543210', {name: '   '}))).toBe(false);
   });
 });
 

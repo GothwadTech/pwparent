@@ -315,6 +315,31 @@ children`). Doosri family ka bachcha batch me allot hone ke baad bhi wahan kabhi
 nahi dikhta — isliye "2 allot kiye, 1 dikha". Ab bachche `listAllStudents()` se
 aate hain, jo `parents/` collection ko cross-parent padhta hai.
 
+**Login codes us bachche ke details me hain, aur SIRF uske.** Panel me
+`studentId` + `parentUid` scope ke roop me jaate hain, isliye ek bachche ke
+screen pe doosre bachche ka number dikhta hi nahi. Yahan issue kiya gaya code us
+bachche se **bind** ho jaata hai.
+
+**Ek number = ek student.** Ye sirf UI rule nahi, data rule hai:
+
+- `credentials/{phone}` pe `studentId` likha jaata hai
+- Pehle se kisi doosre bachche se bound number ko chup-chaap re-point karna
+  **mana** hai — backend throw karta hai. Jaan-boojh ke badalna ho to
+  `rebind: true` dena padta hai, jo naye bachche ke apne screen se hi milta hai
+- Parent app me "Continue" (chunne wali) screen **hata di gayi**. Login hote hi
+  us ek bachche ka dashboard khulta hai
+
+Ye binding zaroori kyun hai: anonymous auth idempotent hai, yaani ek hi browser
+me har number ko **same uid** milta hai. Uid se pata hi nahi chalta ki aap kis
+bachche ke liye aaye the — isliye pehle dono bachche ek saath dikhte the aur
+shikayat aayi thi *"ek student ko code diya, doosre ko mil gaya"*. Kuch leak
+nahi hua tha; app ke paas ye jaanne ka tareeka hi nahi tha ki number kis bachche
+ka hai.
+
+Binding se pehle ke purane codes (`studentId` ke bina) verify hote rehte hain,
+app family ke eklaute bachche pe fallback karta hai, aur panel unhe "unbound"
+bol ke dikhata hai taki chhup na jaayein.
+
 **Unresolved allotments ab chhupte nahi.** `BatchMembersPanel` pehle
 `.filter(Boolean)` se un student ids ko chup-chaap gira deta tha jinka profile
 padha nahi ja saka. Wahi "batch me hai, list me nahi" ka doosra half tha. Ab wo

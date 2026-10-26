@@ -7,6 +7,7 @@
  * The UI imports ONLY from `src/lib/backend` (the facade), never from
  * `./mockBackend`, `./firebaseBackend` or `../firebase/*`.
  */
+import type {CredentialMeta} from '../credentials';
 import type {AnnouncementItem, ParentProfileData, PurchaseItem, StudentProfile} from '../../types';
 import type {BatchOps} from './batchTypes';
 
@@ -29,6 +30,12 @@ export interface Session {
   phone: string;
   /** True when this uid had no `parents/{uid}` document yet. */
   isNewUser: boolean;
+  /**
+   * The one student this number is bound to. One number logs in as one child —
+   * there is no picker screen, so this is what decides which dashboard opens.
+   * Null on legacy codes issued before the binding existed.
+   */
+  studentId?: string | null;
 }
 
 /** Metadata about a phone's login code — never the code or its hash. */
@@ -37,11 +44,12 @@ export interface LoginCodeInfo {
   createdAt: string;
   /** Whether the stored hash uses the current algorithm/iteration count. */
   currentVersion: boolean;
-  /**
-   * Human label for the person/family this number belongs to. Several numbers
-   * may share one name — that is how the admin list groups them.
-   */
+  /** Human label for the person/family this number belongs to. */
   name?: string;
+  /** The ONE student this number logs in as. Unset on legacy codes. */
+  studentId?: string;
+  /** Subtree that student lives in. */
+  parentUid?: string;
 }
 
 export type BackendMode = 'mock' | 'firebase';
@@ -73,10 +81,21 @@ export interface Backend extends BatchOps {
   /** Step 1: look up whether this number has a code. Sends nothing. */
   sendOtp(phone: string): Promise<SendOtpResult>;
   /** Step 2: verify the typed code, then open a session. */
-  verifyOtp(code: string, sendResult?: SendOtpResult): Promise<{ok: boolean; uid?: string | null; error?: string}>;
+  verifyOtp(
+    code: string,
+    sendResult?: SendOtpResult,
+  ): Promise<{ok: boolean; uid?: string | null; studentId?: string | null; error?: string}>;
 
   // ── admin: manage login codes ────────────────────────────────────────────
-  setLoginCode(phone: string, code: string, name?: string): Promise<void>;
+  /**
+   * Issue or replace the code for one number.
+   *
+   * `meta.studentId` binds that number to exactly one child. Enforced here and
+   * in the UI: a number already bound to a different child cannot be silently
+   * reused, because that is how one family's code ended up showing against
+   * another child.
+   */
+  setLoginCode(phone: string, code: string, meta?: CredentialMeta): Promise<void>;
   deleteLoginCode(phone: string): Promise<void>;
   listLoginCodes(): Promise<LoginCodeInfo[]>;
 

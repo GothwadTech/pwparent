@@ -1,4 +1,8 @@
 /**
+ * There is deliberately NO 'linked_accounts' entry either. The rule is one
+ * number -> one student, so after login there is nothing to choose: the app
+ * opens straight on that child's dashboard.
+ *
  * There is deliberately NO 'splash' entry. The app used to open on a 2.8-second
  * branded splash screen; that was pure delay, so it is gone. The initial screen
  * is decided synchronously in `useAppData` (onboarding once, then login), so the
@@ -9,7 +13,6 @@ export type ScreenId =
   | 'onboarding2'
   | 'login'
   | 'otp'
-  | 'linked_accounts'
   | 'dashboard'
   | 'profile'
   | 'parent_profile'

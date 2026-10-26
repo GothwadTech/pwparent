@@ -27,12 +27,19 @@ interface LoginCodesTabProps {
   backend: Backend;
   isFirebase: boolean;
   flash: (message: string) => void;
-  /**
-   * Pre-fills the Name field. Set when this panel is embedded in a child's
-   * details, so an admin issuing a second number for the same family cannot
-   * accidentally file it under a different name and split the group.
-   */
+  /** Pre-fills the Name field so a family's numbers stay grouped. */
   initialName?: string;
+  /**
+   * Scope this panel to ONE child.
+   *
+   * The rule is one number -> one student, so when this panel is embedded in a
+   * child's details it must show that child's numbers and nothing else. Without
+   * the scope it listed every credential in the project, which is why a code
+   * issued for one student appeared to be "given to" the next one you opened.
+   */
+  studentId?: string;
+  /** Subtree the scoped child lives in; written onto the credential. */
+  parentUid?: string;
 }
 
 /** Entries with no name still have to appear somewhere, not vanish. */
@@ -44,7 +51,7 @@ interface Issued {
   code: string;
 }
 
-export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase, flash, initialName}) => {
+export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase, flash, initialName, studentId, parentUid}) => {
   const [codes, setCodes] = useState<LoginCodeInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -87,9 +94,22 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
    * real names first (alphabetically) and the unnamed bucket last, because
    * "who is this?" is the question the list exists to answer.
    */
+  /**
+   * Codes issued before the binding existed carry no studentId. They are kept
+   * visible (and bindable) rather than hidden, because silently dropping them is
+   * how a family loses access and reports it as data loss.
+   */
+  const scoped = useMemo(() => {
+    if (!studentId) return {mine: codes, unbound: [] as LoginCodeInfo[]};
+    return {
+      mine: codes.filter((c) => c.studentId === studentId),
+      unbound: codes.filter((c) => !c.studentId),
+    };
+  }, [codes, studentId]);
+
   const groups = useMemo(() => {
     const byName = new Map<string, LoginCodeInfo[]>();
-    for (const entry of codes) {
+    for (const entry of scoped.mine) {
       const key = entry.name?.trim() || UNNAMED;
       const bucket = byName.get(key);
       if (bucket) bucket.push(entry);
@@ -105,7 +125,7 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
         label,
         entries: entries.sort((x, y) => x.phone.localeCompare(y.phone)),
       }));
-  }, [codes]);
+  }, [scoped.mine]);
 
   const digits = normalizePhone(phone);
   const canSave = digits.length === 10 && isValidCode(code) && !busy;
@@ -117,7 +137,11 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
     setError('');
     const label = name.trim();
     try {
-      await backend.setLoginCode(digits, code, label || undefined);
+      await backend.setLoginCode(digits, code, {
+        name: label || undefined,
+        studentId: studentId || undefined,
+        parentUid: parentUid || undefined,
+      });
       // Capture the plaintext NOW — after this it exists nowhere but on screen.
       setIssued({name: label, phone: digits, code});
       flash(`Login code saved for ${label || digits}.`);
@@ -250,7 +274,8 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
 
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-          Registered {codes.length > 0 && `(${codes.length} ${codes.length === 1 ? 'number' : 'numbers'})`}
+          {studentId ? 'Numbers for this student' : 'Registered'}{' '}
+          {scoped.mine.length > 0 && `(${scoped.mine.length} ${scoped.mine.length === 1 ? 'number' : 'numbers'})`}
         </span>
         <button type="button" className={btnGhost} onClick={() => void load()}>
           <RefreshCw size={12} /> Refresh
@@ -261,10 +286,18 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
 
       {loading && <p className="text-xs text-neutral-500 text-center py-6">Loading…</p>}
 
-      {!loading && !loadError && codes.length === 0 && (
+      {!loading && !loadError && scoped.mine.length === 0 && (
         <Note>
-          No numbers registered yet. Nobody can log in until you issue a code above — this is intentional, there is
-          no demo data behind it.
+          {studentId
+            ? 'This student has no login number yet. Issue one above — it will be bound to this child only, so logging in with it opens this child and nobody else.'
+            : 'No numbers registered yet. Nobody can log in until you issue a code above — this is intentional, there is no demo data behind it.'}
+        </Note>
+      )}
+
+      {scoped.unbound.length > 0 && (
+        <Note tone="warn">
+          {scoped.unbound.length} older code{scoped.unbound.length === 1 ? '' : 's'} not bound to any student{' '}
+          {scoped.unbound.map((c) => c.phone).join(', ')}. Press Edit on one below to bind it to this child.
         </Note>
       )}
 
