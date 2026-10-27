@@ -18,7 +18,6 @@ import type { SubjectProgress } from './SubjectDetailsModal';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { DppSummary } from '../hooks/useDppView';
 import { MainTopBar } from './MainTopBar';
-import { StatusBar } from './StatusBar';
 import { AppBottomNav } from './AppBottomNav';
 import { StudentDashboardView } from './StudentDashboardView';
 import { OfflineAttendanceDashboardView } from './OfflineAttendanceDashboardView';
@@ -125,7 +124,6 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
       className="relative w-full h-full flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif] bg-white text-[#17181C]"
     >
       <header className="shrink-0 z-30 w-full bg-white">
-        <StatusBar time="11:03 AM" battery={58} />
         <MainTopBar
           selectedBatchName={
             selectedBatch?.name
