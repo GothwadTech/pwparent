@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
 /**
  * These tests guard the thing that most often breaks a Cloudflare Pages deploy:
@@ -13,6 +13,16 @@ const REQUIRED: Record<string, string> = {
   VITE_FIREBASE_MESSAGING_SENDER_ID: '1234567890',
   VITE_FIREBASE_APP_ID: '1:1234567890:web:abcdef',
 };
+
+beforeEach(() => {
+  for (const key of Object.keys(REQUIRED)) {
+    vi.stubEnv(key, '');
+    vi.stubEnv(key.replace(/^VITE_/, ''), '');
+  }
+  vi.stubEnv('VITE_BACKEND_MODE', '');
+  vi.stubEnv('BACKEND_MODE', '');
+  vi.resetModules();
+});
 
 afterEach(() => {
   vi.unstubAllEnvs();

@@ -28,7 +28,8 @@ const env = (import.meta.env ?? {}) as unknown as Record<string, string | undefi
 
 /** Reads VITE_<KEY> first, then falls back to <KEY>. Trims + ignores empties. */
 function read(name: string): string | undefined {
-  const raw = env[`VITE_${name}`] ?? env[name];
+  const prefixed = env[`VITE_${name}`];
+  const raw = typeof prefixed === 'string' && prefixed.trim() !== '' ? prefixed : env[name];
   if (typeof raw !== 'string') return undefined;
   const value = raw.trim();
   // Treat the literal placeholders from .env.example as "not set".
@@ -94,7 +95,9 @@ export const isFirebaseConfigured: boolean = missingFirebaseKeys().length === 0;
  * Set `VITE_BACKEND_MODE=mock` explicitly to run against localStorage
  * (offline development and the test suite).
  */
-export const requestedBackendMode: string = (read('BACKEND_MODE') ?? 'firebase').toLowerCase();
+export const requestedBackendMode: string = (
+  read('BACKEND_MODE') ?? (isFirebaseConfigured ? 'firebase' : 'mock')
+).toLowerCase();
 
 /**
  * Which data source the app should use.

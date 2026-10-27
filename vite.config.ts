@@ -86,9 +86,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
-    // Dev-only. The sandbox preview serves this app from a *.e2b.app host and
-    // Vite rejects unknown Host headers with a 403 without this. Never ships.
-    allowedHosts: ['.e2b.app', '.pages.dev', 'localhost', '127.0.0.1'],
+    allowedHosts: true,
   },
   build: {
     outDir: 'dist',
