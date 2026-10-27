@@ -28,9 +28,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Single source of truth: .nvmrc (= the version Cloudflare Pages and
-          # `nvm` will also pick up). Bump it there, not here.
-          node-version-file: .nvmrc
+          node-version: 22
           cache: npm
 
       # `npm ci` (not `npm install`) so CI uses the committed, tested dependency
@@ -73,7 +71,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - name: Install with npm ci
         run: npm ci
