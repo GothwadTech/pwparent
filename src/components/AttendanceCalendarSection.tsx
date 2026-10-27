@@ -15,7 +15,6 @@
  * days, and the week strip still renders so the shape of the report is visible.
  */
 import React from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import {IconCalendarClock, IconFlame} from './icons/AppIcons';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { CalendarDay } from './OfflineAttendanceDashboardView';
@@ -28,12 +27,9 @@ import {
 
 interface AttendanceCalendarSectionProps {
   summary: BatchSummary;
+  /** The running week — day-wise marks are only kept for it, so there is no pager. */
   days: CalendarDay[];
   weekLabel: string;
-  onPrevWeek?: () => void;
-  onNextWeek?: () => void;
-  canPrevWeek?: boolean;
-  canNextWeek?: boolean;
 }
 
 const LEGEND = [
@@ -50,13 +46,13 @@ const LEGEND = [
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
   const radius = 90;
-  const stroke = 20;
+  const stroke = 22;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.min(100, Math.max(0, percent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[180px] h-[180px] mx-auto mt-6">
+    <div className="relative w-[200px] h-[200px] mx-auto mt-5">
       <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
         <circle cx="100" cy="100" r={radius} fill="none" stroke={PROGRESS_TRACK} strokeWidth={stroke} />
         {clamped > 0 && (
@@ -68,7 +64,7 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[32px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[34px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
           {percent}%
         </span>
         <span className="text-[13px] font-semibold mt-2" style={{ color: TEXT_PRIMARY }}>
@@ -117,12 +113,12 @@ const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isTo
 };
 
 export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps> = ({
-  summary, days, weekLabel, onPrevWeek, onNextWeek, canPrevWeek, canNextWeek,
+  summary, days, weekLabel,
 }) => {
   const todayIndex = days.findIndex((d) => d.dayNum === new Date().getDate());
 
   return (
-    <section className="px-4 pt-4 pb-5">
+    <section className="px-4 pt-4 pb-4">
       {/* Title + streak pill */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -146,8 +142,8 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
 
       <AttendanceDonut percent={summary.avgAttendance} />
 
-      {/* All-time day counts */}
-      <div className="grid grid-cols-2 items-center mt-6">
+      {/* Lifetime day counts: seeded history + this week's marks */}
+      <div className="grid grid-cols-2 items-center mt-5">
         <div className="text-center">
           <div className="text-[20px] leading-none font-extrabold" style={{ color: TEXT_PRIMARY }}>
             {summary.studyDays}
@@ -162,33 +158,13 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         </div>
       </div>
 
-      {/* Weekly report */}
-      <h3 className="text-[14px] font-extrabold tracking-tight mt-6" style={{ color: TEXT_PRIMARY }}>
+      {/* Running week — marks are only kept for it, so there is nothing to page */}
+      <h3 className="text-[14px] font-extrabold tracking-tight mt-5" style={{ color: TEXT_PRIMARY }}>
         Weekly Report
       </h3>
 
-      <div className="flex items-center justify-between mt-3">
-        <button
-          type="button"
-          onClick={onPrevWeek}
-          disabled={!canPrevWeek}
-          aria-label="Previous week"
-          className="w-7 h-7 rounded-full flex items-center justify-center disabled:opacity-40"
-          style={{ background: '#F1F2F4' }}
-        >
-          <ArrowLeft size={14} style={{ color: TEXT_PRIMARY }} />
-        </button>
+      <div className="flex items-center justify-center mt-3">
         <span className="text-[13px] font-medium" style={{ color: TEXT_SECONDARY }}>{weekLabel}</span>
-        <button
-          type="button"
-          onClick={onNextWeek}
-          disabled={!canNextWeek}
-          aria-label="Next week"
-          className="w-7 h-7 rounded-full flex items-center justify-center disabled:opacity-40"
-          style={{ background: '#F1F2F4' }}
-        >
-          <ArrowRight size={14} style={{ color: canNextWeek ? TEXT_PRIMARY : '#C6C9CF' }} />
-        </button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 mt-3">

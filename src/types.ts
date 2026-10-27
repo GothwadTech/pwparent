@@ -26,6 +26,13 @@ export interface BatchOption {
   name: string;
   isPopular?: boolean;
   batchType?: 'online' | 'offline';
+  /**
+   * Admin-seeded all-time attendance history. Day-wise marks are only kept for
+   * the running week, so the lifetime "Total Study Days / Total Present Days"
+   * figures are entered here and the week's live marks add on top.
+   */
+  baseStudyDays?: number;
+  basePresentDays?: number;
 }
 
 export interface AnnouncementItem {
@@ -81,6 +88,9 @@ export interface Batch {
   batchType: 'online' | 'offline';
   createdAt?: string;
   createdBy?: string;
+  /** Admin-seeded lifetime attendance history; the running week adds on top. */
+  baseStudyDays?: number;
+  basePresentDays?: number;
 }
 
 /**

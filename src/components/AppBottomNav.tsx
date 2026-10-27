@@ -61,7 +61,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
               className="text-[12px] tracking-tight"
               style={{
                 color: isActive ? ACCENT : TEXT_SECONDARY,
-                fontWeight: isActive ? 700 : 500,
+                fontWeight: isActive ? 600 : 400,
               }}
             >
               {tab.label}

@@ -14,7 +14,7 @@
  * `CalendarDay` and `OfflineTestRow` stay EXPORTED FROM HERE because useBatchView
  * and ChildDashboardScreen import them from this module.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { StudentProfile } from '../types';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { DppSummary } from '../hooks/useDppView';
@@ -89,14 +89,12 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
   onViewAllTests,
   onOpenTest,
 }) => {
+  // Day-wise marks are only kept for the week in progress, so the strip shows
+  // exactly that week — the one containing today, else the latest stored one.
   const weeks = useMemo(() => chunkWeeks(calendarDays), [calendarDays]);
-  // The week containing today opens by default; otherwise the first week.
   const todayIdx = calendarDays.findIndex((d) => d.dayNum === new Date().getDate());
-  const [weekIndex, setWeekIndex] = useState(() =>
-    todayIdx >= 0 ? Math.floor(todayIdx / 7) : 0,
-  );
-  const clamped = Math.min(weekIndex, Math.max(0, weeks.length - 1));
-  const currentWeek = weeks[clamped] ?? [];
+  const currentIdx = todayIdx >= 0 ? Math.floor(todayIdx / 7) : weeks.length - 1;
+  const currentWeek = weeks[Math.max(0, currentIdx)] ?? [];
 
   const band = <div className="h-3 w-full" style={{ background: SECTION_BAND }} />;
 
@@ -106,10 +104,6 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
         summary={summary}
         days={currentWeek}
         weekLabel={weekLabel(currentWeek)}
-        onPrevWeek={() => setWeekIndex((i) => Math.max(0, i - 1))}
-        onNextWeek={() => setWeekIndex((i) => Math.min(weeks.length - 1, i + 1))}
-        canPrevWeek={clamped > 0}
-        canNextWeek={clamped < weeks.length - 1}
       />
 
       {band}
