@@ -105,7 +105,7 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
     setSelectedWeekIdx((prev) => Math.min(Math.max(0, weeks.length - 1), (prev ?? defaultIdx) + 1));
   };
 
-  const band = <div className="h-2 w-full bg-[#ECEFF3]" />;
+  const band = <div className="h-2.5 w-full bg-[#EEF1F6]" />;
 
   return (
     <div className="flex-1 w-full pb-6 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">

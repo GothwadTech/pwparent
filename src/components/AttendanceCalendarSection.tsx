@@ -2,7 +2,7 @@
  * Attendance section of the offline dashboard — pixel-perfect match to PW Parent app.
  */
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { CalendarDay } from './OfflineAttendanceDashboardView';
 
@@ -16,40 +16,40 @@ interface AttendanceCalendarSectionProps {
 }
 
 const LEGEND = [
-  { color: '#5747D6', label: 'Today' },
+  { color: '#4F46E5', label: 'Today' },
   { color: '#9CA3AF', label: 'No Class' },
   { color: '#10B981', label: 'Present' },
   { color: '#EF4444', label: 'Absent' },
 ];
 
 /**
- * 230px Donut circular progress gauge with 22px stroke and flat cap.
+ * 210px Donut circular progress gauge with 22px stroke and flat butt cap.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 95;
+  const radius = 90;
   const stroke = 22;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.min(100, Math.max(0, percent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[230px] h-[230px] mx-auto mt-6 mb-2 select-none">
-      <svg viewBox="0 0 240 240" className="w-full h-full -rotate-90">
+    <div className="relative w-[210px] h-[210px] mx-auto mt-5 mb-4 select-none flex items-center justify-center">
+      <svg viewBox="0 0 220 220" className="w-full h-full -rotate-90">
         <circle
-          cx="120"
-          cy="120"
+          cx="110"
+          cy="110"
           r={radius}
           fill="none"
-          stroke="#EEF1F6"
+          stroke="#EEF2F6"
           strokeWidth={stroke}
         />
         {clamped > 0 && (
           <circle
-            cx="120"
-            cy="120"
+            cx="110"
+            cy="110"
             r={radius}
             fill="none"
-            stroke="#5345E6"
+            stroke="#4F46E5"
             strokeWidth={stroke}
             strokeLinecap="butt"
             strokeDasharray={`${filled} ${circumference - filled}`}
@@ -57,10 +57,10 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[44px] leading-none font-extrabold text-[#17181C] tracking-tight">
+        <span className="text-[48px] leading-none font-extrabold text-[#111827] tracking-tight">
           {percent}%
         </span>
-        <span className="text-[13.5px] font-bold text-[#17181C] mt-2 tracking-tight">
+        <span className="text-[13px] font-bold text-[#111827] mt-2.5 tracking-tight">
           Average attendance
         </span>
       </div>
@@ -68,37 +68,59 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
   );
 };
 
+/** Calendar icon with yellow clock matching the screenshot */
+const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+    {/* Binder clips */}
+    <rect x="5.5" y="2" width="2" height="3" rx="1" fill="#E11D48" />
+    <rect x="12.5" y="2" width="2" height="3" rx="1" fill="#E11D48" />
+    {/* Calendar body */}
+    <rect x="3" y="4" width="14" height="15" rx="2.5" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.2" />
+    {/* Red top band */}
+    <path d="M3 6.5C3 5.11929 4.11929 4 5.5 4H14.5C15.8807 4 17 5.11929 17 6.5V8H3V6.5Z" fill="#F43F5E" />
+    {/* Grid dots */}
+    <circle cx="6.5" cy="11" r="0.9" fill="#94A3B8" />
+    <circle cx="10" cy="11" r="0.9" fill="#94A3B8" />
+    <circle cx="13.5" cy="11" r="0.9" fill="#94A3B8" />
+    <circle cx="6.5" cy="14" r="0.9" fill="#94A3B8" />
+    <circle cx="10" cy="14" r="0.9" fill="#94A3B8" />
+    {/* Yellow Clock at bottom right */}
+    <circle cx="17.5" cy="17.5" r="4.5" fill="#FBBF24" stroke="#F59E0B" strokeWidth="1.2" />
+    <polyline points="17.5,15 17.5,17.5 19,17.5" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
 /** One weekday column matching screenshot */
 const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
   return (
     <div
-      className={`flex flex-col items-center pt-1.5 pb-2 rounded-lg transition-all ${
+      className={`flex flex-col items-center pt-2 pb-2.5 px-0.5 rounded-lg transition-all ${
         isToday
-          ? 'bg-[#F0F6FF] border-[1.5px] border-[#93C5FD]'
+          ? 'bg-[#EFF6FF] border-[1.5px] border-[#93C5FD]'
           : 'border border-transparent'
       }`}
     >
       <span
-        className={`text-[13px] ${
-          isToday ? 'font-bold text-[#17181C]' : 'font-medium text-[#4B5563]'
+        className={`text-[13px] leading-none mb-1.5 ${
+          isToday ? 'font-bold text-[#111827]' : 'font-normal text-[#6B7280]'
         }`}
       >
         {day.dayLabel}
       </span>
       <div
-        className={`mt-1.5 w-9 h-9 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
+        className={`w-9 h-10 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
           isToday ? 'border-[#93C5FD]' : 'border-[#E5E7EB]'
         }`}
       >
         <span
           className={`text-[12.5px] leading-none ${
-            isToday ? 'font-bold text-[#17181C]' : 'font-semibold text-[#17181C]'
+            isToday ? 'font-bold text-[#111827]' : 'font-semibold text-[#111827]'
           }`}
         >
           {day.dayNum}
         </span>
         {isToday ? (
-          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#5747D6]" />
+          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#4F46E5]" />
         ) : day.status === 'present' ? (
           <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#10B981]" />
         ) : day.status === 'absent' ? (
@@ -147,15 +169,15 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
     <section className="px-4.5 pt-4 pb-4 bg-white select-none">
       {/* Title + streak pill */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2.5">
-          <span className="text-[22px] leading-none select-none">📅</span>
-          <h2 className="text-[20px] font-bold text-[#17181C] tracking-tight">
+        <div className="flex items-center space-x-2">
+          <IconCalendarWithClock size={22} />
+          <h2 className="text-[18px] font-bold text-[#111827] tracking-tight ml-1">
             Attendance
           </h2>
         </div>
-        <div className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-[#FFF6EA] border border-[#FED7AA]">
-          <span className="text-[14px] leading-none select-none">🔥</span>
-          <span className="text-[13px] font-bold text-[#9A3412]">
+        <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FFF7ED] border border-[#FED7AA]">
+          <span className="text-[13px] leading-none select-none">🔥</span>
+          <span className="text-[12.5px] font-bold text-[#C2410C]">
             {displayStreak} day streak
           </span>
         </div>
@@ -165,27 +187,28 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       <AttendanceDonut percent={displayPercent} />
 
       {/* Lifetime day counts */}
-      <div className="grid grid-cols-2 items-center mt-7 mb-7">
+      <div className="grid grid-cols-2 items-center relative mt-6 mb-6">
         <div className="text-center">
-          <div className="text-[26px] leading-none font-bold text-[#17181C]">
+          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
             {displayStudyDays}
           </div>
-          <div className="text-[13px] font-medium text-[#4B5563] mt-2">
+          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
             Total Study Days
           </div>
         </div>
-        <div className="text-center border-l h-10 flex flex-col items-center justify-center border-[#E5E7EB]">
-          <div className="text-[26px] leading-none font-bold text-[#17181C]">
+        <div className="w-[1px] h-7 bg-[#E5E7EB] absolute left-1/2 top-1/2 -translate-y-1/2" />
+        <div className="text-center">
+          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
             {displayPresentDays}
           </div>
-          <div className="text-[13px] font-medium text-[#4B5563] mt-2">
+          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
             Total Present Days
           </div>
         </div>
       </div>
 
       {/* Weekly Report heading */}
-      <h3 className="text-[15px] font-bold text-[#17181C] tracking-tight mb-3">
+      <h3 className="text-[14px] font-bold text-[#111827] tracking-tight mb-3">
         Weekly Report
       </h3>
 
@@ -195,9 +218,9 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
           type="button"
           onClick={onPrevWeek}
           aria-label="Previous week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
         >
-          <ChevronLeft size={16} />
+          <ArrowLeft size={13} strokeWidth={2} />
         </button>
         <span className="text-[14px] font-medium text-[#4B5563]">
           {displayWeekLabel}
@@ -206,9 +229,9 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
           type="button"
           onClick={onNextWeek}
           aria-label="Next week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#4B5563] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
         >
-          <ChevronRight size={16} />
+          <ArrowRight size={13} strokeWidth={2} />
         </button>
       </div>
 
@@ -224,7 +247,7 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         {LEGEND.map((l) => (
           <div key={l.label} className="flex items-center space-x-1.5">
             <span className="w-2 h-2 rounded-full" style={{ background: l.color }} />
-            <span className="text-[12px] font-medium text-[#17181C]">{l.label}</span>
+            <span className="text-[11.5px] font-medium text-[#111827]">{l.label}</span>
           </div>
         ))}
       </div>

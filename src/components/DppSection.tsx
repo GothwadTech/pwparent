@@ -53,11 +53,22 @@ const MonthBars: React.FC<{ monthly: DppSummary['monthly'] }> = ({ monthly }) =>
   );
 };
 
+const IconClipboardExact: React.FC<{ size?: number }> = ({ size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+    <rect x="4" y="3" width="16" height="19" rx="2.5" fill="#F59E0B" />
+    <rect x="6" y="5.5" width="12" height="14.5" rx="1.5" fill="#FFFFFF" />
+    <rect x="8.5" y="1.5" width="7" height="3" rx="1.5" fill="#94A3B8" stroke="#64748B" strokeWidth="0.8" />
+    <line x1="8.5" y1="9" x2="15.5" y2="9" stroke="#94A3B8" strokeWidth="1.2" strokeLinecap="round" />
+    <line x1="8.5" y1="12" x2="15.5" y2="12" stroke="#94A3B8" strokeWidth="1.2" strokeLinecap="round" />
+    <line x1="8.5" y1="15" x2="13.5" y2="15" stroke="#94A3B8" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
 export const DppSection: React.FC<DppSectionProps> = ({ summary, onOpenSubjectDetails }) => (
   <section className="px-4.5 pt-4 pb-5 bg-white">
-    <div className="flex items-center space-x-2.5">
-      <span className="text-[22px] leading-none select-none">📋</span>
-      <h2 className="text-[20px] font-bold text-[#17181C] tracking-tight">
+    <div className="flex items-center space-x-2">
+      <IconClipboardExact size={22} />
+      <h2 className="text-[18px] font-bold text-[#111827] tracking-tight ml-1">
         Daily Practice Paper
       </h2>
     </div>

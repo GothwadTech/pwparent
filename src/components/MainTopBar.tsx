@@ -41,35 +41,35 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
 
   return (
     <div
-      className="w-full px-4 pt-1.5 pb-2.5 flex items-center justify-between z-30 select-none bg-white"
+      className="w-full px-4 pt-3 pb-3 flex items-center justify-between z-30 select-none bg-white"
     >
       {/* Batch dropdown selector */}
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center justify-between space-x-2 px-3.5 py-2.5 rounded-lg bg-white border border-[#E5E7EB] max-w-[245px] hover:bg-neutral-50 active:scale-98 transition-all shadow-2xs"
+        className="flex items-center justify-between space-x-2 px-3.5 h-[42px] rounded-lg bg-white border border-[#E5E7EB] w-[225px] hover:bg-neutral-50 active:scale-98 transition-all shadow-2xs"
         title="Select Batch"
       >
-        <span className="text-[14px] font-medium text-[#17181C] truncate tracking-tight">
+        <span className="text-[13.5px] font-normal text-[#1F2937] truncate tracking-tight">
           {selectedBatchName}
         </span>
-        <ChevronDown size={17} className="text-[#374151] shrink-0 ml-1" />
+        <ChevronDown size={18} className="text-[#374151] shrink-0 ml-1" />
       </button>
 
       {/* Sync (left of avatar) + student avatar + name */}
-      <div className="flex items-center space-x-1.5">
+      <div className="flex items-center space-x-1">
         {onRefreshData && (
           <button
             type="button"
             onClick={() => void runSync()}
             aria-label="Refresh data"
             title="Sync now"
-            className="w-6 h-6 rounded-full flex items-center justify-center text-[#9CA3AF] hover:text-[#5345E6] active:scale-95 transition-all opacity-40 hover:opacity-100"
+            className="w-4 h-4 rounded-full flex items-center justify-center text-[#9CA3AF] hover:text-[#4F46E5] active:scale-95 transition-all opacity-0 hover:opacity-100"
           >
             <RefreshCw
-              size={13}
+              size={12}
               className={syncing ? 'animate-spin' : ''}
-              style={{ color: syncing ? '#5345E6' : undefined }}
+              style={{ color: syncing ? '#4F46E5' : undefined }}
             />
           </button>
         )}
@@ -79,10 +79,10 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
           className="flex flex-col items-center focus:outline-none cursor-pointer group active:scale-95 transition-transform"
           title="Open Profile"
         >
-          <div className="h-[38px] w-[38px] rounded-full overflow-hidden flex items-center justify-center bg-[#BAE6FD]">
-            <StudentAvatar type="boy" size={38} />
+          <div className="h-9 w-9 rounded-full overflow-hidden flex items-center justify-center bg-[#BAE6FD]">
+            <StudentAvatar type="boy" size={36} />
           </div>
-          <span className="text-[12px] font-medium text-[#17181C] mt-0.5 tracking-tight">
+          <span className="text-[11.5px] font-normal text-[#1F2937] mt-0.5 tracking-tight">
             {activeStudent.name || 'No Name'}
           </span>
         </button>

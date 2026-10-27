@@ -88,6 +88,7 @@ export const App: React.FC = () => {
     handleLogout,
     handleSwitchNumber,
     handleDeleteParentProfile,
+    handleDemoLogin,
     completeOnboarding,
     handleSaveAnnouncement,
     handleDeleteAnnouncement,
@@ -274,6 +275,7 @@ export const App: React.FC = () => {
         }}
         onSwitchNumber={handleSwitchNumber}
         onSignOut={handleLogout}
+        onDemoLogin={() => void handleDemoLogin()}
       />
 
       <HowItWorksModal isOpen={isHowItWorksOpen} onClose={() => setIsHowItWorksOpen(false)} />

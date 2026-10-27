@@ -131,4 +131,15 @@ describe('the panel itself: controlled, and nothing floats', () => {
     expect(screen.getByText(/Firestore reads/i)).not.toBeNull();
     expect(screen.getByText(/\+91 9876543210/)).not.toBeNull();
   });
+
+  it('triggers onDemoLogin when Demo Student Login is clicked', () => {
+    const onDemoLogin = vi.fn();
+    const onClose = vi.fn();
+    render(<SettingsDock {...dockProps(true, onClose)} onDemoLogin={onDemoLogin} />);
+
+    const demoBtn = screen.getByText('Demo Student Login');
+    fireEvent.click(demoBtn);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onDemoLogin).toHaveBeenCalledTimes(1);
+  });
 });

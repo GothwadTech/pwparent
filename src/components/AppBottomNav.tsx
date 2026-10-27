@@ -66,21 +66,21 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
 }) => {
   return (
     <nav
-      className="w-full bg-white border-t border-[#F0F2F5] pt-2 pb-3 px-6 flex items-center justify-around z-30 select-none shadow-[0_-2px_10px_rgba(0,0,0,0.02)]"
+      className="w-full bg-white border-t border-[#F3F4F6] pt-1.5 pb-2 px-6 flex items-center justify-around z-30 select-none"
       aria-label="Bottom Navigation"
     >
       {/* Dashboard */}
       <button
         type="button"
         onClick={() => onSelectTab('dashboard')}
-        className="flex flex-col items-center space-y-1 py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <IconDashboardNav active={activeTab === 'dashboard'} />
         <span
-          className={`text-[11.5px] tracking-tight ${
+          className={`text-[11px] tracking-tight mt-1 ${
             activeTab === 'dashboard'
-              ? 'text-[#5345E6] font-bold'
-              : 'text-[#8E95A3] font-medium'
+              ? 'text-[#4F46E5] font-bold'
+              : 'text-[#6B7280] font-normal'
           }`}
         >
           Dashboard
@@ -91,7 +91,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       <button
         type="button"
         onClick={() => onSelectTab('announcements')}
-        className="relative flex flex-col items-center space-y-1 py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="relative flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <span className="relative">
           <IconAnnouncementsNav active={activeTab === 'announcements'} />
@@ -100,10 +100,10 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
           )}
         </span>
         <span
-          className={`text-[11.5px] tracking-tight ${
+          className={`text-[11px] tracking-tight mt-1 ${
             activeTab === 'announcements'
-              ? 'text-[#5345E6] font-bold'
-              : 'text-[#8E95A3] font-medium'
+              ? 'text-[#4F46E5] font-bold'
+              : 'text-[#6B7280] font-normal'
           }`}
         >
           Announcements
@@ -114,14 +114,14 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       <button
         type="button"
         onClick={() => onSelectTab('support')}
-        className="flex flex-col items-center space-y-1 py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <IconSupportNav active={activeTab === 'support'} />
         <span
-          className={`text-[11.5px] tracking-tight ${
+          className={`text-[11px] tracking-tight mt-1 ${
             activeTab === 'support'
-              ? 'text-[#5345E6] font-bold'
-              : 'text-[#8E95A3] font-medium'
+              ? 'text-[#4F46E5] font-bold'
+              : 'text-[#6B7280] font-normal'
           }`}
         >
           Support

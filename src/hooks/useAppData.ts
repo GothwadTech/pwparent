@@ -75,6 +75,8 @@ export interface AppData {
   handleLogout: () => void;
   handleSwitchNumber: () => void;
   handleDeleteParentProfile: () => void;
+  /** Instant demo student login with sample data */
+  handleDemoLogin: () => Promise<void>;
 
   // ── mutations ────────────────────────────────────────────────────────────
   completeOnboarding: () => void;
@@ -341,6 +343,54 @@ export function useAppData(): AppData {
     setScreen('login');
   }, [backend]);
 
+  /** Instant demo student login with sample data */
+  const handleDemoLogin = useCallback(async () => {
+    const demoPhone = '9000000000';
+    setPhoneNumber(demoPhone);
+    setParentProfile((prev) => ({
+      ...prev,
+      name: 'Demo Parent',
+      mobileNumber: demoPhone,
+      email: 'parent@pw.live',
+    }));
+
+    if (backend) {
+      try {
+        const sendRes = await backend.sendOtp(demoPhone);
+        setOtpResult(sendRes);
+        const verifyRes = await backend.verifyOtp('123456', sendRes);
+        if (verifyRes.ok) {
+          setUid(verifyRes.uid ?? 'demo-parent-uid');
+          setBoundStudentId(verifyRes.studentId ?? '1');
+          await hydrate(backend, verifyRes.uid, verifyRes.studentId ?? '1');
+          setScreen('dashboard');
+          return;
+        }
+      } catch (err) {
+        console.warn('[demoLogin] backend auth failed, falling back to direct demo state:', err);
+      }
+    }
+
+    const demoStudent: StudentProfile = {
+      id: 'demo-s1',
+      name: 'Ayush Mishra',
+      batch: 'Vidyapeeth 16-LN121E01',
+      course: 'Lakshya Batch 2026',
+      attendance: '95%',
+      testsCompleted: 18,
+      dppsDone: 52,
+      videoWatchRate: '91%',
+      testsTotal: 19,
+      avgScorePercent: 78,
+      accuracyPercent: 82,
+      batchIds: ['batch-vp16'],
+    };
+    setStudents([demoStudent]);
+    setActiveStudent(demoStudent);
+    setUid('demo-parent-uid');
+    setScreen('dashboard');
+  }, [backend, hydrate]);
+
   /**
    * Onboarding complete — remember it so the next open goes straight to login.
    * The write happens BEFORE the navigation so a reload mid-transition cannot
@@ -452,6 +502,7 @@ export function useAppData(): AppData {
     handleLogout,
     handleSwitchNumber,
     handleDeleteParentProfile,
+    handleDemoLogin,
     completeOnboarding,
     handleSaveStudent,
     handleDeleteStudent,

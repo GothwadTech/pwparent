@@ -15,7 +15,7 @@
  */
 import React, {useEffect, useState} from 'react';
 import {identityNote} from '../lib/identityStatus';
-import {AlertTriangle, Database, KeyRound, LogOut, Phone, RefreshCw, X} from 'lucide-react';
+import {AlertTriangle, Database, GraduationCap, KeyRound, LogOut, Phone, RefreshCw, X} from 'lucide-react';
 import type {Backend} from '../lib/backend';
 import {cacheStats} from '../lib/backend/readCache';
 import type {AdminIdentity} from '../lib/adminAuth';
@@ -34,6 +34,8 @@ interface SettingsDockProps {
   onOpenAdmin: () => void;
   onSwitchNumber: () => void;
   onSignOut: () => void;
+  /** Instant demo student login with sample data */
+  onDemoLogin?: () => void;
 }
 
 const DOT: Record<string, string> = {
@@ -85,6 +87,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
   onOpenAdmin,
   onSwitchNumber,
   onSignOut,
+  onDemoLogin,
 }) => {
   const [stats, setStats] = useState(cacheStats());
 
@@ -163,6 +166,17 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
             </div>
 
             <div className="space-y-2">
+              {onDemoLogin && (
+                <Action
+                  icon={<GraduationCap size={16} />}
+                  label="Demo Student Login"
+                  hint="Instant login with student dashboard & demo data"
+                  onClick={() => {
+                    onClose();
+                    onDemoLogin();
+                  }}
+                />
+              )}
               <Action
                 icon={<KeyRound size={16} />}
                 label="Admin Panel"
