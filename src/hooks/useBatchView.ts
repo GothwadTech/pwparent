@@ -29,6 +29,7 @@
  */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {BatchOption, BatchTest, MonthMarks, StudentProfile, TestResult} from '../types';
+import {attendanceTotals} from '../lib/attendanceTotals';
 import type {Backend} from '../lib/backend';
 import {monthDays, monthKey} from '../lib/backend';
 import type {AllTestsRow} from '../components/AllTestsModal';
@@ -140,6 +141,8 @@ export function useBatchView(
           id: b.id,
           name: b.name,
           batchType: b.batchType,
+          baseStudyDays: b.baseStudyDays,
+          basePresentDays: b.basePresentDays,
         }));
         setBatches(options);
         // Keep the current selection if it is still valid; otherwise take the
@@ -325,7 +328,15 @@ export function useBatchView(
     // marks are read.
     const allMarks = Object.values(attendanceMonths).flatMap((m) => Object.values(m));
     const present = allMarks.filter((m) => m === 'P' || m === 'L').length;
-    const percent = allMarks.length ? Math.round((present / allMarks.length) * 100) : 0;
+    // Lifetime = admin-seeded history + the running week's live marks.
+    const seeded = batches.find((b) => b.id === selectedBatchId);
+    const totals = attendanceTotals(
+      seeded?.baseStudyDays,
+      seeded?.basePresentDays,
+      allMarks.length,
+      present,
+    );
+    const percent = totals.percent;
 
     // Streak: walk the marked days newest-first and count how long the run of
     // present/late days holds. Only real marks are read — an unmarked day ends
@@ -344,15 +355,15 @@ export function useBatchView(
       testsAttempted: attempted.length,
       testsTotal: tests.length,
       bestScore: bestTest && best > 0 ? `${best}/${bestTest.marksTotal}` : '',
-      attendancePercent: allMarks.length > 0 ? `${percent}%` : '',
+      attendancePercent: totals.studyDays > 0 ? `${percent}%` : '',
       avgAttendance: percent,
-      studyDays: allMarks.length,
-      presentDays: present,
+      studyDays: totals.studyDays,
+      presentDays: totals.presentDays,
       streakDays: streak,
       avgScorePercent: avgOf(attempted.map((x) => x.result?.scorePercent)),
       avgAccuracyPercent: avgOf(attempted.map((x) => x.result?.accuracyPercent)),
     };
-  }, [tests, attendanceMonths]);
+  }, [tests, attendanceMonths, batches, selectedBatchId]);
 
   const subjects = useMemo<SubjectProgress[]>(() => {
     // Group every syllabus line across the batch's tests by subject, then attach

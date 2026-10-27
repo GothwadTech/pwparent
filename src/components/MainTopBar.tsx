@@ -87,7 +87,7 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
         >
           <StudentAvatar type="boy" size={30} />
         </div>
-        <span className="text-[12px] mt-1" style={{ color: TEXT_PRIMARY }}>
+        <span className="text-[13px] mt-1" style={{ color: TEXT_PRIMARY }}>
           {activeStudent.name || 'No Name'}
         </span>
       </button>

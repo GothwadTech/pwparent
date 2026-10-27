@@ -21,7 +21,7 @@ import {ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, Minus, Moon} 
 import type {AttendanceMark, AttendanceRecord, Batch} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {monthDays, monthKey, monthMarksOf, summarizeAttendance, todayKey} from '../../lib/backend';
-import {btnGhost, btnPrimary, cardCls, labelCls, Note} from './ui';
+import {btnGhost, btnPrimary, cardCls, inputCls, labelCls, Note} from './ui';
 
 interface BatchAttendancePanelProps {
   backend: Backend;
@@ -128,6 +128,29 @@ const StudentCalendar: React.FC<{
 
 export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backend, batch, flash}) => {
   const [month, setMonth] = useState(monthKey());
+  /**
+   * Lifetime attendance history, seeded by the admin. Day-wise marks are only
+   * kept for the running week, so the parent dashboard's all-time "Total Study
+   * Days / Total Present Days" come from here — and every mark entered for the
+   * running week increases both figures on top of these bases.
+   */
+  const [baseStudy, setBaseStudy] = useState(String(batch.baseStudyDays ?? 0));
+  const [basePresent, setBasePresent] = useState(String(batch.basePresentDays ?? 0));
+  const [savingBase, setSavingBase] = useState(false);
+
+  const saveBase = async () => {
+    setSavingBase(true);
+    try {
+      const study = Math.max(0, Math.round(Number(baseStudy) || 0));
+      const present = Math.min(study, Math.max(0, Math.round(Number(basePresent) || 0)));
+      await backend.saveBatch({...batch, baseStudyDays: study, basePresentDays: present});
+      flash('Attendance history saved.');
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Could not save the history.');
+    } finally {
+      setSavingBase(false);
+    }
+  };
   const [students, setStudents] = useState<{id: string; name: string}[]>([]);
   const [records, setRecords] = useState<Record<string, AttendanceRecord>>({});
   const [loading, setLoading] = useState(true);
@@ -203,6 +226,40 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
 
   return (
     <>
+      {/* All-time totals — the part day-wise marks cannot remember */}
+      <div className={`${cardCls} space-y-2.5`}>
+        <p className={labelCls}>Attendance history (all-time)</p>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className="block text-[11px] font-semibold text-neutral-600 mb-1">Total study days</span>
+            <input
+              type="number"
+              min={0}
+              value={baseStudy}
+              onChange={(e) => setBaseStudy(e.target.value)}
+              className={inputCls}
+            />
+          </label>
+          <label className="block">
+            <span className="block text-[11px] font-semibold text-neutral-600 mb-1">Total present days</span>
+            <input
+              type="number"
+              min={0}
+              value={basePresent}
+              onChange={(e) => setBasePresent(e.target.value)}
+              className={inputCls}
+            />
+          </label>
+        </div>
+        <button type="button" className={btnPrimary} onClick={() => void saveBase()} disabled={savingBase}>
+          Save history
+        </button>
+        <Note>
+          Day-wise marks are only stored for the running week. Seed the past here — the week&apos;s marks add on
+          top of these two numbers automatically, and the parent&apos;s attendance donut follows them.
+        </Note>
+      </div>
+
       <div className="flex items-center justify-between gap-2">
         <button type="button" className={btnGhost} onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month">
           <ChevronLeft size={13} />
