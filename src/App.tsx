@@ -117,6 +117,7 @@ export const App: React.FC = () => {
             onSubmit={(phone) => void handleLoginSubmit(phone)}
             onHowItWorks={() => setIsHowItWorksOpen(true)}
             onOpenSettings={openSettings}
+            onDemoLogin={() => void handleDemoLogin()}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
           />

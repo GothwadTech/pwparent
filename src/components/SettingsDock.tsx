@@ -167,15 +167,24 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
 
             <div className="space-y-2">
               {onDemoLogin && (
-                <Action
-                  icon={<GraduationCap size={16} />}
-                  label="Demo Student Login"
-                  hint="Instant login with student dashboard & demo data"
+                <button
+                  type="button"
                   onClick={() => {
                     onClose();
                     onDemoLogin();
                   }}
-                />
+                  className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl border border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#3730A3] transition-colors text-left cursor-pointer"
+                >
+                  <span className="text-[#4F46E5]">
+                    <GraduationCap size={18} />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[13px] font-bold text-[#3730A3]">Demo Student Login</span>
+                    <span className="block text-[11px] text-[#4338CA] mt-0.5 leading-snug">
+                      Instant login with student dashboard &amp; demo data
+                    </span>
+                  </span>
+                </button>
               )}
               <Action
                 icon={<KeyRound size={16} />}

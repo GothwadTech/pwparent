@@ -10,6 +10,7 @@ interface LoginScreenProps {
   onOpenSettings?: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
+  onDemoLogin?: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
@@ -19,6 +20,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onOpenSettings,
   customLogoUrl,
   onOpenLogoCustomizer,
+  onDemoLogin,
 }) => {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber || '');
   const [isFocused, setIsFocused] = useState(false);
@@ -123,6 +125,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         >
           Get OTP
         </button>
+
+        {/* Quick Demo Student Login */}
+        {onDemoLogin && (
+          <button
+            type="button"
+            onClick={onDemoLogin}
+            className="w-full mt-3 py-3 rounded-xl font-bold text-[14px] text-center tracking-tight transition-all duration-200 border border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-2xs"
+          >
+            <span>🎓</span>
+            <span>Demo Student Login</span>
+          </button>
+        )}
 
         {/* Terms note */}
         <p className="mt-4 text-[12px] text-[#8e95a5] text-center leading-relaxed font-normal">

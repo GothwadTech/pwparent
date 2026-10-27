@@ -27,7 +27,8 @@ import {
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
 import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
-import {clearStoredSession, hasStoredSession, storedSessionPhone} from '../lib/sessionStore';
+import {clearStoredSession, hasStoredSession, storedSessionPhone, writeStoredSession} from '../lib/sessionStore';
+import {saveSlice} from '../lib/backend/demoStore';
 import {visibleStudentsFor} from '../lib/studentScope';
 import {currentAdmin, type AdminIdentity} from '../lib/adminAuth';
 
@@ -345,34 +346,9 @@ export function useAppData(): AppData {
 
   /** Instant demo student login with sample data */
   const handleDemoLogin = useCallback(async () => {
-    const demoPhone = '9000000000';
-    setPhoneNumber(demoPhone);
-    setParentProfile((prev) => ({
-      ...prev,
-      name: 'Demo Parent',
-      mobileNumber: demoPhone,
-      email: 'parent@pw.live',
-    }));
-
-    if (backend) {
-      try {
-        const sendRes = await backend.sendOtp(demoPhone);
-        setOtpResult(sendRes);
-        const verifyRes = await backend.verifyOtp('123456', sendRes);
-        if (verifyRes.ok) {
-          setUid(verifyRes.uid ?? 'demo-parent-uid');
-          setBoundStudentId(verifyRes.studentId ?? '1');
-          await hydrate(backend, verifyRes.uid, verifyRes.studentId ?? '1');
-          setScreen('dashboard');
-          return;
-        }
-      } catch (err) {
-        console.warn('[demoLogin] backend auth failed, falling back to direct demo state:', err);
-      }
-    }
-
+    const demoPhone = '9876543210';
     const demoStudent: StudentProfile = {
-      id: 'demo-s1',
+      id: '1',
       name: 'Ayush Mishra',
       batch: 'Vidyapeeth 16-LN121E01',
       course: 'Lakshya Batch 2026',
@@ -384,12 +360,81 @@ export function useAppData(): AppData {
       avgScorePercent: 78,
       accuracyPercent: 82,
       batchIds: ['batch-vp16'],
+      tests: [
+        {
+          id: 't19',
+          title: 'MISSION 30 : Test 19',
+          date: '21-6-2026',
+          mode: 'Online',
+          status: 'ATTEMPTED',
+          marksObtained: 234,
+          marksTotal: 300,
+          scorePercent: 78,
+          accuracyPercent: 82,
+        },
+        {
+          id: 't18',
+          title: 'MISSION 30 : Test 18',
+          date: '19-6-2026',
+          mode: 'Online',
+          status: 'ATTEMPTED',
+          marksObtained: 198,
+          marksTotal: 300,
+          scorePercent: 66,
+          accuracyPercent: 74,
+        },
+        {
+          id: 't17',
+          title: 'MISSION 30 : Test 17',
+          date: '17-6-2026',
+          mode: 'Offline',
+          status: 'MISSED',
+          marksTotal: 300,
+        },
+      ],
     };
+
+    // 1. Immediately record stored session so reloads resume this session
+    writeStoredSession({
+      uid: 'demo-parent-uid',
+      phone: demoPhone,
+      studentId: '1',
+    });
+
+    // 2. Set all React state synchronously for instant zero-latency transition
+    setPhoneNumber(demoPhone);
+    setUid('demo-parent-uid');
+    setBoundStudentId('1');
     setStudents([demoStudent]);
     setActiveStudent(demoStudent);
-    setUid('demo-parent-uid');
+    setParentProfile({
+      name: 'Demo Parent',
+      countryCode: '+91',
+      mobileNumber: demoPhone,
+      email: 'parent@pw.live',
+    });
+    setBooting(false);
+    sessionRef.current = 'demo-parent-uid';
+
+    // 3. Immediately switch screen to dashboard
     setScreen('dashboard');
-  }, [backend, hydrate]);
+
+    // 4. Update the mock localStorage demo store so subsequent reads find it
+    try {
+      saveSlice('uid', 'demo-parent-uid');
+      saveSlice('phone', demoPhone);
+      saveSlice('students', [demoStudent]);
+      saveSlice('profile', {
+        name: 'Demo Parent',
+        countryCode: '+91',
+        mobileNumber: demoPhone,
+        email: 'parent@pw.live',
+      });
+      backend?.clearCache();
+    } catch {
+      // ignore
+    }
+  }, [backend]);
 
   /**
    * Onboarding complete — remember it so the next open goes straight to login.
