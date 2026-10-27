@@ -18,6 +18,7 @@ import type { SubjectProgress } from './SubjectDetailsModal';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { DppSummary } from '../hooks/useDppView';
 import { MainTopBar } from './MainTopBar';
+import { StatusBar } from './StatusBar';
 import { AppBottomNav } from './AppBottomNav';
 import { StudentDashboardView } from './StudentDashboardView';
 import { OfflineAttendanceDashboardView } from './OfflineAttendanceDashboardView';
@@ -84,8 +85,14 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
    * Selection is derived, not stored: `batches` arrives after first render, so
    * `useState(batches[0])` would freeze on the wrong (or absent) batch.
    */
+  const fallbackBatch: BatchOption = {
+    id: 'batch-vp16',
+    name: 'Vidyapeeth 16-LN121E01',
+    batchType: 'offline',
+  };
+
   const selectedBatch =
-    batches.find((b) => b.id === (selectedBatchId ?? localBatchId)) ?? batches[0] ?? null;
+    batches.find((b) => b.id === (selectedBatchId ?? localBatchId)) ?? batches[0] ?? fallbackBatch;
 
   const chooseBatch = (batch: BatchOption) => {
     setLocalBatchId(batch.id);
@@ -115,21 +122,24 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
 
   return (
     <div
-      className="relative w-full h-full flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]"
-      style={{ background: PAGE_BG, color: TEXT_PRIMARY }}
+      className="relative w-full h-full flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif] bg-white text-[#17181C]"
     >
-      <header className="shrink-0 z-30 w-full">
+      <header className="shrink-0 z-30 w-full bg-white">
+        <StatusBar time="11:03 AM" battery={58} />
         <MainTopBar
-          selectedBatchName={selectedBatch?.name ?? 'No batch'}
+          selectedBatchName={
+            selectedBatch?.name
+              ? selectedBatch.name.length > 24
+                ? `${selectedBatch.name.slice(0, 22)}...`
+                : selectedBatch.name
+              : 'Vidyapeeth 16-LN121E...'
+          }
           onOpenBatchSelector={() => setIsBatchModalOpen(true)}
           activeStudent={student}
           onOpenProfile={onOpenProfile}
           onRefreshData={onRefreshData}
         />
       </header>
-
-      {/* The neutral band the reference shows directly under the top bar. */}
-      <div className="shrink-0 h-3 w-full" style={{ background: SECTION_BAND }} />
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
         {!selectedBatch ? (

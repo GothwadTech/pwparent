@@ -89,21 +89,32 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
   onViewAllTests,
   onOpenTest,
 }) => {
-  // Day-wise marks are only kept for the week in progress, so the strip shows
-  // exactly that week — the one containing today, else the latest stored one.
+  // Day-wise marks are partitioned into 7-day weeks.
   const weeks = useMemo(() => chunkWeeks(calendarDays), [calendarDays]);
   const todayIdx = calendarDays.findIndex((d) => d.dayNum === new Date().getDate());
-  const currentIdx = todayIdx >= 0 ? Math.floor(todayIdx / 7) : weeks.length - 1;
-  const currentWeek = weeks[Math.max(0, currentIdx)] ?? [];
+  const defaultIdx = todayIdx >= 0 ? Math.floor(todayIdx / 7) : Math.max(0, weeks.length - 1);
+  const [selectedWeekIdx, setSelectedWeekIdx] = React.useState<number | null>(null);
 
-  const band = <div className="h-3 w-full" style={{ background: SECTION_BAND }} />;
+  const activeWeekIdx = selectedWeekIdx ?? defaultIdx;
+  const currentWeek = weeks[activeWeekIdx] ?? [];
+
+  const handlePrevWeek = () => {
+    setSelectedWeekIdx((prev) => Math.max(0, (prev ?? defaultIdx) - 1));
+  };
+  const handleNextWeek = () => {
+    setSelectedWeekIdx((prev) => Math.min(Math.max(0, weeks.length - 1), (prev ?? defaultIdx) + 1));
+  };
+
+  const band = <div className="h-2 w-full bg-[#ECEFF3]" />;
 
   return (
-    <div className="flex-1 w-full pb-4 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full pb-6 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
       <AttendanceCalendarSection
         summary={summary}
         days={currentWeek}
         weekLabel={weekLabel(currentWeek)}
+        onPrevWeek={handlePrevWeek}
+        onNextWeek={handleNextWeek}
       />
 
       {band}

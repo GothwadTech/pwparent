@@ -245,12 +245,12 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden bg-white text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="w-full h-[100dvh] overflow-hidden bg-[#F0F2F5] text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif] flex justify-center">
 
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main
         style={fluidShellStyle(scale)}
-        className="bg-white flex flex-col relative z-10 overflow-hidden"
+        className="bg-white flex flex-col relative z-10 overflow-hidden w-full max-w-[430px] h-full shadow-[0_0_50px_rgba(0,0,0,0.06)] border-x border-[#E4E6EB]/60"
       >
         {/* A remembered session holds the first paint instead of flashing the
             login form — a blank hold, not a splash: it clears the moment the

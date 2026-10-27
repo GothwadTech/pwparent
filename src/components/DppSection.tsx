@@ -54,10 +54,10 @@ const MonthBars: React.FC<{ monthly: DppSummary['monthly'] }> = ({ monthly }) =>
 };
 
 export const DppSection: React.FC<DppSectionProps> = ({ summary, onOpenSubjectDetails }) => (
-  <section className="px-4 pt-4 pb-5">
-    <div className="flex items-center space-x-2">
-      <IconClipboard size={20} />
-      <h2 className="text-[16px] font-extrabold tracking-tight" style={{ color: TEXT_PRIMARY }}>
+  <section className="px-4.5 pt-4 pb-5 bg-white">
+    <div className="flex items-center space-x-2.5">
+      <span className="text-[22px] leading-none select-none">📋</span>
+      <h2 className="text-[20px] font-bold text-[#17181C] tracking-tight">
         Daily Practice Paper
       </h2>
     </div>
