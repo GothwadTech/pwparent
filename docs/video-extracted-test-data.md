@@ -432,3 +432,29 @@ Every subject total below was cross-checked against its chapter marks and agains
 4. **Negative marks:** chapter marks negative aa sakte hain — result form abhi sirf digits leta hai
    (`replace(/[^\d.]/g,'')`), plan me iska allowance chahiye.
 5. **Subjective tab:** video me empty tha — JSON schema me paperType Objective/Subjective dono support karein?
+
+## Appendix A — screen inventory (proof of completeness)
+
+Every unique frame of the recording, mapped. Nothing else appears in the video:
+
+- **All Tests → Objective list** (scrolls, both directions): frames 00-14, 17-20, 22, 27-28, 33-35, 41-44, 49-52,
+  55-59, 63-70, 73-77, 83-88 — the 13 test cards transcribed above (titles, dates, modes, statuses, scores,
+  percents, ranks).
+- **All Tests → Subjective tab**: frames 16, 48, 82 — "No tests found" (empty, hence `"paperType": "Objective"` only).
+- **Test detail screens** (score / accuracy / correct / rank / top / avg + Subject-wise Performance accordion with
+  per-chapter marks): Milestone:2 (15), Milestone:8 (24-26), Milestone:7 (29-32), CAT-1 (36-40), Milestone:6 (45-47),
+  AITS-1 (53-54), Milestone:5 (60-62), AITS Practice Test:1 (71-72), Milestone:4 (78-81).
+- **Loading / transition frames** (no data): 10, 21, 23, 29, 45, 89. **Recorder overlay / end**: 90.
+- Never shown: student name, Milestone:3 & Milestone:1 detail screens, Milestone:8 Botany/Zoology chapter rows
+  (accordions stayed collapsed), AITS Practice Test:1 accuracy/top/avg rows, attendance/DPP/announcements screens.
+
+## Appendix B — running this JSON in the admin (built)
+
+Admin → batch → **JSON query** panel: paste this JSON (or any subset) and run.
+- Tests UPSERT by title — existing title updates in place (same id), new title creates.
+- Choose a student and their result is written too: marks, rank, accuracy, correct, top/avg and chapter-wise
+  `topicMarks` (negative marks allowed).
+- Subjects whose `obtained` is known but `chapters` are empty (Milestone:8 Botany/Zoology) import as a single
+  `(whole subject)` chapter row so every sum stays consistent on the parent's detail screen.
+- `UPCOMING` tests create the paper without a result; `MISSED` creates a MISSED result row without marks.
+- Re-running after editing the JSON updates instead of duplicating — safe to iterate.

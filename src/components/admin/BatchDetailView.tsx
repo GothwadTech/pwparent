@@ -15,15 +15,16 @@
  * top-level tab any more.
  */
 import React, {useState} from 'react';
-import {ArrowLeft, CalendarDays, ClipboardList, Users} from 'lucide-react';
+import {ArrowLeft, CalendarDays, ClipboardList, Users, Braces} from 'lucide-react';
 import type {AllotableStudent, Batch} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {BatchMembersPanel} from './BatchMembersPanel';
 import {BatchAttendancePanel} from './BatchAttendancePanel';
 import {BatchTestsPanel} from './BatchTestsPanel';
+import {JsonQueryPanel} from './JsonQueryPanel';
 import {StudentDetailView} from './StudentDetailView';
 
-type PanelId = 'students' | 'attendance' | 'tests';
+type PanelId = 'students' | 'attendance' | 'tests' | 'json';
 
 interface BatchDetailViewProps {
   backend: Backend;
@@ -68,6 +69,7 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
     {id: 'students', label: 'Students', icon: <Users size={13} />},
     {id: 'attendance', label: 'Attendance', icon: <CalendarDays size={13} />},
     {id: 'tests', label: 'Tests', icon: <ClipboardList size={13} />},
+    {id: 'json', label: 'JSON query', icon: <Braces size={13} />},
   ];
 
   return (
@@ -115,6 +117,7 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
         )}
         {panel === 'attendance' && <BatchAttendancePanel backend={backend} batch={batch} flash={flash} />}
         {panel === 'tests' && <BatchTestsPanel backend={backend} batch={batch} flash={flash} />}
+        {panel === 'json' && <JsonQueryPanel backend={backend} batch={batch} flash={flash} />}
       </div>
     </div>
   );
