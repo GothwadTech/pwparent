@@ -5,7 +5,7 @@
  * point of this model. Marks live in `results/{studentId}` under the test, so
  * every student allotted to the batch has a row on the same paper.
  *
- * Syllabus is a structured list of `{subject, topic, weightage}` rather than a
+ * Syllabus is a structured list of `{subject, topic}` rather than a
  * blob of text, so the subject-wise breakdown can be rendered (and so a paper
  * whose weights do not add up to 100 can be flagged before it is published).
  */
@@ -13,7 +13,8 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {ChevronRight, ClipboardList, Plus, RefreshCw, Save, Trash2} from 'lucide-react';
 import type {Batch, BatchTest, SyllabusTopic} from '../../types';
 import type {Backend} from '../../lib/backend';
-import {newBatchTestId, syllabusWeightTotal} from '../../lib/backend';
+import {newBatchTestId} from '../../lib/backend';
+import {NEET_SUBJECT_MARKS, subjectOptions, subjectTypeOf} from '../../lib/neetSubjects';
 import {TestResultsPanel} from './TestResultsPanel';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 
@@ -40,10 +41,13 @@ function blankTest(existing: BatchTest[]): BatchTest {
 const SyllabusEditor: React.FC<{
   syllabus: SyllabusTopic[];
   onChange: (next: SyllabusTopic[]) => void;
-}> = ({syllabus, onChange}) => {
-  const total = syllabusWeightTotal(syllabus);
+  subjectType?: string;
+}> = ({syllabus, onChange, subjectType}) => {
   const patch = (index: number, change: Partial<SyllabusTopic>) =>
     onChange(syllabus.map((t, i) => (i === index ? {...t, ...change} : t)));
+
+  // Distinct subjects actually used, with their fixed NEET section marks.
+  const usedSubjects = [...new Set(syllabus.map((t) => (t.subject || '').trim()).filter(Boolean))];
 
   return (
     <div className="space-y-2">
@@ -52,7 +56,7 @@ const SyllabusEditor: React.FC<{
         <button
           type="button"
           className={btnGhost}
-          onClick={() => onChange([...syllabus, {subject: '', topic: '', weightage: undefined}])}
+          onClick={() => onChange([...syllabus, {subject: '', topic: ''}])}
         >
           <Plus size={12} /> Add topic
         </button>
@@ -62,33 +66,20 @@ const SyllabusEditor: React.FC<{
 
       {syllabus.map((topic, index) => (
         <div key={index} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <input
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <select
               className={inputCls}
               aria-label="Subject"
-              placeholder="Physics"
-              value={topic.subject}
+              value={(topic.subject || '').trim()}
               onChange={(e) => patch(index, {subject: e.target.value})}
-            />
-            <input
-              className={inputCls}
-              aria-label="Weightage percent"
-              inputMode="numeric"
-              placeholder="Weight %"
-              value={topic.weightage ?? ''}
-              onChange={(e) =>
-                patch(index, {weightage: e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value)))})
-              }
-            />
-          </div>
-          <div className="flex gap-2">
-            <input
-              className={inputCls}
-              aria-label="Topic"
-              placeholder="Rotational Motion + Gravitation"
-              value={topic.topic}
-              onChange={(e) => patch(index, {topic: e.target.value})}
-            />
+            >
+              <option value="">Select subject…</option>
+              {subjectOptions(subjectTypeOf({subjectType}), topic.subject).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               className={btnDanger}
@@ -98,12 +89,20 @@ const SyllabusEditor: React.FC<{
               <Trash2 size={12} />
             </button>
           </div>
+          <input
+            className={inputCls}
+            aria-label="Topic"
+            placeholder="Rotational Motion + Gravitation"
+            value={topic.topic}
+            onChange={(e) => patch(index, {topic: e.target.value})}
+          />
         </div>
       ))}
 
-      {syllabus.length > 0 && (
-        <p className={`text-[11px] ${total === 100 ? 'text-[#8ff0b0]' : 'text-[#f0dc8f]'}`}>
-          Weightage total: {total}%{total !== 100 && ' — does not add up to 100'}
+      {usedSubjects.length > 0 && (
+        <p className="text-[11px] text-neutral-500">
+          {usedSubjects.map((name) => `${name} · ${NEET_SUBJECT_MARKS} marks`).join('  +  ')}
+          {' '}— section obtained totals are summed from the topic marks you enter per student.
         </p>
       )}
     </div>
@@ -286,7 +285,11 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
             </Field>
           </div>
 
-          <SyllabusEditor syllabus={draft.syllabus} onChange={(syllabus) => setDraft({...draft, syllabus})} />
+          <SyllabusEditor
+            syllabus={draft.syllabus}
+            onChange={(syllabus) => setDraft({...draft, syllabus})}
+            subjectType={subjectTypeOf(batch)}
+          />
 
           <div className="flex gap-2">
             <button type="button" className={btnPrimary} disabled={busy || !draft.title.trim()} onClick={() => void save()}>
@@ -300,7 +303,6 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
       )}
 
       {tests.map((test) => {
-        const weight = syllabusWeightTotal(test.syllabus);
         return (
           <div key={test.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5">
             <button type="button" className="w-full flex items-center gap-3 text-left" onClick={() => setOpenedId(test.id)}>
@@ -319,7 +321,7 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
             <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-[#E4E6EB]">
               <p className="text-[11px] text-neutral-500">
                 {(test.syllabus?.length ?? 0) > 0
-                  ? `${test.syllabus.length} topic${test.syllabus.length === 1 ? '' : 's'}${weight ? ` · ${weight}%` : ''}`
+                  ? `${test.syllabus.length} topic${test.syllabus.length === 1 ? '' : 's'}`
                   : 'No syllabus'}
                 {' · '}
                 <span className="text-neutral-700 font-semibold">{resultCounts[test.id] ?? 0}</span> results entered

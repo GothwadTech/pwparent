@@ -14,6 +14,7 @@ import {ChevronRight, Layers, Plus, RefreshCw, Save, Trash2} from 'lucide-react'
 import type {Batch} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {newBatchId} from '../../lib/backend';
+import {BATCH_SUBJECT_TYPES, subjectTypeOf} from '../../lib/neetSubjects';
 import {BatchDetailView} from './BatchDetailView';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 
@@ -28,6 +29,7 @@ function blankBatch(): Batch {
     id: newBatchId(),
     name: '',
     batchType: 'offline',
+    subjectType: 'NEET',
   };
 }
 
@@ -59,8 +61,23 @@ const BatchForm: React.FC<{
           value={batch.batchType}
           onChange={(e) => onChange({...batch, batchType: e.target.value as Batch['batchType']})}
         >
+          {/* Only the offline experience exists today; online arrives later. */}
           <option value="offline">Offline (centre / attendance)</option>
-          <option value="online">Online</option>
+        </select>
+      </Field>
+      <Field label="Subject type" htmlFor="batch-subject-type">
+        <select
+          id="batch-subject-type"
+          className={inputCls}
+          value={subjectTypeOf(batch)}
+          onChange={(e) => onChange({...batch, subjectType: e.target.value})}
+        >
+          {/* NEET only for now; more exam types plug in here later. */}
+          {BATCH_SUBJECT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
         </select>
       </Field>
     </div>
@@ -207,7 +224,7 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) =>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate">{batch.name}</p>
               <p className="text-[11px] text-neutral-500 truncate">
-                {batch.batchType === 'offline' ? 'Offline (centre)' : 'Online'}
+                {batch.batchType === 'offline' ? 'Offline (centre)' : 'Online'} · {subjectTypeOf(batch)}
               </p>
             </div>
             <ChevronRight size={15} className="text-neutral-500 shrink-0" />

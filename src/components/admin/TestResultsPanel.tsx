@@ -16,8 +16,9 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ArrowLeft, ClipboardList, Save, Trash2} from 'lucide-react';
 import type {Batch, BatchTest, StudentProfile, SyllabusTopic, TestResult} from '../../types';
 import type {Backend} from '../../lib/backend';
-import {scorePercentOf, syllabusWeightTotal} from '../../lib/backend';
+import {scorePercentOf,} from '../../lib/backend';
 import {btnDanger, btnGhost, btnPrimary, cardCls, inputCls, labelCls, Note} from './ui';
+import {NEET_SUBJECT_MARKS} from '../../lib/neetSubjects';
 
 interface TestResultsPanelProps {
   backend: Backend;
@@ -36,10 +37,12 @@ interface RowDraft {
   attempted: string;
   /** Marks per syllabus line, keyed `${subject}||${topic}`. */
   topics: Record<string, string>;
+  /** The rank the class declared for this student. Admin-entered, shown as-is. */
+  rank: string;
   status: 'ATTEMPTED' | 'MISSED';
 }
 
-const emptyDraft = (): RowDraft => ({marks: '', correct: '', attempted: '', topics: {}, status: 'ATTEMPTED'});
+const emptyDraft = (): RowDraft => ({marks: '', correct: '', attempted: '', topics: {}, rank: '', status: 'ATTEMPTED'});
 
 const draftFrom = (result: TestResult | undefined): RowDraft =>
   result
@@ -50,13 +53,24 @@ const draftFrom = (result: TestResult | undefined): RowDraft =>
         topics: Object.fromEntries(
           Object.entries(result.topicMarks ?? {}).map(([k, v]) => [k, String(v)]),
         ),
+        rank: result.rank === undefined ? '' : String(result.rank),
         status: result.status,
       }
     : emptyDraft();
 
+/** Sums the entered topic marks per subject against the fixed NEET section marks. */
+const subjectTotals = (syllabus: SyllabusTopic[], topics: Record<string, string>) => {
+  const acc: Record<string, number> = {};
+  for (const line of syllabus) {
+    const subject = (line.subject || '').trim() || 'General';
+    const raw = topics[`${line.subject}||${line.topic}`];
+    acc[subject] = (acc[subject] ?? 0) + (raw === undefined || raw === '' ? 0 : Number(raw));
+  }
+  return Object.entries(acc).map(([subject, obtained]) => ({subject, obtained, max: NEET_SUBJECT_MARKS}));
+};
+
 const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
   if (syllabus.length === 0) return null;
-  const total = syllabusWeightTotal(syllabus);
 
   // Group by subject so a paper reads as "Physics: these topics" rather than a
   // flat list with the subject repeated on every line.
@@ -70,11 +84,6 @@ const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
     <div className={cardCls}>
       <div className="flex items-center justify-between mb-2">
         <p className={`${labelCls} mb-0`}>Syllabus</p>
-        {total > 0 && (
-          <span className={`text-[11px] font-bold ${total === 100 ? 'text-[#8ff0b0]' : 'text-[#f0dc8f]'}`}>
-            {total}% weight
-          </span>
-        )}
       </div>
       <div className="space-y-2">
         {Object.entries(bySubject).map(([subject, topics]) => (
@@ -82,11 +91,8 @@ const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
             <p className="text-[11px] font-bold text-[#5747D6] uppercase tracking-wide">{subject}</p>
             <ul className="mt-1 space-y-0.5">
               {topics.map((topic, i) => (
-                <li key={i} className="text-[12px] text-neutral-700 leading-relaxed flex justify-between gap-2">
+                <li key={i} className="text-[12px] text-neutral-700 leading-relaxed">
                   <span>{topic.topic || '—'}</span>
-                  {typeof topic.weightage === 'number' && (
-                    <span className="text-neutral-500 shrink-0">{topic.weightage}%</span>
-                  )}
                 </li>
               ))}
             </ul>
@@ -163,6 +169,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
         correctCount: correct,
         attemptedCount,
         topicMarks: Object.keys(topicMarks).length > 0 ? topicMarks : undefined,
+        rank: draft.rank === '' ? undefined : Number(draft.rank),
         status: draft.status,
       });
       const results = await backend.listResults(batch.id, test.id);
@@ -178,10 +185,8 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
           attempted.reduce((a, r) => a + (r.scorePercent ?? scorePercentOf(r.marksObtained ?? 0, test.marksTotal)), 0) /
             attempted.length,
         );
-        const ordered = [...attempted].sort((a, b) => (b.marksObtained ?? 0) - (a.marksObtained ?? 0));
         for (const r of results) {
-          const place = ordered.findIndex((o) => o.studentId === r.studentId);
-          byId[r.studentId] = {...r, topScore: top, avgScore: avg, rank: place >= 0 ? place + 1 : undefined};
+          byId[r.studentId] = {...r, topScore: top, avgScore: avg};
           if (r.status === 'ATTEMPTED') {
             await backend.saveResult(batch.id, test.id, r.studentId, {
               studentName: r.studentName,
@@ -193,7 +198,8 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
               status: r.status,
               topScore: top,
               avgScore: avg,
-              rank: place >= 0 ? place + 1 : undefined,
+              // Rank is DECLARED by the administrator, never recomputed here.
+              rank: r.rank,
             });
           }
         }
@@ -356,6 +362,17 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
                 <option value="ATTEMPTED">Attempted</option>
                 <option value="MISSED">Missed</option>
               </select>
+              <input
+                className={inputCls}
+                aria-label={`Rank for ${student.name}`}
+                inputMode="numeric"
+                placeholder="Rank"
+                value={draft.rank}
+                disabled={busyRow}
+                onChange={(e) =>
+                  patchDraft(student.id, {rank: e.target.value.replace(/[^\d]/g, '').slice(0, 4)})
+                }
+              />
             </div>
 
             {/* Per-topic marks, in the test's own syllabus order. The subject-wise
@@ -386,6 +403,11 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
                     </div>
                   );
                 })}
+                {subjectTotals(test.syllabus ?? [], draft.topics).map((row) => (
+                  <p key={row.subject} className="text-[11px] font-bold text-[#5747D6]">
+                    {row.subject} obtained: {row.obtained} / {row.max} — counted automatically
+                  </p>
+                ))}
               </div>
             )}
 
@@ -406,8 +428,9 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
       {!loading && students.length > 0 && (
         <Note>
           Percentages are computed from the raw marks and this test&apos;s total ({test.marksTotal}) — they cannot be
-          typed. Accuracy is derived from Correct ÷ Attempted. Rank, top score and the class average are stamped onto
-          every attempted result automatically when you save, because only the administrator can see the whole class.
+          typed. Accuracy is derived from Correct ÷ Attempted. The rank is exactly what you type per student; the top
+          score and the class average are stamped onto every attempted result when you save, because only the
+          administrator can see the whole class.
         </Note>
       )}
     </>
