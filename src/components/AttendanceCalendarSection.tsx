@@ -23,18 +23,18 @@ const LEGEND = [
 ];
 
 /**
- * Refined Donut circular progress gauge with slim 14px stroke matching screenshot.
+ * Refined Donut circular progress gauge with slim stroke and well-balanced typography matching real app.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
   const radius = 86;
-  const stroke = 14;
+  const stroke = 9;
   const circumference = 2 * Math.PI * radius;
   const roundedPercent = Math.round(percent);
   const clamped = Math.min(100, Math.max(0, roundedPercent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[200px] h-[200px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
+    <div className="relative w-[190px] h-[190px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
       <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
         <circle
           cx="100"
@@ -52,16 +52,16 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
             fill="none"
             stroke="#4F46E5"
             strokeWidth={stroke}
-            strokeLinecap="butt"
+            strokeLinecap="round"
             strokeDasharray={`${filled} ${circumference - filled}`}
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[50px] leading-none font-extrabold text-[#111827] tracking-tight">
+        <span className="text-[32px] leading-none font-extrabold text-[#111827] tracking-tight">
           {roundedPercent}%
         </span>
-        <span className="text-[13px] font-bold text-[#111827] mt-2 tracking-tight">
+        <span className="text-[12px] font-medium text-[#6B7280] mt-2 tracking-tight">
           Average attendance
         </span>
       </div>
@@ -91,30 +91,24 @@ const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
   </svg>
 );
 
-/** One weekday column matching screenshot */
+/** One weekday column matching real app screenshot */
 const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
   return (
-    <div
-      className={`flex flex-col items-center pt-2 pb-2.5 px-0.5 rounded-lg transition-all ${
-        isToday
-          ? 'bg-[#EFF6FF] border-[1.5px] border-[#93C5FD]'
-          : 'border border-transparent'
-      }`}
-    >
+    <div className="flex flex-col items-center pt-1 pb-1 px-0.5">
       <span
-        className={`text-[13px] leading-none mb-1.5 ${
+        className={`text-[12px] leading-none mb-1.5 ${
           isToday ? 'font-bold text-[#111827]' : 'font-normal text-[#6B7280]'
         }`}
       >
         {day.dayLabel}
       </span>
       <div
-        className={`w-9 h-10 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
-          isToday ? 'border-[#93C5FD]' : 'border-[#E5E7EB]'
+        className={`w-9 h-9 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
+          isToday ? 'border-[#4F46E5]' : 'border-[#E5E7EB]'
         }`}
       >
         <span
-          className={`text-[12.5px] leading-none ${
+          className={`text-[13px] leading-none ${
             isToday ? 'font-bold text-[#111827]' : 'font-semibold text-[#111827]'
           }`}
         >
@@ -213,15 +207,15 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         Weekly Report
       </h3>
 
-      {/* Week date range with left and right arrow circle buttons */}
-      <div className="flex items-center justify-between mb-4 px-0.5">
+      {/* Week date range with left and right minimal arrow icons */}
+      <div className="flex items-center justify-between mb-4 px-1">
         <button
           type="button"
           onClick={onPrevWeek}
           aria-label="Previous week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="p-1 text-[#6B7280] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowLeft size={13} strokeWidth={2} />
+          <ArrowLeft size={16} strokeWidth={2.2} />
         </button>
         <span className="text-[14px] font-medium text-[#4B5563]">
           {displayWeekLabel}
@@ -230,9 +224,9 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
           type="button"
           onClick={onNextWeek}
           aria-label="Next week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="p-1 text-[#6B7280] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowRight size={13} strokeWidth={2} />
+          <ArrowRight size={16} strokeWidth={2.2} />
         </button>
       </div>
 

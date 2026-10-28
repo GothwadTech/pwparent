@@ -26,17 +26,16 @@
  * which is how an allotted child went "missing".
  */
 import React, {useState} from 'react';
-import {ArrowLeft, Lock, Megaphone, Database, Layers} from 'lucide-react';
+import {ArrowLeft, Lock, Database, Layers} from 'lucide-react';
 import type {AnnouncementItem} from '../../types';
 import type {Backend} from '../../lib/backend';
 import type {AdminIdentity} from '../../lib/adminAuth';
 import {AdminGate} from './AdminGate';
 import {BatchesTab} from './BatchesTab';
-import {AnnouncementsTab} from './AnnouncementsTab';
 import {DataTab} from './DataTab';
 import {Flash, useFlash} from './ui';
 
-type TabId = 'batches' | 'announcements' | 'data';
+type TabId = 'batches' | 'data';
 
 interface AdminPanelScreenProps {
   backend: Backend | null;
@@ -80,7 +79,6 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
 
   const tabs: {id: TabId; label: string; icon: React.ReactNode}[] = [
     {id: 'batches', label: 'Batches', icon: <Layers size={14} />},
-    {id: 'announcements', label: 'Announcements', icon: <Megaphone size={14} />},
     {id: 'data', label: 'Data', icon: <Database size={14} />},
   ];
 
@@ -129,15 +127,6 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
         {tab === 'batches' && backend && <BatchesTab backend={backend} mode={mode} flash={flash} />}
-
-        {tab === 'announcements' && (
-          <AnnouncementsTab
-            announcements={announcements}
-            onSaveAnnouncement={onSaveAnnouncement}
-            onDeleteAnnouncement={onDeleteAnnouncement}
-            flash={flash}
-          />
-        )}
 
         {tab === 'data' && backend && (
           <DataTab

@@ -41,7 +41,8 @@ export interface AnnouncementItem {
   timeAgo: string;
   isNew: boolean;
   content: string;
-  videoLink: string;
+  videoLink?: string;
+  imageUrl?: string;
 }
 
 /* ==========================================================================

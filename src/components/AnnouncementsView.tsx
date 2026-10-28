@@ -4,62 +4,130 @@ import { AnnouncementItem } from '../types';
 
 interface AnnouncementsViewProps {
   customLogoUrl?: string | null;
-  /**
-   * Optional data source (Backend facade -> Firestore / demo store).
-   * Omit it and the built-in demo feed below renders, so every existing
-   * call site is unaffected.
-   */
   items?: AnnouncementItem[];
+}
+
+/**
+ * Real PW Announcements matching the reference screenshots exactly.
+ * Fixed in code as per instruction.
+ */
+const FIXED_ANNOUNCEMENTS: AnnouncementItem[] = [
+  {
+    id: 'ann-1',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      'Learn simple, practical sleep strategies that every student can use during exam preparation.\n\n🔗 Register Now:\nhttps://www.healthgennie.com/download-app\n\nDon’t just study longer. Learn how to study smarter.\n\n👉 Download the Health Gennie App and register now.',
+    videoLink: 'https://www.healthgennie.com/download-app',
+    imageUrl: '/assets/announcements/sleep_webinar.jpg',
+  },
+  {
+    id: 'ann-2',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      'Dear Vidyapeeth Students, Kindly Check the Weekly Schedule in the || Description Section || By Clicking || Calendar Icon 📅 || Keep Studying!! Physics Wallah is for you, by you and from you',
+    imageUrl: '/assets/announcements/weekly_schedule.jpg',
+  },
+  {
+    id: 'ann-3',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      'AITS - 2 (CBT) Test Time: (Check message on your Reg. Mobile No.) [Test@20-09-2026] [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+    videoLink:
+      'https://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+  },
+  {
+    id: 'ann-4',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      "AITS - 2, [Test@20-09-2026] [Test_Syllabus] Please Check the Test Syllabus in the Test Planner in your batch's description section.",
+    imageUrl: '/assets/announcements/syllabus.jpg',
+  },
+  {
+    id: 'ann-5',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      'Milestone:7 (Offline) Test Time: (2:00 PM to 5:00 PM) [Test@13-09-2026] [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+    videoLink:
+      'https://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+  },
+  {
+    id: 'ann-6',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      '🔗 Register Now:\nhttps://www.healthgennie.com/download-app\n\nDownload the Health Gennie App & register for the webinar.\nLimited Seats 🚀',
+    videoLink: 'https://www.healthgennie.com/download-app',
+    imageUrl: '/assets/announcements/nutrition_webinar.jpg',
+  },
+  {
+    id: 'ann-7',
+    author: 'Physics Wallah team',
+    timeAgo: '1 month ago',
+    isNew: false,
+    content:
+      'Dear Vidyapeeth Students, || Results Are Out!! || Kindly Check Your Milestone:7 Results in Test Series section of your batch. Keep Studying!! Physics Wallah is for you, by you and from you! [Test@13-09-2026] [Result_Published]',
+  },
+];
+
+/** Helper to render text with highlighted clickable URLs */
+function renderFormattedContent(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      const href = part.startsWith('http') ? part : `https://${part}`;
+      return (
+        <a
+          key={index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#2563EB] hover:underline break-all font-medium"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
 }
 
 export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
   customLogoUrl,
-  items,
 }) => {
-  const builtinAnnouncements: AnnouncementItem[] = [
-    {
-      id: '1',
-      author: 'Physics Wallah team',
-      timeAgo: '1 day ago',
-      isNew: true,
-      content:
-        '⚡ ARJUNA NEET 4.0 2027 BEGINS! 🚀 | Your FIRST BOTANY CLASS with Harshit Sir is LIVE! 🎯 Link:-',
-      videoLink: 'https://www.youtube.com/watch?v=VML7Mva43bY',
-    },
-    {
-      id: '2',
-      author: 'Physics Wallah team',
-      timeAgo: '1 day ago',
-      isNew: true,
-      content:
-        '⚡ ARJUNA NEET 4.0 2027 BEGINS! 🚀 | Your FIRST BOTANY CLASS with Harshit Sir is at 6:15 PM TODAY! 🎯 Link:-',
-      videoLink: 'https://www.youtube.com/watch?v=VML7Mva43bY',
-    },
-  ];
-
-  // Optional data source wins; otherwise render exactly what shipped before.
-  const announcements = items ?? builtinAnnouncements;
+  const announcements = FIXED_ANNOUNCEMENTS;
 
   return (
-    <div className="flex-1 px-4 pt-4 pb-8 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full px-4 pt-4 pb-12 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif] bg-white">
       {announcements.map((item) => (
-        <div
+        <article
           key={item.id}
           className="pb-6 border-b border-[#E4E6EB] last:border-b-0 space-y-3"
         >
-          {/* Header with author, time and New badge */}
+          {/* Header with author, logo, time and New badge */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              {/* Circular PW Logo */}
-              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0">
-                <PWLogo size={28} customLogoUrl={customLogoUrl} />
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-[#E4E6EB]/50">
+                <PWLogo size={32} customLogoUrl={customLogoUrl} />
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-[#17181C] tracking-tight">
+                <h3 className="text-[14px] font-bold text-[#111827] tracking-tight">
                   {item.author}
                 </h3>
-                <p className="text-[11px] text-neutral-600">{item.timeAgo}</p>
+                <p className="text-[11px] text-[#6B7280]">{item.timeAgo}</p>
               </div>
             </div>
 
@@ -70,21 +138,23 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
             )}
           </div>
 
-          {/* Announcement content */}
-          <div className="pl-12 space-y-1">
-            <p className="text-[13px] text-neutral-800 leading-relaxed font-medium">
-              {item.content}
-            </p>
-            <a
-              href={item.videoLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block text-[13px] text-[#3B82F6] hover:text-[#60A5FA] underline break-all font-medium"
-            >
-              {item.videoLink}
-            </a>
+          {/* Announcement Text */}
+          <div className="text-[13px] text-[#1F2937] leading-relaxed font-normal whitespace-pre-line pt-0.5">
+            {renderFormattedContent(item.content)}
           </div>
-        </div>
+
+          {/* 16:9 Banner Image (from screenshots) */}
+          {item.imageUrl && (
+            <div className="w-full aspect-[16/9] rounded-xl overflow-hidden mt-3 border border-[#E5E7EB]/60 bg-[#F3F4F6] shadow-2xs">
+              <img
+                src={item.imageUrl}
+                alt="Announcement banner"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          )}
+        </article>
       ))}
     </div>
   );

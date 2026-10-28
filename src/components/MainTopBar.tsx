@@ -1,15 +1,13 @@
 /**
- * Top bar of the parent app — light, matched to the reference.
+ * Top bar of the parent app — light, matched to the reference PW Parent app.
  *
- * Left: the batch selector as a bordered white pill with a chevron (it opens the
- * batch picker; the batch is always chosen, never typed). Right: the child's
- * avatar with their name beneath, opening the profile.
+ * Left: the batch selector as a soft grey pill (opens the batch picker).
+ * Right: the child's avatar with their name beneath (opens the profile).
  */
 import React, { useState } from 'react';
 import { ChevronDown, RefreshCw } from 'lucide-react';
 import { StudentAvatar } from './StudentAvatar';
 import { StudentProfile } from '../types';
-import { CARD_BORDER, HEADER_BG, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
 
 interface MainTopBarProps {
   selectedBatchName: string;
@@ -40,23 +38,21 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
   };
 
   return (
-    <div
-      className="w-full px-3.5 pt-2 pb-2 flex items-center justify-between z-30 select-none bg-white"
-    >
-      {/* Batch dropdown selector */}
+    <div className="w-full px-4 pt-2.5 pb-2 flex items-center justify-between z-30 select-none bg-white">
+      {/* Batch dropdown selector — soft flat grey pill without dark border */}
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] max-w-[245px] hover:bg-neutral-50 active:scale-98 transition-all shadow-2xs"
+        className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-[#F1F3F6] max-w-[245px] hover:bg-[#E5E7EB] active:scale-98 transition-all"
         title="Select Batch"
       >
-        <span className="text-[13px] font-normal text-[#1F2937] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis leading-tight">
+        <span className="text-[12.5px] font-medium text-[#1F2937] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis leading-tight">
           {selectedBatchName}
         </span>
-        <ChevronDown size={15} className="text-[#4B5563] shrink-0 ml-1" />
+        <ChevronDown size={14} className="text-[#6B7280] shrink-0 ml-1" />
       </button>
 
-      {/* Sync (left of avatar) + student avatar + name */}
+      {/* Sync + student avatar + name */}
       <div className="flex items-center space-x-1">
         {onRefreshData && (
           <button
@@ -79,10 +75,10 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
           className="flex flex-col items-center focus:outline-none cursor-pointer group active:scale-95 transition-transform"
           title="Open Profile"
         >
-          <div className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center bg-[#BAE6FD]">
-            <StudentAvatar type="boy" size={32} />
+          <div className="h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-[#FDE8E8] border border-[#FECACA]">
+            <StudentAvatar type="boy" size={28} />
           </div>
-          <span className="text-[11px] font-normal text-[#1F2937] mt-0.5 tracking-tight leading-none">
+          <span className="text-[10px] font-medium text-[#6B7280] mt-0.5 tracking-tight leading-none max-w-[65px] truncate">
             {activeStudent.name || 'No Name'}
           </span>
         </button>
