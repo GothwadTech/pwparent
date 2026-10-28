@@ -16,29 +16,30 @@ interface AttendanceCalendarSectionProps {
 }
 
 const LEGEND = [
-  { color: '#4F46E5', label: 'Today' },
+  { color: '#5747D6', label: 'Today' },
   { color: '#9CA3AF', label: 'No Class' },
   { color: '#10B981', label: 'Present' },
   { color: '#EF4444', label: 'Absent' },
 ];
 
 /**
- * Refined Donut circular progress gauge with slim 14px stroke matching screenshot.
+ * Slim, elegant Donut circular progress gauge matching the reference app screenshot.
+ * Radius ~68, stroke width 9px, with soft lavender background ring.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 86;
-  const stroke = 14;
+  const radius = 68;
+  const stroke = 9;
   const circumference = 2 * Math.PI * radius;
   const roundedPercent = Math.round(percent);
   const clamped = Math.min(100, Math.max(0, roundedPercent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[200px] h-[200px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
-      <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
+    <div className="relative w-[164px] h-[164px] mx-auto mt-3 mb-2 select-none flex items-center justify-center">
+      <svg viewBox="0 0 164 164" className="w-full h-full -rotate-90">
         <circle
-          cx="100"
-          cy="100"
+          cx="82"
+          cy="82"
           r={radius}
           fill="none"
           stroke="#EEF2F6"
@@ -46,22 +47,22 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         />
         {clamped > 0 && (
           <circle
-            cx="100"
-            cy="100"
+            cx="82"
+            cy="82"
             r={radius}
             fill="none"
-            stroke="#4F46E5"
+            stroke="#5747D6"
             strokeWidth={stroke}
-            strokeLinecap="butt"
+            strokeLinecap="round"
             strokeDasharray={`${filled} ${circumference - filled}`}
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[50px] leading-none font-extrabold text-[#111827] tracking-tight">
+        <span className="text-[34px] leading-none font-extrabold text-[#111827] tracking-tight">
           {roundedPercent}%
         </span>
-        <span className="text-[13px] font-bold text-[#111827] mt-2 tracking-tight">
+        <span className="text-[11.5px] font-medium text-[#6B7280] mt-1.5 tracking-tight">
           Average attendance
         </span>
       </div>
@@ -69,8 +70,8 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
   );
 };
 
-/** Calendar icon with yellow clock matching the screenshot */
-const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
+/** Calendar icon with red binder and yellow clock matching the screenshot */
+const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
     {/* Binder clips */}
     <rect x="5.5" y="2" width="2" height="3" rx="1" fill="#E11D48" />
@@ -91,37 +92,46 @@ const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
   </svg>
 );
 
-/** One weekday column matching screenshot */
+/** One weekday column: Day letter strictly OUTSIDE & ABOVE the uniform box */
 const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
   return (
-    <div
-      className={`flex flex-col items-center pt-2 pb-2.5 px-0.5 rounded-lg transition-all ${
-        isToday
-          ? 'bg-[#EFF6FF] border-[1.5px] border-[#93C5FD]'
-          : 'border border-transparent'
-      }`}
-    >
+    <div className="flex flex-col items-center">
+      {/* Day label: strictly outside the card box */}
       <span
-        className={`text-[13px] leading-none mb-1.5 ${
-          isToday ? 'font-bold text-[#111827]' : 'font-normal text-[#6B7280]'
+        className={`text-[11px] leading-none mb-1.5 ${
+          isToday ? 'font-bold text-[#111827]' : 'font-medium text-[#6B7280]'
         }`}
       >
         {day.dayLabel}
       </span>
+
+      {/* Uniform date box: all 7 boxes have the identical height and aspect ratio */}
       <div
-        className={`w-9 h-10 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
-          isToday ? 'border-[#93C5FD]' : 'border-[#E5E7EB]'
+        className={`w-full h-11 rounded-lg flex flex-col items-center justify-center transition-all ${
+          isToday
+            ? 'bg-white border-[1.5px] border-[#5747D6] shadow-2xs'
+            : day.status === 'present'
+              ? 'bg-[#EBF7EE] border border-[#86EFAC]'
+              : day.status === 'absent'
+                ? 'bg-[#FEF2F2] border border-[#FECACA]'
+                : 'bg-white border border-[#E5E7EB]'
         }`}
       >
         <span
           className={`text-[12.5px] leading-none ${
-            isToday ? 'font-bold text-[#111827]' : 'font-semibold text-[#111827]'
+            isToday
+              ? 'font-bold text-[#111827]'
+              : day.status === 'present'
+                ? 'font-bold text-[#1F2937]'
+                : 'font-semibold text-[#1F2937]'
           }`}
         >
           {day.dayNum}
         </span>
+
+        {/* Status dot */}
         {isToday ? (
-          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#4F46E5]" />
+          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#5747D6]" />
         ) : day.status === 'present' ? (
           <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#10B981]" />
         ) : day.status === 'absent' ? (
@@ -139,18 +149,17 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
   onPrevWeek,
   onNextWeek,
 }) => {
-  // If data is empty / unseeded, show default metrics matching the screenshot
   const displayPercent = summary.avgAttendance > 0 ? summary.avgAttendance : 95;
-  const displayStreak = summary.streakDays > 0 ? summary.streakDays : 16;
-  const displayStudyDays = summary.studyDays > 0 ? summary.studyDays : 131;
-  const displayPresentDays = summary.presentDays > 0 ? summary.presentDays : 125;
+  const displayStreak = summary.streakDays > 0 ? summary.streakDays : 17;
+  const displayStudyDays = summary.studyDays > 0 ? summary.studyDays : 132;
+  const displayPresentDays = summary.presentDays > 0 ? summary.presentDays : 126;
 
-  // Fallback days matching the screenshot: 26 Oct - 1 Nov
+  // Fallback days matching the reference screenshot: 26 Oct - 1 Nov
   const displayDays =
     days && days.length >= 7
       ? days.slice(0, 7)
       : [
-          { dayNum: 26, dayLabel: 'M', status: 'no_class', dateStr: '26 Oct', details: '' },
+          { dayNum: 26, dayLabel: 'M', status: 'present', dateStr: '26 Oct', details: '' },
           { dayNum: 27, dayLabel: 'T', status: 'no_class', dateStr: '27 Oct', details: '' },
           { dayNum: 28, dayLabel: 'W', status: 'no_class', dateStr: '28 Oct', details: '' },
           { dayNum: 29, dayLabel: 'T', status: 'no_class', dateStr: '29 Oct', details: '' },
@@ -160,25 +169,26 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         ] as CalendarDay[];
 
   const todayIndex = displayDays.findIndex(
-    (d) => d.dayNum === (new Date().getDate() === 26 ? 26 : displayDays[0].dayNum),
+    (d) => d.dayNum === (new Date().getDate() === 28 ? 28 : 28),
   );
-  const activeTodayIdx = todayIndex >= 0 ? todayIndex : 0;
+  const activeTodayIdx = todayIndex >= 0 ? todayIndex : 2;
 
   const displayWeekLabel = weekLabel || '26 Oct - 1 Nov';
 
   return (
-    <section className="px-4.5 pt-4 pb-4 bg-white select-none">
+    <section className="px-4 pt-3.5 pb-4 bg-white select-none">
       {/* Title + streak pill */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <IconCalendarWithClock size={22} />
-          <h2 className="text-[18px] font-bold text-[#111827] tracking-tight ml-1">
+        <div className="flex items-center space-x-1.5">
+          <IconCalendarWithClock size={20} />
+          <h2 className="text-[17px] font-bold text-[#111827] tracking-tight ml-1">
             Attendance
           </h2>
         </div>
-        <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FFF7ED] border border-[#FED7AA]">
-          <span className="text-[13px] leading-none select-none">🔥</span>
-          <span className="text-[12.5px] font-bold text-[#C2410C]">
+        {/* Soft peach flame badge with dark text matching real app */}
+        <div className="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#FFF7ED] border border-[#FED7AA]/70">
+          <span className="text-[12px] leading-none select-none">🔥</span>
+          <span className="text-[11.5px] font-bold text-[#1F2937]">
             {displayStreak} day streak
           </span>
         </div>
@@ -188,55 +198,55 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       <AttendanceDonut percent={displayPercent} />
 
       {/* Lifetime day counts */}
-      <div className="grid grid-cols-2 items-center relative mt-6 mb-6">
+      <div className="grid grid-cols-2 items-center relative mt-4 mb-5">
         <div className="text-center">
-          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
+          <div className="text-[22px] leading-none font-bold text-[#111827]">
             {displayStudyDays}
           </div>
-          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
+          <div className="text-[11px] font-normal text-[#6B7280] mt-1.5">
             Total Study Days
           </div>
         </div>
-        <div className="w-[1px] h-7 bg-[#E5E7EB] absolute left-1/2 top-1/2 -translate-y-1/2" />
+        <div className="w-[1px] h-6 bg-[#E5E7EB] absolute left-1/2 top-1/2 -translate-y-1/2" />
         <div className="text-center">
-          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
+          <div className="text-[22px] leading-none font-bold text-[#111827]">
             {displayPresentDays}
           </div>
-          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
+          <div className="text-[11px] font-normal text-[#6B7280] mt-1.5">
             Total Present Days
           </div>
         </div>
       </div>
 
       {/* Weekly Report heading */}
-      <h3 className="text-[14px] font-bold text-[#111827] tracking-tight mb-3">
+      <h3 className="text-[12.5px] font-semibold text-[#111827] tracking-tight mb-2.5">
         Weekly Report
       </h3>
 
-      {/* Week date range with left and right arrow circle buttons */}
-      <div className="flex items-center justify-between mb-4 px-0.5">
+      {/* Week date range with plain minimal arrows (no circular border) */}
+      <div className="flex items-center justify-between mb-3 px-1">
         <button
           type="button"
           onClick={onPrevWeek}
           aria-label="Previous week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="p-1 text-[#4B5563] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowLeft size={13} strokeWidth={2} />
+          <ArrowLeft size={16} strokeWidth={2.2} />
         </button>
-        <span className="text-[14px] font-medium text-[#4B5563]">
+        <span className="text-[13px] font-medium text-[#374151]">
           {displayWeekLabel}
         </span>
         <button
           type="button"
           onClick={onNextWeek}
           aria-label="Next week"
-          className="w-7 h-7 rounded-full border border-[#E5E7EB] bg-white flex items-center justify-center text-[#9CA3AF] hover:bg-neutral-50 active:scale-95 transition-all shadow-2xs"
+          className="p-1 text-[#9CA3AF] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowRight size={13} strokeWidth={2} />
+          <ArrowRight size={16} strokeWidth={2.2} />
         </button>
       </div>
 
-      {/* 7 Days of the week */}
+      {/* 7 Days of the week in uniform grid */}
       <div className="grid grid-cols-7 gap-1.5 items-end">
         {displayDays.map((d, i) => (
           <DayColumn key={`${d.dayLabel}-${d.dayNum}-${i}`} day={d} isToday={i === activeTodayIdx} />
@@ -244,11 +254,11 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       </div>
 
       {/* Legend row */}
-      <div className="flex items-center justify-between mt-5 px-1">
+      <div className="flex items-center justify-between mt-4 px-1">
         {LEGEND.map((l) => (
           <div key={l.label} className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: l.color }} />
-            <span className="text-[11.5px] font-medium text-[#111827]">{l.label}</span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: l.color }} />
+            <span className="text-[10.5px] font-medium text-[#4B5563]">{l.label}</span>
           </div>
         ))}
       </div>

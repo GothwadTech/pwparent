@@ -10,54 +10,67 @@ interface AppBottomNavProps {
   hasAnnouncements?: boolean;
 }
 
-const IconDashboardNav: React.FC<{ active: boolean }> = ({ active }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? '#4F46E5' : '#8E95A3'}
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
-    <path d="M22 12A10 10 0 0 0 12 2v10z" />
-  </svg>
-);
+/** Speedometer / gauge dial icon matching reference app */
+const IconDashboardNav: React.FC<{ active: boolean }> = ({ active }) => {
+  const color = active ? '#5747D6' : '#8E95A3';
+  return (
+    <svg
+      width="21"
+      height="21"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4.93 19.07 A10 10 0 1 1 19.07 19.07" />
+      <path d="M12 12 L16.5 7.5" strokeWidth="2" />
+      <circle cx="12" cy="12" r="1.5" fill={color} />
+    </svg>
+  );
+};
 
-const IconAnnouncementsNav: React.FC<{ active: boolean }> = ({ active }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? '#4F46E5' : '#8E95A3'}
-    strokeWidth="1.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3.5" y="4.5" width="17" height="15" rx="3" />
-    <line x1="7.5" y1="9.5" x2="14.5" y2="9.5" />
-    <line x1="7.5" y1="13.5" x2="11.5" y2="13.5" />
-    <circle cx="17" cy="8.5" r="1.2" fill={active ? '#4F46E5' : '#8E95A3'} stroke="none" />
-  </svg>
-);
+/** Announcements clipboard card icon matching reference app */
+const IconAnnouncementsNav: React.FC<{ active: boolean }> = ({ active }) => {
+  const color = active ? '#5747D6' : '#8E95A3';
+  return (
+    <svg
+      width="21"
+      height="21"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <line x1="8" y1="8" x2="16" y2="8" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="16" x2="12" y2="16" />
+    </svg>
+  );
+};
 
-const IconSupportNav: React.FC<{ active: boolean }> = ({ active }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? '#4F46E5' : '#8E95A3'}
-    strokeWidth="1.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" />
-  </svg>
-);
+/** Support headset icon matching reference app */
+const IconSupportNav: React.FC<{ active: boolean }> = ({ active }) => {
+  const color = active ? '#5747D6' : '#8E95A3';
+  return (
+    <svg
+      width="21"
+      height="21"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" />
+    </svg>
+  );
+};
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   activeTab,
@@ -66,21 +79,21 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
 }) => {
   return (
     <nav
-      className="w-full bg-white border-t border-[#EEF2F6] pt-2.5 pb-3.5 px-6 flex items-center justify-around z-30 select-none shadow-[0_-2px_6px_rgba(0,0,0,0.02)]"
+      className="w-full bg-white border-t border-[#EEF2F6] pt-2 pb-2.5 px-6 flex items-center justify-around z-30 select-none shadow-[0_-2px_6px_rgba(0,0,0,0.02)]"
       aria-label="Bottom Navigation"
     >
       {/* Dashboard */}
       <button
         type="button"
         onClick={() => onSelectTab('dashboard')}
-        className="flex flex-col items-center py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <IconDashboardNav active={activeTab === 'dashboard'} />
         <span
-          className={`text-[11px] tracking-tight mt-1 ${
+          className={`text-[10px] tracking-tight mt-1 ${
             activeTab === 'dashboard'
-              ? 'text-[#4F46E5] font-semibold'
-              : 'text-[#6B7280] font-normal'
+              ? 'text-[#5747D6] font-semibold'
+              : 'text-[#8E95A3] font-normal'
           }`}
         >
           Dashboard
@@ -91,19 +104,19 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       <button
         type="button"
         onClick={() => onSelectTab('announcements')}
-        className="relative flex flex-col items-center py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="relative flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <span className="relative">
           <IconAnnouncementsNav active={activeTab === 'announcements'} />
           {hasAnnouncements && (
-            <span className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-[#E02D2D]" />
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
           )}
         </span>
         <span
-          className={`text-[11px] tracking-tight mt-1 ${
+          className={`text-[10px] tracking-tight mt-1 ${
             activeTab === 'announcements'
-              ? 'text-[#4F46E5] font-semibold'
-              : 'text-[#6B7280] font-normal'
+              ? 'text-[#5747D6] font-semibold'
+              : 'text-[#8E95A3] font-normal'
           }`}
         >
           Announcements
@@ -114,14 +127,14 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       <button
         type="button"
         onClick={() => onSelectTab('support')}
-        className="flex flex-col items-center py-1 px-3 cursor-pointer active:scale-95 transition-transform"
+        className="flex flex-col items-center py-0.5 px-3 cursor-pointer active:scale-95 transition-transform"
       >
         <IconSupportNav active={activeTab === 'support'} />
         <span
-          className={`text-[11px] tracking-tight mt-1 ${
+          className={`text-[10px] tracking-tight mt-1 ${
             activeTab === 'support'
-              ? 'text-[#4F46E5] font-semibold'
-              : 'text-[#6B7280] font-normal'
+              ? 'text-[#5747D6] font-semibold'
+              : 'text-[#8E95A3] font-normal'
           }`}
         >
           Support

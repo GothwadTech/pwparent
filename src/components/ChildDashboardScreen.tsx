@@ -140,7 +140,6 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
           onOpenProfile={onOpenProfile}
           onRefreshData={onRefreshData}
         />
-        <div className="h-2 w-full bg-[#EEF1F6]" />
       </header>
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
