@@ -87,6 +87,12 @@ export interface Batch {
   id: string;
   name: string;
   batchType: 'online' | 'offline';
+  /**
+   * Which exam paper list this batch follows — 'NEET' today. Decides the
+   * subject list a test's syllabus is built from (four NEET sections of 180
+   * marks each). Optional so batches created before the field keep working.
+   */
+  subjectType?: string;
   createdAt?: string;
   createdBy?: string;
   /** Admin-seeded lifetime attendance history; the running week adds on top. */
