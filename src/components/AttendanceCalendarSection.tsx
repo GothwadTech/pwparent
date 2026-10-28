@@ -26,8 +26,8 @@ const LEGEND = [
  * Refined Donut circular progress gauge with slim stroke and well-balanced typography matching real app.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 86;
-  const stroke = 9;
+  const radius = 91;
+  const stroke = 18;
   const circumference = 2 * Math.PI * radius;
   const roundedPercent = Math.round(percent);
   const clamped = Math.min(100, Math.max(0, roundedPercent));
@@ -41,7 +41,7 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
           cy="100"
           r={radius}
           fill="none"
-          stroke="#EEF2F6"
+          stroke="#E9EAEE"
           strokeWidth={stroke}
         />
         {clamped > 0 && (
@@ -50,18 +50,17 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
             cy="100"
             r={radius}
             fill="none"
-            stroke="#4F46E5"
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={`${filled} ${circumference - filled}`}
+          stroke="#594CDA"
+          strokeWidth={stroke}
+          strokeDasharray={`${filled} ${circumference - filled}`}
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[32px] leading-none font-extrabold text-[#111827] tracking-tight">
+        <span className="text-[44px] leading-none font-extrabold text-[#111827] tracking-tight">
           {roundedPercent}%
         </span>
-        <span className="text-[12px] font-medium text-[#6B7280] mt-2 tracking-tight">
+        <span className="text-[13px] font-bold text-[#17181C] mt-2 tracking-tight">
           Average attendance
         </span>
       </div>
@@ -93,34 +92,45 @@ const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
 
 /** One weekday column matching real app screenshot */
 const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
+  // The reference tints the whole chip by state, not just the dot.
+  const chip = isToday
+    ? 'bg-[#F2EFFF] border-[#5747D6]'
+    : day.status === 'present'
+      ? 'bg-[#E0F2E6] border-[#BFE3CC]'
+      : day.status === 'absent'
+        ? 'bg-[#FDECEA] border-[#F2C4BE]'
+        : day.status === 'no_class'
+          ? 'bg-[#EBECF0] border-[#EBECF0]'
+          : 'bg-white border-[#E5E7EB]';
+  const dot = isToday
+    ? 'bg-[#5747D6]'
+    : day.status === 'present'
+      ? 'bg-[#10B981]'
+      : day.status === 'absent'
+        ? 'bg-[#EF4444]'
+        : day.status === 'no_class'
+          ? 'bg-[#9CA3AF]'
+          : null;
   return (
     <div className="flex flex-col items-center pt-1 pb-1 px-0.5">
       <span
-        className={`text-[12px] leading-none mb-1.5 ${
-          isToday ? 'font-bold text-[#111827]' : 'font-normal text-[#6B7280]'
+        className={`text-[12.5px] leading-none mb-1.5 ${
+          isToday ? 'font-bold text-[#111827]' : 'font-medium text-[#4B5563]'
         }`}
       >
         {day.dayLabel}
       </span>
       <div
-        className={`w-9 h-9 rounded-md border flex flex-col items-center justify-center bg-white shadow-2xs ${
-          isToday ? 'border-[#4F46E5]' : 'border-[#E5E7EB]'
-        }`}
+        className={`w-10 h-10 rounded-[10px] border flex flex-col items-center justify-center ${chip}`}
       >
         <span
-          className={`text-[13px] leading-none ${
+          className={`text-[14px] leading-none ${
             isToday ? 'font-bold text-[#111827]' : 'font-semibold text-[#111827]'
           }`}
         >
           {day.dayNum}
         </span>
-        {isToday ? (
-          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#4F46E5]" />
-        ) : day.status === 'present' ? (
-          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#10B981]" />
-        ) : day.status === 'absent' ? (
-          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
-        ) : null}
+        {dot ? <span className={`mt-1 h-[5px] w-[5px] rounded-full ${dot}`} /> : null}
       </div>
     </div>
   );
@@ -166,13 +176,13 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <IconCalendarWithClock size={22} />
-          <h2 className="text-[18px] font-bold text-[#111827] tracking-tight ml-1">
+          <h2 className="text-[18px] font-extrabold text-[#111827] tracking-tight ml-1">
             Attendance
           </h2>
         </div>
-        <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FFF7ED] border border-[#FED7AA]">
+        <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#FAF7E6] border border-[#EFDFAC]">
           <span className="text-[13px] leading-none select-none">🔥</span>
-          <span className="text-[12.5px] font-bold text-[#C2410C]">
+          <span className="text-[12.5px] font-bold text-[#6B4E00]">
             {displayStreak} day streak
           </span>
         </div>
@@ -184,49 +194,49 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
       {/* Lifetime day counts */}
       <div className="grid grid-cols-2 items-center relative mt-6 mb-6">
         <div className="text-center">
-          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
+          <div className="text-[24px] leading-none font-extrabold text-[#111827]">
             {displayStudyDays}
           </div>
-          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
+          <div className="text-[12.5px] font-medium text-[#4B5563] mt-1.5">
             Total Study Days
           </div>
         </div>
-        <div className="w-[1px] h-7 bg-[#E5E7EB] absolute left-1/2 top-1/2 -translate-y-1/2" />
+        <div className="w-[1px] h-10 bg-[#E4E7EC] absolute left-1/2 top-1/2 -translate-y-1/2" />
         <div className="text-center">
-          <div className="text-[26px] leading-none font-extrabold text-[#111827]">
+          <div className="text-[24px] leading-none font-extrabold text-[#111827]">
             {displayPresentDays}
           </div>
-          <div className="text-[12px] font-normal text-[#6B7280] mt-1.5">
+          <div className="text-[12.5px] font-medium text-[#4B5563] mt-1.5">
             Total Present Days
           </div>
         </div>
       </div>
 
       {/* Weekly Report heading */}
-      <h3 className="text-[14px] font-bold text-[#111827] tracking-tight mb-3">
+      <h3 className="text-[15px] font-extrabold text-[#111827] tracking-tight mt-4 mb-4">
         Weekly Report
       </h3>
 
       {/* Week date range with left and right minimal arrow icons */}
-      <div className="flex items-center justify-between mb-4 px-1">
+      <div className="flex items-center justify-between mb-5 px-1">
         <button
           type="button"
           onClick={onPrevWeek}
           aria-label="Previous week"
-          className="p-1 text-[#6B7280] hover:text-[#111827] active:scale-95 transition-all"
+          className="p-1 text-[#3F4650] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowLeft size={16} strokeWidth={2.2} />
+          <ArrowLeft size={18} strokeWidth={2} />
         </button>
-        <span className="text-[14px] font-medium text-[#4B5563]">
+        <span className="text-[14px] font-medium text-[#374151]">
           {displayWeekLabel}
         </span>
         <button
           type="button"
           onClick={onNextWeek}
           aria-label="Next week"
-          className="p-1 text-[#6B7280] hover:text-[#111827] active:scale-95 transition-all"
+          className="p-1 text-[#3F4650] hover:text-[#111827] active:scale-95 transition-all"
         >
-          <ArrowRight size={16} strokeWidth={2.2} />
+          <ArrowRight size={18} strokeWidth={2} />
         </button>
       </div>
 
@@ -237,12 +247,12 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         ))}
       </div>
 
-      {/* Legend row */}
-      <div className="flex items-center justify-between mt-5 px-1">
+      {/* Legend row — left-packed with even gaps, as in the reference */}
+      <div className="flex items-center gap-4 mt-6 px-1">
         {LEGEND.map((l) => (
           <div key={l.label} className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: l.color }} />
-            <span className="text-[11.5px] font-medium text-[#111827]">{l.label}</span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: l.color }} />
+            <span className="text-[12px] font-medium text-[#374151]">{l.label}</span>
           </div>
         ))}
       </div>
