@@ -25,6 +25,7 @@ import { AnnouncementsView } from './AnnouncementsView';
 import { SupportHelpCentreView } from './SupportHelpCentreView';
 import { BatchSelectModal } from './BatchSelectModal';
 import { SubjectDetailsModal } from './SubjectDetailsModal';
+import { SubjectDetailsScreen } from './SubjectDetailsScreen';
 import { AllTestsScreen } from './AllTestsScreen';
 import { TestDetailScreen } from './TestDetailScreen';
 import { PAGE_BG, SECTION_BAND, TEXT_PRIMARY, TEXT_SECONDARY } from '../lib/uiTheme';
@@ -118,6 +119,14 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
       />
     );
   }
+  if (subjectDetailsArea) {
+    return (
+      <SubjectDetailsScreen
+        title="Test Details"
+        onBack={() => setSubjectDetailsArea(null)}
+      />
+    );
+  }
 
   return (
     <div
@@ -189,14 +198,6 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
         options={batches}
         selectedBatchId={selectedBatch?.id ?? ''}
         onSelectBatch={chooseBatch}
-      />
-
-      <SubjectDetailsModal
-        isOpen={subjectDetailsArea !== null}
-        onClose={() => setSubjectDetailsArea(null)}
-        area={subjectDetailsArea || 'lectures'}
-        batchName={selectedBatch?.name ?? ''}
-        subjects={subjects}
       />
     </div>
   );

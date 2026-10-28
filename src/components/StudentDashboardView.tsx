@@ -192,7 +192,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             <span className="text-xs font-medium text-neutral-700">
               Total DPP&apos;s Attempted
             </span>
-            <span className="text-base font-bold text-[#17181C]">0/88</span>
+            <span className="text-base font-bold text-[#17181C]">0/0</span>
           </div>
 
           {/* Progress bar */}

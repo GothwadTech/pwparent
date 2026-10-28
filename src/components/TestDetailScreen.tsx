@@ -15,6 +15,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronUp, ChevronDown } from 'lucide-react';
 import {IconBars, IconChartLine, IconCheckCircle, IconPodium, IconStar, IconTarget} from './icons/AppIcons';
+import { SubjectNotAvailableIllustration } from './illustrations/SubjectNotAvailableIllustration';
 import type { BatchTest, TestResult } from '../types';
 import {
   ACCENT, CARD_BORDER, HEADER_BG, SECTION_BAND, TEXT_PRIMARY, TILE_BG,
@@ -102,9 +103,12 @@ export const TestDetailScreen: React.FC<TestDetailScreenProps> = ({ test, result
         </h2>
 
         {subjects.length === 0 ? (
-          <p className="text-[12px] mt-3" style={{ color: TEXT_PRIMARY }}>
-            No syllabus was attached to this test, so there is no subject-wise breakdown.
-          </p>
+          <div className="w-full rounded-2xl bg-[#EEF2F6] pt-8 pb-9 px-6 flex flex-col items-center justify-center text-center mt-3">
+            <SubjectNotAvailableIllustration size={84} />
+            <p className="mt-5 text-[14px] font-medium text-[#2D3748] max-w-[280px] leading-snug">
+              Sorry!, Subject wise data is not available yet.
+            </p>
+          </div>
         ) : (
           <div className="bg-white border rounded-xl overflow-hidden mt-3" style={{ borderColor: CARD_BORDER }}>
             {subjects.map((s, i) => {
