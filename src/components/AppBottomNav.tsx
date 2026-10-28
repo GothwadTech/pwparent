@@ -15,8 +15,8 @@ const IconDashboardNav: React.FC<{ active: boolean }> = ({ active }) => {
   const color = active ? '#5747D6' : '#8E95A3';
   return (
     <svg
-      width="21"
-      height="21"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
@@ -24,9 +24,10 @@ const IconDashboardNav: React.FC<{ active: boolean }> = ({ active }) => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M4.93 19.07 A10 10 0 1 1 19.07 19.07" />
-      <path d="M12 12 L16.5 7.5" strokeWidth="2" />
-      <circle cx="12" cy="12" r="1.5" fill={color} />
+      {/* Three-quarter pie body */}
+      <path d="M11 13 L11 5 A8 8 0 1 0 19 13 Z" />
+      {/* Detached slice, offset to the top right — the reference glyph */}
+      <path d="M13.5 10.5 L13.5 2.5 A8 8 0 0 1 21.5 10.5 Z" />
     </svg>
   );
 };
@@ -36,8 +37,8 @@ const IconAnnouncementsNav: React.FC<{ active: boolean }> = ({ active }) => {
   const color = active ? '#5747D6' : '#8E95A3';
   return (
     <svg
-      width="21"
-      height="21"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
@@ -58,8 +59,8 @@ const IconSupportNav: React.FC<{ active: boolean }> = ({ active }) => {
   const color = active ? '#5747D6' : '#8E95A3';
   return (
     <svg
-      width="21"
-      height="21"
+      width="22"
+      height="22"
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
@@ -90,7 +91,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       >
         <IconDashboardNav active={activeTab === 'dashboard'} />
         <span
-          className={`text-[10px] tracking-tight mt-1 ${
+          className={`text-[11.5px] tracking-tight mt-1 ${
             activeTab === 'dashboard'
               ? 'text-[#5747D6] font-semibold'
               : 'text-[#8E95A3] font-normal'
@@ -113,7 +114,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
           )}
         </span>
         <span
-          className={`text-[10px] tracking-tight mt-1 ${
+          className={`text-[11.5px] tracking-tight mt-1 ${
             activeTab === 'announcements'
               ? 'text-[#5747D6] font-semibold'
               : 'text-[#8E95A3] font-normal'
@@ -131,7 +132,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       >
         <IconSupportNav active={activeTab === 'support'} />
         <span
-          className={`text-[10px] tracking-tight mt-1 ${
+          className={`text-[11.5px] tracking-tight mt-1 ${
             activeTab === 'support'
               ? 'text-[#5747D6] font-semibold'
               : 'text-[#8E95A3] font-normal'

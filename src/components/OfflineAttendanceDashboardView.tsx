@@ -76,7 +76,8 @@ function weekLabel(week: CalendarDay[]): string {
   const last = week[week.length - 1];
   const fm = monthOf(first);
   const lm = monthOf(last);
-  return fm === lm ? `${first.dayNum} - ${last.dayNum} ${lm}` : `${first.dayNum} ${fm} - ${last.dayNum} ${lm}`;
+  // Reference always spells the month on both ends: "26 Oct - 1 Nov".
+  return `${first.dayNum} ${fm} - ${last.dayNum} ${lm}`;
 }
 
 export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboardViewProps> = ({
@@ -105,10 +106,12 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
     setSelectedWeekIdx((prev) => Math.min(Math.max(0, weeks.length - 1), (prev ?? defaultIdx) + 1));
   };
 
-  const band = <div className="h-2.5 w-full bg-[#EEF1F6]" />;
+  const band = <div className="h-2.5 w-full bg-[#EBECF0]" />;
 
   return (
-    <div className="flex-1 w-full pb-6 overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full pb-6 overflow-y-auto no-scrollbar select-none font-['Plus_Jakarta_Sans',sans-serif]">
+      {/* Neutral band separating the top bar from the content, as in the reference */}
+      {band}
       <AttendanceCalendarSection
         summary={summary}
         days={currentWeek}
