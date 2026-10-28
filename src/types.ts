@@ -93,6 +93,11 @@ export interface Batch {
    * marks each). Optional so batches created before the field keep working.
    */
   subjectType?: string;
+  /**
+   * Which class the batch teaches — 'Class 12th' today, more later. Chosen at
+   * creation like `subjectType`; optional so older batches keep reading.
+   */
+  classLevel?: string;
   createdAt?: string;
   createdBy?: string;
   /** Admin-seeded lifetime attendance history; the running week adds on top. */

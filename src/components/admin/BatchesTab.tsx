@@ -15,6 +15,7 @@ import type {Batch} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {newBatchId} from '../../lib/backend';
 import {BATCH_SUBJECT_TYPES, subjectTypeOf} from '../../lib/neetSubjects';
+import {BATCH_CLASSES, classLevelOf} from '../../lib/neetSyllabus';
 import {BatchDetailView} from './BatchDetailView';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 
@@ -30,6 +31,7 @@ function blankBatch(): Batch {
     name: '',
     batchType: 'offline',
     subjectType: 'NEET',
+    classLevel: 'Class 12th',
   };
 }
 
@@ -76,6 +78,21 @@ const BatchForm: React.FC<{
           {BATCH_SUBJECT_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Class" htmlFor="batch-class">
+        <select
+          id="batch-class"
+          className={inputCls}
+          value={classLevelOf(batch)}
+          onChange={(e) => onChange({...batch, classLevel: e.target.value})}
+        >
+          {/* Class 12th only for now; more classes plug in here later. */}
+          {BATCH_CLASSES.map((level) => (
+            <option key={level} value={level}>
+              {level}
             </option>
           ))}
         </select>
@@ -224,7 +241,7 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) =>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate">{batch.name}</p>
               <p className="text-[11px] text-neutral-500 truncate">
-                {batch.batchType === 'offline' ? 'Offline (centre)' : 'Online'} · {subjectTypeOf(batch)}
+                {batch.batchType === 'offline' ? 'Offline (centre)' : 'Online'} · {subjectTypeOf(batch)} · {classLevelOf(batch)}
               </p>
             </div>
             <ChevronRight size={15} className="text-neutral-500 shrink-0" />

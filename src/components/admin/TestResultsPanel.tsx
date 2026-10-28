@@ -58,15 +58,14 @@ const draftFrom = (result: TestResult | undefined): RowDraft =>
       }
     : emptyDraft();
 
-/** Sums the entered topic marks per subject against the fixed NEET section marks. */
-const subjectTotals = (syllabus: SyllabusTopic[], topics: Record<string, string>) => {
-  const acc: Record<string, number> = {};
+/** Syllabus lines grouped by subject, order preserved, for the grouped inputs. */
+const subjectGroups = (syllabus: SyllabusTopic[]) => {
+  const map = new Map<string, SyllabusTopic[]>();
   for (const line of syllabus) {
     const subject = (line.subject || '').trim() || 'General';
-    const raw = topics[`${line.subject}||${line.topic}`];
-    acc[subject] = (acc[subject] ?? 0) + (raw === undefined || raw === '' ? 0 : Number(raw));
+    map.set(subject, [...(map.get(subject) ?? []), line]);
   }
-  return Object.entries(acc).map(([subject, obtained]) => ({subject, obtained, max: NEET_SUBJECT_MARKS}));
+  return [...map.entries()].map(([subject, lines]) => ({subject, lines}));
 };
 
 const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
@@ -160,9 +159,19 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
       for (const [key, raw] of Object.entries(draft.topics)) {
         if (raw !== '') topicMarks[key] = Number(raw);
       }
+      const hasSyllabus = (test.syllabus ?? []).length > 0;
+      const topicSum = Object.values(topicMarks).reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
       await backend.saveResult(batch.id, test.id, student.id, {
         studentName: student.name,
-        marksObtained: draft.marks === '' ? undefined : Number(draft.marks),
+        // With a syllabus the paper total is the sum of the chapter marks the
+        // admin entered — never a separately typed number.
+        marksObtained: hasSyllabus
+          ? Object.keys(topicMarks).length > 0
+            ? topicSum
+            : undefined
+          : draft.marks === ''
+            ? undefined
+            : Number(draft.marks),
         // Accuracy is DERIVED from correct/attempted, never typed.
         accuracyPercent:
           correct !== undefined && attemptedCount ? Math.round((correct / attemptedCount) * 10000) / 100 : undefined,
@@ -316,20 +325,22 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <input
-                className={inputCls}
-                aria-label={`Marks obtained by ${student.name}`}
-                inputMode="numeric"
-                placeholder={`/${test.marksTotal}`}
-                value={draft.marks}
-                disabled={busyRow}
-                onChange={(e) =>
-                  patchDraft(student.id, {
-                    marks: e.target.value.replace(/[^\d.]/g, '').slice(0, 6),
-                    status: e.target.value === '' ? draft.status : 'ATTEMPTED',
-                  })
-                }
-              />
+              {(test.syllabus ?? []).length === 0 && (
+                <input
+                  className={inputCls}
+                  aria-label={`Marks obtained by ${student.name}`}
+                  inputMode="numeric"
+                  placeholder={`/${test.marksTotal}`}
+                  value={draft.marks}
+                  disabled={busyRow}
+                  onChange={(e) =>
+                    patchDraft(student.id, {
+                      marks: e.target.value.replace(/[^\d.]/g, '').slice(0, 6),
+                      status: e.target.value === '' ? draft.status : 'ATTEMPTED',
+                    })
+                  }
+                />
+              )}
               <input
                 className={inputCls}
                 aria-label={`Correct count for ${student.name}`}
@@ -375,39 +386,59 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
               />
             </div>
 
-            {/* Per-topic marks, in the test's own syllabus order. The subject-wise
-                accordion on the parent's detail screen sums these. */}
+            {/* Chapter-wise marks, grouped under their subject so it is always
+                obvious which section a box belongs to. Subject and paper totals
+                count themselves from what is entered here. */}
             {(test.syllabus ?? []).length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-neutral-500">Topic-wise marks</p>
-                {(test.syllabus ?? []).map((line) => {
-                  const key = `${line.subject}||${line.topic}`;
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-neutral-500">Chapter-wise marks</p>
+                {subjectGroups(test.syllabus ?? []).map((group) => {
+                  const obtained = group.lines.reduce((sum, line) => {
+                    const raw = draft.topics[`${line.subject}||${line.topic}`];
+                    return sum + (raw === undefined || raw === '' ? 0 : Number(raw));
+                  }, 0);
                   return (
-                    <div key={key} className="flex items-center gap-2">
-                      <span className="flex-1 text-[11px] text-neutral-500 truncate">
-                        {line.subject} · {line.topic}
-                      </span>
-                      <input
-                        className={inputCls}
-                        aria-label={`Marks for ${line.topic}`}
-                        inputMode="numeric"
-                        placeholder="0"
-                        value={draft.topics[key] ?? ''}
-                        disabled={busyRow}
-                        onChange={(e) =>
-                          patchDraft(student.id, {
-                            topics: {...draft.topics, [key]: e.target.value.replace(/[^\d.]/g, '').slice(0, 5)},
-                          })
-                        }
-                      />
+                    <div key={group.subject} className="space-y-1.5">
+                      <p className="text-[11px] font-bold text-[#5747D6] uppercase tracking-wide">
+                        {group.subject} — obtained {obtained} / {NEET_SUBJECT_MARKS}
+                      </p>
+                      {group.lines.map((line) => {
+                        const key = `${line.subject}||${line.topic}`;
+                        return (
+                          <div key={key} className="flex items-center gap-2">
+                            <span className="flex-1 text-[11px] text-neutral-500 truncate">{line.topic}</span>
+                            <input
+                              className={inputCls}
+                              aria-label={`Marks for ${line.topic} (${group.subject})`}
+                              inputMode="numeric"
+                              placeholder="0"
+                              value={draft.topics[key] ?? ''}
+                              disabled={busyRow}
+                              onChange={(e) =>
+                                patchDraft(student.id, {
+                                  topics: {...draft.topics, [key]: e.target.value.replace(/[^\d.]/g, '').slice(0, 5)},
+                                })
+                              }
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
-                {subjectTotals(test.syllabus ?? [], draft.topics).map((row) => (
-                  <p key={row.subject} className="text-[11px] font-bold text-[#5747D6]">
-                    {row.subject} obtained: {row.obtained} / {row.max} — counted automatically
-                  </p>
-                ))}
+                <p className="text-[11px] font-bold text-[#111827]">
+                  Total obtained:{' '}
+                  {subjectGroups(test.syllabus ?? []).reduce(
+                    (sum, group) =>
+                      sum +
+                      group.lines.reduce((inner, line) => {
+                        const raw = draft.topics[`${line.subject}||${line.topic}`];
+                        return inner + (raw === undefined || raw === '' ? 0 : Number(raw));
+                      }, 0),
+                    0,
+                  )}{' '}
+                  / {test.marksTotal} — counted automatically
+                </p>
               </div>
             )}
 
@@ -427,10 +458,11 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
 
       {!loading && students.length > 0 && (
         <Note>
-          Percentages are computed from the raw marks and this test&apos;s total ({test.marksTotal}) — they cannot be
-          typed. Accuracy is derived from Correct ÷ Attempted. The rank is exactly what you type per student; the top
-          score and the class average are stamped onto every attempted result when you save, because only the
-          administrator can see the whole class.
+          When a test has a syllabus, the marks obtained are the sum of the chapter-wise marks you enter — subject totals and
+          the paper total both count themselves. Percentages are computed from that total and this test&apos;s total
+          ({test.marksTotal}). Accuracy is derived from Correct ÷ Attempted. The rank is exactly what you type per
+          student; the top score and the class average are stamped onto every attempted result when you save, because
+          only the administrator can see the whole class.
         </Note>
       )}
     </>
