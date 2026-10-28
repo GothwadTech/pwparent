@@ -14,7 +14,8 @@ import {ChevronRight, ClipboardList, Plus, RefreshCw, Save, Trash2} from 'lucide
 import type {Batch, BatchTest, SyllabusTopic} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {newBatchTestId} from '../../lib/backend';
-import {NEET_SUBJECT_MARKS, subjectOptions, subjectTypeOf} from '../../lib/neetSubjects';
+import {NEET_SUBJECTS, NEET_SUBJECT_MARKS, subjectTypeOf} from '../../lib/neetSubjects';
+import {chapterOptions} from '../../lib/neetSyllabus';
 import {TestResultsPanel} from './TestResultsPanel';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 
@@ -43,67 +44,135 @@ const SyllabusEditor: React.FC<{
   onChange: (next: SyllabusTopic[]) => void;
   subjectType?: string;
 }> = ({syllabus, onChange, subjectType}) => {
-  const patch = (index: number, change: Partial<SyllabusTopic>) =>
-    onChange(syllabus.map((t, i) => (i === index ? {...t, ...change} : t)));
+  const [customFor, setCustomFor] = useState<string | null>(null);
+  const [customText, setCustomText] = useState('');
 
-  // Distinct subjects actually used, with their fixed NEET section marks.
-  const usedSubjects = [...new Set(syllabus.map((t) => (t.subject || '').trim()).filter(Boolean))];
+  const sections = subjectType === 'NEET' || !subjectType ? NEET_SUBJECTS : NEET_SUBJECTS;
+  const linesOf = (subject: string) => syllabus.filter((t) => (t.subject || '').trim() === subject);
+  // Free-text subjects saved before the picker existed keep their own rows.
+  const legacy = syllabus.filter((t) => !NEET_SUBJECTS.includes((t.subject || '').trim()));
+
+  const setTopics = (subject: string, topics: string[]) => {
+    const others = syllabus.filter((t) => (t.subject || '').trim() !== subject);
+    onChange([...others, ...topics.map((topic) => ({subject, topic}))]);
+  };
+
+  const addCustom = (subject: string) => {
+    const topic = customText.trim();
+    if (!topic) return;
+    const chosen = linesOf(subject).map((t) => t.topic);
+    if (!chosen.includes(topic)) setTopics(subject, [...chosen, topic]);
+    setCustomFor(null);
+    setCustomText('');
+  };
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className={labelCls}>Syllabus</span>
-        <button
-          type="button"
-          className={btnGhost}
-          onClick={() => onChange([...syllabus, {subject: '', topic: ''}])}
-        >
-          <Plus size={12} /> Add topic
-        </button>
+        <span className={labelCls}>Syllabus — chapters per subject</span>
       </div>
+      <Note>
+        The four NEET sections are fixed at {NEET_SUBJECT_MARKS} marks each. Add as many chapters as this paper
+        covers — pick from the syllabus list or type your own.
+      </Note>
 
-      {syllabus.length === 0 && <Note>No syllabus yet — optional, but students see it on the test card.</Note>}
+      {sections.map((subject) => {
+        const chosen = linesOf(subject).map((t) => t.topic);
+        const remaining = chapterOptions(subject, chosen).filter((c) => !chosen.includes(c));
+        return (
+          <div key={subject} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[12px] font-bold text-[#5747D6]">
+                {subject} <span className="text-neutral-500 font-medium">· {NEET_SUBJECT_MARKS} marks</span>
+              </p>
+              {chosen.length > 0 && <span className="text-[11px] text-neutral-500">{chosen.length} chapter(s)</span>}
+            </div>
 
-      {syllabus.map((topic, index) => (
-        <div key={index} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
-          <div className="grid grid-cols-[1fr_auto] gap-2">
-            <select
-              className={inputCls}
-              aria-label="Subject"
-              value={(topic.subject || '').trim()}
-              onChange={(e) => patch(index, {subject: e.target.value})}
-            >
-              <option value="">Select subject…</option>
-              {subjectOptions(subjectTypeOf({subjectType}), topic.subject).map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className={btnDanger}
-              onClick={() => onChange(syllabus.filter((_, i) => i !== index))}
-              aria-label="Remove topic"
-            >
-              <Trash2 size={12} />
-            </button>
+            {chosen.length === 0 && <p className="text-[11px] text-neutral-500">No chapters added yet.</p>}
+            {linesOf(subject).map((line) => (
+              <div key={line.topic} className="flex items-center gap-2">
+                <span className="flex-1 text-[12px] text-neutral-700 truncate">{line.topic}</span>
+                <button
+                  type="button"
+                  className={btnDanger}
+                  aria-label={`Remove ${line.topic}`}
+                  onClick={() => setTopics(subject, chosen.filter((c) => c !== line.topic))}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+
+            {customFor === subject ? (
+              <div className="flex gap-2">
+                <input
+                  className={inputCls}
+                  aria-label={`Custom chapter in ${subject}`}
+                  placeholder="Chapter name"
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                />
+                <button type="button" className={btnPrimary} onClick={() => addCustom(subject)}>
+                  Add
+                </button>
+                <button
+                  type="button"
+                  className={btnGhost}
+                  onClick={() => {
+                    setCustomFor(null);
+                    setCustomText('');
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <select
+                className={inputCls}
+                aria-label={`Add chapter to ${subject}`}
+                value=""
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  if (value === '__custom__') {
+                    setCustomFor(subject);
+                    return;
+                  }
+                  setTopics(subject, [...chosen, value]);
+                }}
+              >
+                <option value="">+ Add chapter…</option>
+                {remaining.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+                <option value="__custom__">Other (type yourself)</option>
+              </select>
+            )}
           </div>
-          <input
-            className={inputCls}
-            aria-label="Topic"
-            placeholder="Rotational Motion + Gravitation"
-            value={topic.topic}
-            onChange={(e) => patch(index, {topic: e.target.value})}
-          />
-        </div>
-      ))}
+        );
+      })}
 
-      {usedSubjects.length > 0 && (
-        <p className="text-[11px] text-neutral-500">
-          {usedSubjects.map((name) => `${name} · ${NEET_SUBJECT_MARKS} marks`).join('  +  ')}
-          {' '}— section obtained totals are summed from the topic marks you enter per student.
-        </p>
+      {legacy.length > 0 && (
+        <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
+          <p className="text-[12px] font-bold text-neutral-500">Earlier free-text subjects</p>
+          {legacy.map((line, i) => (
+            <div key={`${line.subject}-${line.topic}-${i}`} className="flex items-center gap-2">
+              <span className="flex-1 text-[12px] text-neutral-700 truncate">
+                {line.subject || '—'} · {line.topic || '—'}
+              </span>
+              <button
+                type="button"
+                className={btnDanger}
+                aria-label={`Remove ${line.topic}`}
+                onClick={() => onChange(syllabus.filter((t) => t !== line))}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
