@@ -23,21 +23,22 @@ const LEGEND = [
 ];
 
 /**
- * 210px Donut circular progress gauge with 22px stroke and flat butt cap.
+ * Refined Donut circular progress gauge with slim 14px stroke matching screenshot.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 90;
-  const stroke = 22;
+  const radius = 86;
+  const stroke = 14;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.min(100, Math.max(0, percent));
+  const roundedPercent = Math.round(percent);
+  const clamped = Math.min(100, Math.max(0, roundedPercent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[210px] h-[210px] mx-auto mt-5 mb-4 select-none flex items-center justify-center">
-      <svg viewBox="0 0 220 220" className="w-full h-full -rotate-90">
+    <div className="relative w-[200px] h-[200px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
+      <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
         <circle
-          cx="110"
-          cy="110"
+          cx="100"
+          cy="100"
           r={radius}
           fill="none"
           stroke="#EEF2F6"
@@ -45,8 +46,8 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         />
         {clamped > 0 && (
           <circle
-            cx="110"
-            cy="110"
+            cx="100"
+            cy="100"
             r={radius}
             fill="none"
             stroke="#4F46E5"
@@ -57,10 +58,10 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-        <span className="text-[48px] leading-none font-extrabold text-[#111827] tracking-tight">
-          {percent}%
+        <span className="text-[50px] leading-none font-extrabold text-[#111827] tracking-tight">
+          {roundedPercent}%
         </span>
-        <span className="text-[13px] font-bold text-[#111827] mt-2.5 tracking-tight">
+        <span className="text-[13px] font-bold text-[#111827] mt-2 tracking-tight">
           Average attendance
         </span>
       </div>

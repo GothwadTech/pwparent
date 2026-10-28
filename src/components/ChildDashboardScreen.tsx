@@ -125,19 +125,13 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
     >
       <header className="shrink-0 z-30 w-full bg-white">
         <MainTopBar
-          selectedBatchName={
-            selectedBatch?.name
-              ? selectedBatch.name.length > 24
-                ? `${selectedBatch.name.slice(0, 22)}...`
-                : selectedBatch.name
-              : 'Vidyapeeth 16-LN121E...'
-          }
+          selectedBatchName={selectedBatch?.name || 'Vidyapeeth 16-LN121E01'}
           onOpenBatchSelector={() => setIsBatchModalOpen(true)}
           activeStudent={student}
           onOpenProfile={onOpenProfile}
           onRefreshData={onRefreshData}
         />
-        <div className="h-2.5 w-full bg-[#EEF1F6]" />
+        <div className="h-2 w-full bg-[#EEF1F6]" />
       </header>
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">

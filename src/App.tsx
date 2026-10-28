@@ -113,11 +113,10 @@ export const App: React.FC = () => {
       case 'login':
         return (
           <LoginScreen
-            initialPhoneNumber={phoneNumber}
+            initialPhoneNumber=""
             onSubmit={(phone) => void handleLoginSubmit(phone)}
             onHowItWorks={() => setIsHowItWorksOpen(true)}
             onOpenSettings={openSettings}
-            onDemoLogin={() => void handleDemoLogin()}
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
           />

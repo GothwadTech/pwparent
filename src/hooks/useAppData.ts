@@ -216,7 +216,7 @@ export function useAppData(): AppData {
         if (!cancelled) setScreen('dashboard');
       } else {
         // Nothing resumable: land on login (we may have opened optimistically
-        // on the dashboard) and prefill whatever number this device remembers.
+        // on the dashboard) and remember whatever number this device held.
         setScreen('login');
         if (storedSessionPhone()) setPhoneNumber(storedSessionPhone());
       }

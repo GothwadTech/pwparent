@@ -10,7 +10,6 @@ interface LoginScreenProps {
   onOpenSettings?: () => void;
   customLogoUrl?: string | null;
   onOpenLogoCustomizer: () => void;
-  onDemoLogin?: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
@@ -20,7 +19,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onOpenSettings,
   customLogoUrl,
   onOpenLogoCustomizer,
-  onDemoLogin,
 }) => {
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber || '');
   const [isFocused, setIsFocused] = useState(false);
@@ -119,24 +117,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           onClick={() => handleSubmit()}
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] ${
             isValid
-              ? 'bg-[#D4C7FF] hover:bg-[#c6b6fc] text-[#111218] shadow-lg shadow-purple-950/25 cursor-pointer'
-              : 'bg-[#F1F2F4]/70 text-neutral-600 cursor-not-allowed opacity-80'
+              ? 'bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] text-white shadow-lg shadow-indigo-500/25 cursor-pointer'
+              : 'bg-[#F1F2F4] text-[#9CA3AF] cursor-not-allowed opacity-80'
           }`}
         >
           Get OTP
         </button>
-
-        {/* Quick Demo Student Login */}
-        {onDemoLogin && (
-          <button
-            type="button"
-            onClick={onDemoLogin}
-            className="w-full mt-3 py-3 rounded-xl font-bold text-[14px] text-center tracking-tight transition-all duration-200 border border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-2xs"
-          >
-            <span>🎓</span>
-            <span>Demo Student Login</span>
-          </button>
-        )}
 
         {/* Terms note */}
         <p className="mt-4 text-[12px] text-[#8e95a5] text-center leading-relaxed font-normal">
