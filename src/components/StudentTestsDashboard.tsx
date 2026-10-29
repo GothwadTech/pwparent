@@ -19,7 +19,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
   ];
 
   return (
-    <div className="space-y-6 pt-2 pb-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-6 pt-2 pb-6 select-none">
       {/* Test Section Header */}
       <div className="flex items-center space-x-2 text-[17px] font-bold text-[#17181C]">
         <IconTestPaper size={18} />
@@ -39,13 +39,13 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
 
         {/* Progress Bar with indicator dot */}
         <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
-          <div className="w-0 h-full bg-[#5747D6] rounded-full" />
+          <div className="w-0 h-full bg-[#5A4BDA] rounded-full" />
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
         </div>
 
         {/* Avg. Score & Accuracy */}
         <div className="mt-4 text-center">
-          <div className="text-[11px] font-semibold text-[#5747D6] mb-2 uppercase tracking-wide">
+          <div className="text-[11px] font-semibold text-[#5A4BDA] mb-2 uppercase tracking-wide">
             In Attempted Tests
           </div>
           <div className="grid grid-cols-2 gap-4 text-center">
@@ -75,7 +75,7 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
           <span>Subject Details</span>
           <Play
             size={10}
-            className="fill-current text-[#5747D6] group-hover:translate-x-0.5 transition-transform"
+            className="fill-current text-[#5A4BDA] group-hover:translate-x-0.5 transition-transform"
           />
         </button>
       </div>
@@ -94,8 +94,8 @@ export const StudentTestsDashboard: React.FC<StudentTestsDashboardProps> = ({
           {tests.map((test) => (
             <div key={test.id} className="relative group">
               {/* Timeline node circle */}
-              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#FFFFFF] border-2 border-[#5747D6] flex items-center justify-center z-10">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#5747D6]" />
+              <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#FFFFFF] border-2 border-[#5A4BDA] flex items-center justify-center z-10">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#5A4BDA]" />
               </div>
 
               {/* Test Card */}

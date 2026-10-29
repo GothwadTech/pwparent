@@ -265,7 +265,7 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
           <ChevronLeft size={13} />
         </button>
         <span className="text-sm font-bold flex items-center gap-1.5">
-          <CalendarDays size={14} className="text-[#5747D6]" />
+          <CalendarDays size={14} className="text-[#5A4BDA]" />
           {monthLabel(month)}
         </span>
         <button type="button" className={btnGhost} onClick={() => setMonth(shiftMonth(month, 1))} aria-label="Next month">
@@ -321,7 +321,7 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
                 onClick={() => setOpenStudent(student.id)}
                 className={`${cardCls} w-full flex items-center gap-3 text-left hover:border-[#E4E6EB] transition-colors`}
               >
-                <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#5A4BDA]/15 border border-[#5A4BDA]/30 flex items-center justify-center shrink-0">
                   {summary.marked === 0 ? (
                     <Minus size={14} className="text-neutral-500" />
                   ) : summary.percent >= 75 ? (

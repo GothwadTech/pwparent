@@ -56,7 +56,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div
             className={`relative flex items-center bg-[#FFFFFF] rounded-xl border transition-all duration-200 px-4 py-4.5 ${
               isFocused || phoneNumber.length > 0
-                ? 'border-[#5747D6] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
+                ? 'border-[#5A4BDA] ring-1 ring-[#8E75FF]/30 shadow-lg shadow-purple-950/20'
                 : 'border-[#E4E6EB]'
             }`}
           >
@@ -64,7 +64,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <span
               className={`absolute -top-2.5 left-4 px-1.5 text-[11px] font-medium bg-[#FFFFFF] transition-colors ${
                 isFocused || phoneNumber.length > 0
-                  ? 'text-[#5747D6]'
+                  ? 'text-[#5A4BDA]'
                   : 'text-[#9ca3af]'
               }`}
             >
@@ -117,7 +117,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           onClick={() => handleSubmit()}
           className={`w-full py-4 rounded-xl font-bold text-[16px] text-center tracking-tight transition-all duration-200 active:scale-[0.99] ${
             isValid
-              ? 'bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] text-white shadow-lg shadow-indigo-500/25 cursor-pointer'
+              ? 'bg-[#5A4BDA] hover:bg-[#4338CA] active:bg-[#3730A3] text-white shadow-lg shadow-indigo-500/25 cursor-pointer'
               : 'bg-[#F1F2F4] text-[#9CA3AF] cursor-not-allowed opacity-80'
           }`}
         >

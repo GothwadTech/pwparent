@@ -94,7 +94,7 @@ export const BatchDetailView: React.FC<BatchDetailViewProps> = ({backend, mode, 
               type="button"
               onClick={() => setPanel(p.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                panel === p.id ? 'bg-[#5747D6] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
+                panel === p.id ? 'bg-[#5A4BDA] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               {p.icon}

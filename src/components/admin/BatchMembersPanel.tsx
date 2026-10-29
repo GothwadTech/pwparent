@@ -218,8 +218,8 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
                 className="flex-1 min-w-0 flex items-center gap-3 text-left"
                 aria-label={`Open ${student.name || 'this student'}'s details`}
               >
-                <span className="w-8 h-8 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
-                  <UserCheck size={14} className="text-[#5747D6]" />
+                <span className="w-8 h-8 rounded-lg bg-[#5A4BDA]/15 border border-[#5A4BDA]/30 flex items-center justify-center shrink-0">
+                  <UserCheck size={14} className="text-[#5A4BDA]" />
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-bold truncate">{student.name || '(unnamed)'}</span>
@@ -268,9 +268,9 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
       )}
 
       {adding && (
-        <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#5A4BDA]/40 rounded-xl p-3.5 space-y-2.5">
           <p className="text-xs font-bold flex items-center gap-1.5">
-            <Users size={13} className="text-[#5747D6]" /> Pick students to allot
+            <Users size={13} className="text-[#5A4BDA]" /> Pick students to allot
           </p>
 
           <div className="relative">
@@ -302,12 +302,12 @@ export const BatchMembersPanel: React.FC<BatchMembersPanelProps> = ({backend, ba
                   type="button"
                   onClick={() => toggle(key)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-colors ${
-                    on ? 'bg-[#5747D6]/15 border-[#5747D6]/50' : 'bg-[#FFFFFF] border-[#E4E6EB] hover:border-[#E4E6EB]'
+                    on ? 'bg-[#5A4BDA]/15 border-[#5A4BDA]/50' : 'bg-[#FFFFFF] border-[#E4E6EB] hover:border-[#E4E6EB]'
                   }`}
                 >
                   <span
                     className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                      on ? 'bg-[#5747D6] border-[#5747D6] text-white' : 'border-[#E4E6EB] text-transparent'
+                      on ? 'bg-[#5A4BDA] border-[#5A4BDA] text-white' : 'border-[#E4E6EB] text-transparent'
                     }`}
                   >
                     ✓

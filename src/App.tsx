@@ -159,7 +159,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => void refreshData()}
-                className="w-full py-3 rounded-xl bg-[#5747D6] text-white text-[13px] font-bold mb-2"
+                className="w-full py-3 rounded-xl bg-[#5A4BDA] text-white text-[13px] font-bold mb-2"
               >
                 Try again
               </button>
@@ -246,7 +246,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden bg-[#F0F2F5] text-[#17181C] relative font-['Plus_Jakarta_Sans',sans-serif] flex justify-center">
+    <div className="w-full h-[100dvh] overflow-hidden bg-[#F0F2F5] text-[#17181C] relative flex justify-center">
 
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main
@@ -299,7 +299,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsTermsOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-[#5747D6] hover:bg-[#4b3bc4] font-semibold text-sm transition-colors text-white"
+              className="w-full py-2.5 rounded-xl bg-[#5A4BDA] hover:bg-[#4b3bc4] font-semibold text-sm transition-colors text-white"
             >
               Close
             </button>

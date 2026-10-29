@@ -41,7 +41,7 @@ export const TEXT_SECONDARY = '#6B7280';
 export const TEXT_TERTIARY = '#9AA0A8';
 
 /** The single brand accent — ring, timeline, active tab, links. */
-export const ACCENT = '#5747D6';
+export const ACCENT = '#5A4BDA';
 
 /** Deep indigo used for figures (scores, ranks, percentages). */
 export const FIGURE = '#2E2A87';

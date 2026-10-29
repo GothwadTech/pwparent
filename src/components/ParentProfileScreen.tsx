@@ -41,7 +41,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       {/* Top Bar matching Screenshot_20260918_180825.jpg */}
       <div className="w-full px-4 pt-4 pb-3 flex items-center justify-between bg-[#FFFFFF] border-b border-[#E4E6EB]/40 z-20">
         <div className="flex items-center">
@@ -64,7 +64,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           onClick={() => setIsEditing(!isEditing)}
           className={`p-2 rounded-lg transition-colors ${
             isEditing
-              ? 'text-[#5747D6] bg-[#A088FF]/10'
+              ? 'text-[#5A4BDA] bg-[#A088FF]/10'
               : 'text-neutral-700 hover:text-neutral-900'
           }`}
           title={isEditing ? 'Cancel edit' : 'Edit profile'}
@@ -86,7 +86,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
         {/* Form Fields Stack */}
         <div className="space-y-5">
           {/* Field 1: Name */}
-          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5A4BDA] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
             <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Name
             </label>
@@ -103,7 +103,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           </div>
 
           {/* Field 2: Mobile number */}
-          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5A4BDA] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
             <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Mobile number
             </label>
@@ -129,7 +129,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           </div>
 
           {/* Field 3: Email */}
-          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5747D6] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
+          <div className="relative rounded-lg border border-[#E4E6EB] focus-within:border-[#5A4BDA] bg-transparent px-3.5 pt-3 pb-2.5 transition-colors">
             <label className="absolute -top-2.5 left-3 bg-[#FFFFFF] px-1 text-[11px] font-medium text-neutral-600">
               Email
             </label>

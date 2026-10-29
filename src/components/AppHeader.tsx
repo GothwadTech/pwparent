@@ -29,7 +29,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="text-[#17181C] group-hover:scale-105 transition-transform">
           <PWLogo size={36} customLogoUrl={customLogoUrl} />
         </div>
-        <span className="text-[20px] font-bold tracking-tight text-[#17181C] font-['Plus_Jakarta_Sans',sans-serif]">
+        <span className="text-[20px] font-bold tracking-tight text-[#17181C]">
           Parent's App
         </span>
       </div>
@@ -43,7 +43,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               onClick={onOpenSettings}
               aria-label="App info and settings"
               title="App info and settings"
-              className="w-7 h-7 rounded-full border border-[#E4E6EB] bg-[#FFFFFF]/80 hover:bg-[#FFFFFF] text-[#5747D6] flex items-center justify-center transition-all active:scale-95"
+              className="w-7 h-7 rounded-full border border-[#E4E6EB] bg-[#FFFFFF]/80 hover:bg-[#FFFFFF] text-[#5A4BDA] flex items-center justify-center transition-all active:scale-95"
             >
               <Info size={15} />
             </button>

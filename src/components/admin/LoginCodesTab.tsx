@@ -206,9 +206,9 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
         </div>
       )}
 
-      <form onSubmit={(e) => void save(e)} className="bg-white border border-[#5747D6]/35 rounded-xl p-3.5 space-y-2.5">
+      <form onSubmit={(e) => void save(e)} className="bg-white border border-[#5A4BDA]/35 rounded-xl p-3.5 space-y-2.5">
         <p className="text-xs font-bold flex items-center gap-1.5">
-          <Plus size={13} className="text-[#5747D6]" /> Issue or replace a login code
+          <Plus size={13} className="text-[#5A4BDA]" /> Issue or replace a login code
         </p>
 
         <Field label="Name" htmlFor="code-name">
@@ -304,7 +304,7 @@ export const LoginCodesTab: React.FC<LoginCodesTabProps> = ({backend, isFirebase
       {groups.map((group) => (
         <div key={group.label} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5 space-y-2.5">
           <p className="text-sm font-bold flex items-center gap-1.5">
-            <User size={13} className="text-[#5747D6] shrink-0" />
+            <User size={13} className="text-[#5A4BDA] shrink-0" />
             <span className="truncate">{group.label}</span>
             {group.entries.length > 1 && (
               <span className="text-[10px] font-semibold text-neutral-500 ml-auto shrink-0">

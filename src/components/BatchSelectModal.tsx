@@ -20,7 +20,7 @@ export const BatchSelectModal: React.FC<BatchSelectModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Dimmed backdrop */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-xs transition-opacity"

@@ -159,7 +159,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                   backend?.clearCache();
                   setStats(cacheStats());
                 }}
-                className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-[#5747D6] hover:underline"
+                className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-[#5A4BDA] hover:underline"
               >
                 <RefreshCw size={11} /> Clear cache
               </button>
@@ -175,7 +175,7 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
                   }}
                   className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl border border-[#C7D2FE] bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#3730A3] transition-colors text-left cursor-pointer"
                 >
-                  <span className="text-[#4F46E5]">
+                  <span className="text-[#5A4BDA]">
                     <GraduationCap size={18} />
                   </span>
                   <span className="flex-1 min-w-0">

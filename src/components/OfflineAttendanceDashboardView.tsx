@@ -109,7 +109,7 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
   const band = <div className="h-2.5 w-full bg-[#EBECF0]" />;
 
   return (
-    <div className="flex-1 w-full pb-6 overflow-y-auto no-scrollbar select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 w-full pb-6 overflow-y-auto no-scrollbar select-none">
       {/* Neutral band separating the top bar from the content, as in the reference */}
       {band}
       <AttendanceCalendarSection

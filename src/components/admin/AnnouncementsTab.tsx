@@ -43,7 +43,7 @@ export const AnnouncementsTab: React.FC<AnnouncementsTabProps> = ({
       </button>
 
       {draft && (
-        <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#5A4BDA]/40 rounded-xl p-3.5 space-y-2.5">
           <Field label="Author" htmlFor="ann-author">
             <input
               id="ann-author"
@@ -126,7 +126,7 @@ export const AnnouncementsTab: React.FC<AnnouncementsTabProps> = ({
               href={item.videoLink}
               target="_blank"
               rel="noreferrer noopener"
-              className="mt-1.5 inline-block text-[11px] text-[#5747D6] hover:underline truncate max-w-full"
+              className="mt-1.5 inline-block text-[11px] text-[#5A4BDA] hover:underline truncate max-w-full"
             >
               {item.videoLink}
             </a>

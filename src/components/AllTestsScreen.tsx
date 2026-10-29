@@ -33,7 +33,7 @@ export const AllTestsScreen: React.FC<AllTestsScreenProps> = ({ tests, onBack, o
   const rows = tests.filter((t) => t.paperType === tab);
 
   return (
-    <div className="w-full h-full flex flex-col select-none font-['Plus_Jakarta_Sans',sans-serif]" style={{ background: '#FFFFFF' }}>
+    <div className="w-full h-full flex flex-col select-none" style={{ background: '#FFFFFF' }}>
       <header className="shrink-0 px-4 pt-4 pb-3.5 flex items-center space-x-4" style={{ background: HEADER_BG }}>
         <button type="button" onClick={onBack} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} strokeWidth={2.6} style={{ color: TEXT_PRIMARY }} />

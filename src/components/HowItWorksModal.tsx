@@ -28,7 +28,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
 
         <div className="mt-4 space-y-4 text-sm text-neutral-700">
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#5747D6]/15 text-[#5747D6] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[#5A4BDA]/15 text-[#5A4BDA] flex items-center justify-center shrink-0 mt-0.5">
               <Smartphone size={17} />
             </div>
             <div>
@@ -40,7 +40,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
           </div>
 
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#5747D6]/15 text-[#5747D6] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[#5A4BDA]/15 text-[#5A4BDA] flex items-center justify-center shrink-0 mt-0.5">
               <ShieldCheck size={17} />
             </div>
             <div>
@@ -52,7 +52,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
           </div>
 
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#5747D6]/15 text-[#5747D6] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[#5A4BDA]/15 text-[#5A4BDA] flex items-center justify-center shrink-0 mt-0.5">
               <UserCheck size={17} />
             </div>
             <div>
@@ -64,7 +64,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
           </div>
 
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#5747D6]/15 text-[#5747D6] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[#5A4BDA]/15 text-[#5A4BDA] flex items-center justify-center shrink-0 mt-0.5">
               <BarChart3 size={17} />
             </div>
             <div>

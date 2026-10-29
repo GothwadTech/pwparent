@@ -1,5 +1,45 @@
 @import "tailwindcss";
 
+/* Reddit Sans — the reference app's actual typeface, self-hosted from the
+   official SIL OFL 1.1 source (see src/assets/fonts/OFL.txt). */
+@font-face {
+  font-family: 'Reddit Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/RedditSans-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Reddit Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./assets/fonts/RedditSans-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Reddit Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./assets/fonts/RedditSans-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Reddit Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/RedditSans-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Reddit Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('./assets/fonts/RedditSans-ExtraBold.woff2') format('woff2');
+}
+
+
+
 /* The app is light, always. One theme — there is no dark variant and no toggle.
    These base rules keep the canvas, the PWA standalone window and the overscroll
    area the same near-white as every screen, so no dark edge can peek through. */
@@ -9,6 +49,7 @@ body,
   min-height: 100%;
   background-color: #FFFFFF;
   color: #17181C;
+  font-family: 'Reddit Sans', system-ui, -apple-system, sans-serif;
 }
 
 body {

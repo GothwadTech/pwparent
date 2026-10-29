@@ -28,7 +28,7 @@ export const AnnouncementsScreen: React.FC<AnnouncementsScreenProps> = () => {
   ];
 
   return (
-    <div className="flex-1 bg-[#FFFFFF] text-[#17181C] flex flex-col overflow-y-auto select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 bg-[#FFFFFF] text-[#17181C] flex flex-col overflow-y-auto select-none">
       <div className="divide-y divide-[#1e202f]">
         {announcements.map((item) => (
           <article

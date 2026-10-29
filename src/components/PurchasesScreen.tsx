@@ -58,7 +58,7 @@ export const PurchasesScreen: React.FC<PurchasesScreenProps> = ({ onBack, items 
   });
 
   return (
-    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#1a1a1a] flex flex-col justify-between overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#1a1a1a] flex flex-col justify-between overflow-hidden select-none">
       {/* Top Header matching Screenshot_20260918_180831.jpg */}
       <div className="w-full px-4 pt-4 pb-3 flex items-center bg-white border-b border-neutral-200 z-20">
         <button
