@@ -112,7 +112,7 @@ export const SupportScreen: React.FC<SupportScreenProps> = ({ onContactUs }) => 
   const displayedFaqs = showAllFaqs ? filteredFaqs : filteredFaqs.slice(0, 4);
 
   return (
-    <div className="flex-1 bg-white text-[#1a1a1a] flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 bg-white text-[#1a1a1a] flex flex-col overflow-hidden select-none">
       {/* Sub Tabs: Help Centre vs My Issues */}
       <div className="flex items-center border-b border-neutral-200 bg-white sticky top-0 z-10">
         <button

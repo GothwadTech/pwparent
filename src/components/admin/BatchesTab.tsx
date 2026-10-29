@@ -42,7 +42,7 @@ const BatchForm: React.FC<{
   onCancel: () => void;
   busy: boolean;
 }> = ({batch, onChange, onSave, onCancel, busy}) => (
-  <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
+  <div className="bg-white border border-[#5A4BDA]/40 rounded-xl p-3.5 space-y-2.5">
     {/* Only two fields, on purpose. Course duplicated the name, start date
         drove nothing, and "visible to parents" was meaningless — allotment is
         already the only thing that makes a batch visible to a parent. */}
@@ -235,8 +235,8 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({backend, mode, flash}) =>
             className="w-full flex items-center gap-3 text-left"
             onClick={() => setOpenedId(batch.id)}
           >
-            <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
-              <Layers size={15} className="text-[#5747D6]" />
+            <div className="w-9 h-9 rounded-lg bg-[#5A4BDA]/15 border border-[#5A4BDA]/30 flex items-center justify-center shrink-0">
+              <Layers size={15} className="text-[#5A4BDA]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold truncate">{batch.name}</p>

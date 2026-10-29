@@ -82,7 +82,7 @@ const SyllabusEditor: React.FC<{
         return (
           <div key={subject} className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg p-2.5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[12px] font-bold text-[#5747D6]">
+              <p className="text-[12px] font-bold text-[#5A4BDA]">
                 {subject} <span className="text-neutral-500 font-medium">· {NEET_SUBJECT_MARKS} marks</span>
               </p>
               {chosen.length > 0 && <span className="text-[11px] text-neutral-500">{chosen.length} chapter(s)</span>}
@@ -290,7 +290,7 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
       )}
 
       {draft && (
-        <div className="bg-white border border-[#5747D6]/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-white border border-[#5A4BDA]/40 rounded-xl p-3.5 space-y-2.5">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Title" htmlFor="test-title" className="col-span-2">
               <input
@@ -375,8 +375,8 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
         return (
           <div key={test.id} className="bg-white border border-[#E4E6EB] rounded-xl p-3.5">
             <button type="button" className="w-full flex items-center gap-3 text-left" onClick={() => setOpenedId(test.id)}>
-              <div className="w-9 h-9 rounded-lg bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center shrink-0">
-                <ClipboardList size={15} className="text-[#5747D6]" />
+              <div className="w-9 h-9 rounded-lg bg-[#5A4BDA]/15 border border-[#5A4BDA]/30 flex items-center justify-center shrink-0">
+                <ClipboardList size={15} className="text-[#5A4BDA]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{test.title}</p>

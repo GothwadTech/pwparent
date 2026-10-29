@@ -87,7 +87,7 @@ const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
       <div className="space-y-2">
         {Object.entries(bySubject).map(([subject, topics]) => (
           <div key={subject}>
-            <p className="text-[11px] font-bold text-[#5747D6] uppercase tracking-wide">{subject}</p>
+            <p className="text-[11px] font-bold text-[#5A4BDA] uppercase tracking-wide">{subject}</p>
             <ul className="mt-1 space-y-0.5">
               {topics.map((topic, i) => (
                 <li key={i} className="text-[12px] text-neutral-700 leading-relaxed">
@@ -249,7 +249,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
       </button>
 
       <div className={cardCls}>
-        <p className="text-[11px] font-bold text-[#5747D6] flex items-center gap-1.5">
+        <p className="text-[11px] font-bold text-[#5A4BDA] flex items-center gap-1.5">
           <ClipboardList size={12} /> {batch.name}
         </p>
         <h3 className="text-base font-bold mt-1">{test.title}</h3>
@@ -399,7 +399,7 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
                   }, 0);
                   return (
                     <div key={group.subject} className="space-y-1.5">
-                      <p className="text-[11px] font-bold text-[#5747D6] uppercase tracking-wide">
+                      <p className="text-[11px] font-bold text-[#5A4BDA] uppercase tracking-wide">
                         {group.subject} — obtained {obtained} / {NEET_SUBJECT_MARKS}
                       </p>
                       {group.lines.map((line) => {

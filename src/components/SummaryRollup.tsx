@@ -63,7 +63,7 @@ export const SummaryRollup: React.FC<SummaryRollupProps> = ({
 
       <div className="flex items-center space-x-3 mt-4">
         <span className="flex-1 h-px" style={{ background: '#C9C4F0' }} />
-        <span className="text-[13px] font-bold" style={{ color: '#5747D6' }}>{dividerLabel}</span>
+        <span className="text-[13px] font-bold" style={{ color: '#5A4BDA' }}>{dividerLabel}</span>
         <span className="flex-1 h-px" style={{ background: '#C9C4F0' }} />
       </div>
 

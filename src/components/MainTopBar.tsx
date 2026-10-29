@@ -43,7 +43,7 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
       <button
         type="button"
         onClick={onOpenBatchSelector}
-        className="flex items-center space-x-1 px-4 py-2.5 rounded-xl bg-white border border-[#E2E5EA] max-w-[245px] hover:bg-[#F7F8FA] active:scale-98 transition-all"
+        className="flex items-center space-x-1 px-4 py-2 rounded-xl bg-white border border-[#E2E5EA] max-w-[245px] hover:bg-[#F7F8FA] active:scale-98 transition-all"
         title="Select Batch"
       >
         <span className="text-[14px] font-medium text-[#1F2937] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis leading-tight">
@@ -60,12 +60,12 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
             onClick={() => void runSync()}
             aria-label="Refresh data"
             title="Sync now"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#5747D6] hover:bg-[#F2F0FE] active:scale-95 transition-all"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#5A4BDA] hover:bg-[#F2F0FE] active:scale-95 transition-all"
           >
             <RefreshCw
               size={17}
               className={syncing ? 'animate-spin' : ''}
-              style={{ color: syncing ? '#5747D6' : undefined }}
+              style={{ color: syncing ? '#5A4BDA' : undefined }}
             />
           </button>
         )}

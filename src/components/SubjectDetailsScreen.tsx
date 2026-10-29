@@ -24,7 +24,7 @@ export const SubjectDetailsScreen: React.FC<SubjectDetailsScreenProps> = ({
 }) => {
   return (
     <div
-      className="w-full h-full flex flex-col bg-white select-none font-['Plus_Jakarta_Sans',sans-serif]"
+      className="w-full h-full flex flex-col bg-white select-none"
       style={{ background: '#FFFFFF' }}
     >
       {/* Top Header */}

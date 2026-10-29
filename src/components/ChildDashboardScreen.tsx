@@ -130,7 +130,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
 
   return (
     <div
-      className="relative w-full h-full flex flex-col overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif] bg-white text-[#17181C]"
+      className="relative w-full h-full flex flex-col overflow-hidden select-none bg-white text-[#17181C]"
     >
       <header className="shrink-0 z-30 w-full bg-white">
         <MainTopBar

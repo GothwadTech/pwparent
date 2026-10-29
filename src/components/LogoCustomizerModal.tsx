@@ -47,7 +47,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
       <div className="bg-white border border-[#E4E6EB] rounded-2xl max-w-sm w-full p-5 text-[#17181C] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-[#E4E6EB]">
           <div className="flex items-center space-x-2">
-            <Image size={18} className="text-[#5747D6]" />
+            <Image size={18} className="text-[#5A4BDA]" />
             <h3 className="font-bold text-base text-[#17181C]">Custom App Logo</h3>
           </div>
           <button
@@ -80,7 +80,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
               onClick={() => setUrlInput('/assets/ic_launcher_round.webp')}
               className={`p-2 rounded-xl border flex items-center space-x-2 text-left transition-colors ${
                 urlInput === '/assets/ic_launcher_round.webp' || !urlInput
-                  ? 'border-[#5747D6] bg-[#5747D6]/10 text-white'
+                  ? 'border-[#5A4BDA] bg-[#5A4BDA]/10 text-white'
                   : 'border-[#E4E6EB] bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
@@ -96,7 +96,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
               onClick={() => setUrlInput('/assets/ic_launcher.webp')}
               className={`p-2 rounded-xl border flex items-center space-x-2 text-left transition-colors ${
                 urlInput === '/assets/ic_launcher.webp'
-                  ? 'border-[#5747D6] bg-[#5747D6]/10 text-white'
+                  ? 'border-[#5A4BDA] bg-[#5A4BDA]/10 text-white'
                   : 'border-[#E4E6EB] bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
@@ -111,8 +111,8 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
 
         {/* File Upload Button */}
         <div className="mt-4">
-          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#E4E6EB] hover:border-[#5747D6] bg-white cursor-pointer text-xs font-semibold text-neutral-800 hover:text-neutral-900 transition-all">
-            <Upload size={16} className="text-[#5747D6]" />
+          <label className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl border border-dashed border-[#E4E6EB] hover:border-[#5A4BDA] bg-white cursor-pointer text-xs font-semibold text-neutral-800 hover:text-neutral-900 transition-all">
+            <Upload size={16} className="text-[#5A4BDA]" />
             <span>Upload Image from Device</span>
             <input
               type="file"
@@ -133,7 +133,7 @@ export const LogoCustomizerModal: React.FC<LogoCustomizerModalProps> = ({
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://example.com/logo.png"
-            className="w-full bg-[#FFFFFF] border border-[#E4E6EB] focus:border-[#5747D6] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
+            className="w-full bg-[#FFFFFF] border border-[#E4E6EB] focus:border-[#5A4BDA] rounded-xl px-3 py-2 text-xs text-[#17181C] outline-none"
           />
         </div>
 

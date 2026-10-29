@@ -110,7 +110,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
   const announcements = FIXED_ANNOUNCEMENTS;
 
   return (
-    <div className="flex-1 w-full px-4 pt-4 pb-12 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif] bg-white">
+    <div className="flex-1 w-full px-4 pt-4 pb-12 overflow-y-auto space-y-6 select-none bg-white">
       {announcements.map((item) => (
         <article
           key={item.id}

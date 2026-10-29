@@ -12,7 +12,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
   const [selectedWeek, setSelectedWeek] = useState('14 Sep-20 Sep');
 
   return (
-    <div className="space-y-6 pb-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-6 pb-6 select-none">
       {/* 1. Lectures Section matching Screenshot_20260918_180905.jpg */}
       <div className="space-y-3.5">
         {/* Section Heading */}
@@ -34,7 +34,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
 
           {/* Progress Bar with indicator dot */}
           <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
-            <div className="w-0 h-full bg-[#5747D6] rounded-full" />
+            <div className="w-0 h-full bg-[#5A4BDA] rounded-full" />
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
           </div>
 
@@ -85,7 +85,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
 
           {/* Today's watch time */}
           <div className="mt-3 text-center">
-            <div className="text-2xl font-black text-[#5747D6]">0h 0m</div>
+            <div className="text-2xl font-black text-[#5A4BDA]">0h 0m</div>
             <div className="text-[11px] font-medium text-neutral-600 mt-0.5">
               Today
             </div>
@@ -116,7 +116,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
 
             {/* Legend */}
             <div className="mt-3 flex items-center justify-center space-x-1.5 text-[10px] text-neutral-600">
-              <span className="w-2.5 h-2.5 rounded-xs bg-[#5747D6]" />
+              <span className="w-2.5 h-2.5 rounded-xs bg-[#5A4BDA]" />
               <span>Total Watch Time</span>
             </div>
           </div>
@@ -132,7 +132,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
             <span>Subject Details</span>
             <Play
               size={10}
-              className="fill-current text-[#5747D6] group-hover:translate-x-0.5 transition-transform"
+              className="fill-current text-[#5A4BDA] group-hover:translate-x-0.5 transition-transform"
             />
           </button>
         </div>
@@ -159,13 +159,13 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
 
           {/* Progress Bar with indicator dot */}
           <div className="mt-3 relative w-full h-1 bg-[#FFFFFF] rounded-full overflow-visible">
-            <div className="w-0 h-full bg-[#5747D6] rounded-full" />
+            <div className="w-0 h-full bg-[#5A4BDA] rounded-full" />
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-2 rounded-full bg-[#facc15] shadow-xs" />
           </div>
 
           {/* Questions Attempted & Accuracy */}
           <div className="mt-4 text-center">
-            <div className="text-[11px] font-semibold text-[#5747D6] mb-2 uppercase tracking-wide">
+            <div className="text-[11px] font-semibold text-[#5A4BDA] mb-2 uppercase tracking-wide">
               In Attempted DPP&apos;s
             </div>
             <div className="grid grid-cols-2 gap-4 text-center">
@@ -233,7 +233,7 @@ export const StudentLecturesDashboard: React.FC<StudentLecturesDashboardProps> =
             <span>Subject Details</span>
             <Play
               size={10}
-              className="fill-current text-[#5747D6] group-hover:translate-x-0.5 transition-transform"
+              className="fill-current text-[#5A4BDA] group-hover:translate-x-0.5 transition-transform"
             />
           </button>
         </div>

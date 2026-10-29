@@ -45,7 +45,7 @@ export const SupportHelpCentreView: React.FC<SupportHelpCentreViewProps> = ({
     : visibleFaqs;
 
   return (
-    <div className="flex-1 flex flex-col bg-white text-neutral-900 overflow-hidden select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 flex flex-col bg-white text-neutral-900 overflow-hidden select-none">
       {/* Tab Switcher matching screenshot */}
       <div className="w-full flex border-b border-neutral-200 bg-white z-10">
         <button
@@ -357,7 +357,7 @@ export const SupportHelpCentreView: React.FC<SupportHelpCentreViewProps> = ({
                   y1="105"
                   x2="85"
                   y2="178"
-                  stroke="#4F46E5"
+                  stroke="#5A4BDA"
                   strokeWidth="3.5"
                   strokeLinecap="round"
                 />

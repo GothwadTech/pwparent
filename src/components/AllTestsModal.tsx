@@ -44,7 +44,7 @@ export const AllTestsModal: React.FC<AllTestsModalProps> = ({
   const allTests = tests ?? fallbackTests;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
         onClick={onClose}

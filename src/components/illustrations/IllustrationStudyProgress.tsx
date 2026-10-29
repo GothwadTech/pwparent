@@ -116,7 +116,7 @@ export const IllustrationStudyProgress: React.FC<{ className?: string }> = ({
         <g transform="translate(262, 192)">
           {/* Purple Flower Pot */}
           <path d="M12 40 L16 70 H36 L40 40 Z" fill="#6366F1" />
-          <rect x="10" y="36" width="32" height="6" rx="2" fill="#4F46E5" />
+          <rect x="10" y="36" width="32" height="6" rx="2" fill="#5A4BDA" />
           {/* Green Plant Leaves */}
           <path d="M26 36 C18 20 8 26 12 36 Z" fill="#10B981" />
           <path d="M26 36 C34 16 46 22 38 36 Z" fill="#059669" />

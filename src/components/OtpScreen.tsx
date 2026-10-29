@@ -148,8 +148,8 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
               aria-label={`Digit ${index + 1}`}
               className={`flex-1 min-w-0 aspect-square max-w-[68px] text-center text-2xl font-bold bg-white rounded-xl border transition-all duration-200 outline-none disabled:opacity-40 ${
                 digit
-                  ? 'border-[#5747D6] text-[#17181C] shadow-md shadow-purple-950/20'
-                  : 'border-[#E4E6EB] text-[#17181C] focus:border-[#5747D6] focus:ring-1 focus:ring-[#8E75FF]/40'
+                  ? 'border-[#5A4BDA] text-[#17181C] shadow-md shadow-purple-950/20'
+                  : 'border-[#E4E6EB] text-[#17181C] focus:border-[#5A4BDA] focus:ring-1 focus:ring-[#8E75FF]/40'
               }`}
             />
           ))}
@@ -163,7 +163,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
             }`}
           >
             {registered ? (
-              <ArrowRight size={14} className="text-[#5747D6] shrink-0 mt-0.5" />
+              <ArrowRight size={14} className="text-[#5A4BDA] shrink-0 mt-0.5" />
             ) : (
               <AlertTriangle size={14} className="text-[#facc15] shrink-0 mt-0.5" />
             )}

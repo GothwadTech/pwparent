@@ -113,7 +113,7 @@ export const AdminPanelScreen: React.FC<AdminPanelScreenProps> = ({
               type="button"
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                tab === t.id ? 'bg-[#5747D6] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
+                tab === t.id ? 'bg-[#5A4BDA] text-white' : 'bg-white text-neutral-600 hover:text-neutral-900'
               }`}
             >
               {t.icon}

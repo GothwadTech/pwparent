@@ -13,7 +13,7 @@ export const StudentAvatar: React.FC<StudentAvatarProps> = ({
     return (
       <div
         style={{ width: size, height: size }}
-        className="relative rounded-full bg-[#FFFFFF] border-2 border-dashed border-[#E4E6EB] flex items-center justify-center text-neutral-600 group-hover:border-[#5747D6] group-hover:text-[#5747D6] transition-all"
+        className="relative rounded-full bg-[#FFFFFF] border-2 border-dashed border-[#E4E6EB] flex items-center justify-center text-neutral-600 group-hover:border-[#5A4BDA] group-hover:text-[#5A4BDA] transition-all"
       >
         {/* Child silhouette */}
         <svg

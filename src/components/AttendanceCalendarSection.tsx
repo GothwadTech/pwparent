@@ -16,7 +16,7 @@ interface AttendanceCalendarSectionProps {
 }
 
 const LEGEND = [
-  { color: '#4F46E5', label: 'Today' },
+  { color: '#5A4BDA', label: 'Today' },
   { color: '#9CA3AF', label: 'No Class' },
   { color: '#10B981', label: 'Present' },
   { color: '#EF4444', label: 'Absent' },
@@ -26,15 +26,15 @@ const LEGEND = [
  * Refined Donut circular progress gauge with slim stroke and well-balanced typography matching real app.
  */
 const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
-  const radius = 91;
-  const stroke = 18;
+  const radius = 92;
+  const stroke = 16;
   const circumference = 2 * Math.PI * radius;
   const roundedPercent = Math.round(percent);
   const clamped = Math.min(100, Math.max(0, roundedPercent));
   const filled = (clamped / 100) * circumference;
 
   return (
-    <div className="relative w-[190px] h-[190px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
+    <div className="relative w-[194px] h-[194px] mx-auto mt-4 mb-3 select-none flex items-center justify-center">
       <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90">
         <circle
           cx="100"
@@ -50,7 +50,7 @@ const AttendanceDonut: React.FC<{ percent: number }> = ({ percent }) => {
             cy="100"
             r={radius}
             fill="none"
-          stroke="#594CDA"
+          stroke="#5A4BDA"
           strokeWidth={stroke}
           strokeDasharray={`${filled} ${circumference - filled}`}
           />
@@ -94,7 +94,7 @@ const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
 const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
   // The reference tints the whole chip by state, not just the dot.
   const chip = isToday
-    ? 'bg-[#F2EFFF] border-[#5747D6]'
+    ? 'bg-[#F2EFFF] border-[#5A4BDA]'
     : day.status === 'present'
       ? 'bg-[#E0F2E6] border-[#BFE3CC]'
       : day.status === 'absent'
@@ -103,7 +103,7 @@ const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isTo
           ? 'bg-[#EBECF0] border-[#EBECF0]'
           : 'bg-white border-[#E5E7EB]';
   const dot = isToday
-    ? 'bg-[#5747D6]'
+    ? 'bg-[#5A4BDA]'
     : day.status === 'present'
       ? 'bg-[#10B981]'
       : day.status === 'absent'

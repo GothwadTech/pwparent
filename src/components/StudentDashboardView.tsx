@@ -54,7 +54,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
   const avgAccuracy = student.accuracyPercent ?? 0;
 
   return (
-    <div className="flex-1 px-4 pt-3 pb-8 overflow-y-auto space-y-6 select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex-1 px-4 pt-3 pb-8 overflow-y-auto space-y-6 select-none">
       {/* ---------------- 1. LECTURES SECTION (Screenshot_20260918_180905.jpg) ---------------- */}
       <section className="space-y-3">
         <div className="flex items-center space-x-2">
@@ -200,7 +200,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             <div className="absolute right-0 -top-0.5 w-2 h-2 rounded-full bg-amber-400" />
           </div>
 
-          <div className="text-center text-[10px] text-[#5747D6] font-medium my-1">
+          <div className="text-center text-[10px] text-[#5A4BDA] font-medium my-1">
             In Attempted DPP&apos;s
           </div>
 
@@ -290,13 +290,13 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
 
           <div className="relative w-full h-1 bg-white rounded-full my-3">
             <div
-              className="h-full bg-[#5747D6] rounded-full transition-all duration-500"
+              className="h-full bg-[#5A4BDA] rounded-full transition-all duration-500"
               style={{ width: `${testsProgress}%` }}
             />
             <div className="absolute right-0 -top-0.5 w-2 h-2 rounded-full bg-amber-400" />
           </div>
 
-          <div className="text-center text-[10px] text-[#5747D6] font-medium my-1">
+          <div className="text-center text-[10px] text-[#5A4BDA] font-medium my-1">
             In Attempted Tests
           </div>
 
@@ -343,7 +343,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           {recentTests.map((test) => (
             <div key={test.id} className="relative">
               {/* Timeline Node Dot */}
-              <div className="absolute -left-6 top-4 w-3 h-3 rounded-full bg-[#5747D6] border-2 border-[#E4E6EB]" />
+              <div className="absolute -left-6 top-4 w-3 h-3 rounded-full bg-[#5A4BDA] border-2 border-[#E4E6EB]" />
 
               {/* Test Card */}
               <div className="bg-[#FFFFFF] border border-[#E4E6EB] rounded-xl p-3.5 flex items-center justify-between hover:border-[#E4E6EB] transition-colors">

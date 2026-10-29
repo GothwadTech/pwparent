@@ -50,7 +50,7 @@ const Shell: React.FC<{title: string; subtitle: string; icon: React.ReactNode; o
     </header>
     <div className="flex-1 overflow-y-auto px-5 py-8">
       <div className="mx-auto w-full max-w-sm flex flex-col">
-        <div className="w-14 h-14 rounded-2xl bg-[#5747D6]/15 border border-[#5747D6]/30 flex items-center justify-center mb-4 mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-[#5A4BDA]/15 border border-[#5A4BDA]/30 flex items-center justify-center mb-4 mx-auto">
           {icon}
         </div>
         <h2 className="text-lg font-bold text-center">{title}</h2>
@@ -108,7 +108,7 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       <Shell
         title="Restricted area"
         subtitle="Mock mode has no Firebase Auth, so this build uses the local passcode gate."
-        icon={<KeyRound size={22} className="text-[#5747D6]" />}
+        icon={<KeyRound size={22} className="text-[#5A4BDA]" />}
         onBack={onBack}
       >
         <form onSubmit={submitPasscode} className="space-y-3">
@@ -143,11 +143,11 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       <Shell
         title="Checking admin status…"
         subtitle="Reading Firestore to see whether an administrator already exists."
-        icon={<KeyRound size={22} className="text-[#5747D6] animate-pulse" />}
+        icon={<KeyRound size={22} className="text-[#5A4BDA] animate-pulse" />}
         onBack={onBack}
       >
         <div className="h-1 w-full rounded-full bg-white overflow-hidden">
-          <div className="h-full w-1/3 bg-[#5747D6] animate-pulse" />
+          <div className="h-full w-1/3 bg-[#5A4BDA] animate-pulse" />
         </div>
       </Shell>
     );
@@ -195,9 +195,9 @@ export const AdminGate: React.FC<AdminGateProps> = ({mode, onAuthenticated, onBa
       }
       icon={
         registering ? (
-          <UserPlus size={22} className="text-[#5747D6]" />
+          <UserPlus size={22} className="text-[#5A4BDA]" />
         ) : (
-          <KeyRound size={22} className="text-[#5747D6]" />
+          <KeyRound size={22} className="text-[#5A4BDA]" />
         )
       }
       onBack={onBack}

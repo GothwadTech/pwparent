@@ -8,13 +8,13 @@ import React from 'react';
 
 export const inputCls =
   'w-full bg-[#FFFFFF] border border-[#E4E6EB] rounded-lg px-3 py-2 text-sm text-[#17181C] ' +
-  'outline-none focus:border-[#5747D6] focus:ring-1 focus:ring-[#5747D6]/40 transition-colors ' +
+  'outline-none focus:border-[#5A4BDA] focus:ring-1 focus:ring-[#5A4BDA]/40 transition-colors ' +
   'disabled:opacity-40 disabled:cursor-not-allowed';
 
 export const labelCls = 'block text-[11px] font-semibold uppercase tracking-wide text-neutral-600 mb-1.5';
 
 export const btnPrimary =
-  'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#5747D6] ' +
+  'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#5A4BDA] ' +
   'hover:bg-[#4b3bc4] text-white text-xs font-semibold transition-colors disabled:opacity-40';
 
 export const btnGhost =

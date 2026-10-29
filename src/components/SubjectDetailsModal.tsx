@@ -32,7 +32,7 @@ export const SubjectDetailsModal: React.FC<SubjectDetailsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-white font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-white">
       <SubjectDetailsScreen title="Test Details" onBack={onClose} />
     </div>
   );
