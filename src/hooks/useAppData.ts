@@ -27,7 +27,13 @@ import {
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
 import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
-import {clearStoredSession, hasStoredSession, storedSessionPhone, writeStoredSession} from '../lib/sessionStore';
+import {
+  clearStoredSession,
+  hasStoredSession,
+  offlineSessionFromMarker,
+  storedSessionPhone,
+  writeStoredSession,
+} from '../lib/sessionStore';
 import {saveSlice} from '../lib/backend/demoStore';
 import {visibleStudentsFor} from '../lib/studentScope';
 import {currentAdmin, type AdminIdentity} from '../lib/adminAuth';
@@ -200,12 +206,26 @@ export function useAppData(): AppData {
       let restored;
       try {
         restored = await instance.restoreSession();
+      } catch (error) {
+        // A restore that THROWS (unexpected SDK error, storage blocked) must
+        // not strand the boot — and must not be misread as "logged out".
+        console.warn('[app] restoreSession failed:', error);
+        restored = null;
       } finally {
         // Never leave the shell held: a failed restore still has to land on a
         // real screen.
         if (!cancelled) setBooting(false);
       }
       if (cancelled) return;
+
+      if (!restored) {
+        // Airplane-mode safety net: the backend's own offline fallback covers
+        // the normal paths; this catches everything else. An offline device
+        // that holds a session marker resumes from it — cached dashboard, no
+        // login screen — and the reconnect reconciles the live session.
+        const stranded = offlineSessionFromMarker();
+        if (stranded) restored = {...stranded, isNewUser: false};
+      }
 
       if (restored) {
         setUid(restored.uid);
