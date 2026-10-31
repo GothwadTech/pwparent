@@ -132,3 +132,39 @@ export function hasStoredSession(): boolean {
 export function storedSessionPhone(): string {
   return readStoredSession()?.phone ?? '';
 }
+
+/**
+ * True only when the browser positively reports "no network".
+ *
+ * `navigator.onLine === false` is reliable (it means there is no interface);
+ * `true` can be a lie (captive portal), so this helper is only ever used to
+ * grant offline fallbacks — never to refuse one.
+ */
+export function isOfflineNow(): boolean {
+  try {
+    return typeof navigator !== 'undefined' && navigator.onLine === false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The airplane-mode safety net: the session this device last held, promoted to
+ * a full session shape when (and ONLY when) the network is down.
+ *
+ * Restore normally re-resolves the family binding through Firestore. Offline
+ * those reads can fail before the persistent cache is consulted (or the auth
+ * SDK can be slow to hand back its user), and a boot that concluded "nobody is
+ * logged in" dropped parents on the login screen every time signal was lost —
+ * "net off karte hi login screen, net on karte hi wapas login". A device that
+ * is offline AND holds a marker has, by definition, a session that was real
+ * when it was last online: resume it, show the cached dashboard, and let the
+ * reconnect reconcile everything. Online, this always returns null — the live
+ * restore stays the only authority.
+ */
+export function offlineSessionFromMarker(): {uid: string; phone: string; studentId: string | null} | null {
+  if (!isOfflineNow()) return null;
+  const marker = readStoredSession();
+  if (!marker || !marker.uid || !marker.phone) return null;
+  return {uid: marker.uid, phone: marker.phone, studentId: marker.studentId};
+}

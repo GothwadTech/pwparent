@@ -22,8 +22,11 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  initializeFirestore,
   onSnapshot,
   orderBy,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   query,
   setDoc,
   writeBatch,
@@ -38,7 +41,30 @@ let db: Firestore | null = null;
 
 export function getDb(): Firestore {
   if (!isFirebaseReady || !firebaseApp) throw new FirebaseNotConfiguredError('Firestore');
-  if (!db) db = getFirestore(firebaseApp);
+  if (!db) {
+    try {
+      /**
+       * ── OFFLINE PERSISTENCE (the WebView airplane-mode fix) ──────────────
+       * The web SDK ships with persistence OFF: every read is network-only, so
+       * the moment the phone loses signal a booting app could not read
+       * `parents/{uid}` or `credentials/{phone}`, concluded "nobody logged in"
+       * and dropped the parent on the login screen — even though the very same
+       * device had a perfectly good session a second ago.
+       *
+       * With `persistentLocalCache` every document the app has ever read is
+       * cached in IndexedDB and reads resolve from that cache while offline
+       * (writes queue and flush on reconnect). The app must have been opened
+       * once online; after that, airplane mode shows the real dashboard with
+       * the last-synced data instead of the login form.
+       */
+      db = initializeFirestore(firebaseApp, {
+        localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()}),
+      });
+    } catch {
+      // Already initialised elsewhere (hot reload, tests): reuse the instance.
+      db = getFirestore(firebaseApp);
+    }
+  }
   return db;
 }
 

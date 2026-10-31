@@ -24,7 +24,13 @@ import {emptyProfile} from './types';
 import {paths, readCollection, readDoc, removeDoc, writeDoc} from '../firebase/firestore';
 import * as auth from '../firebase/auth';
 import * as identity from '../firebase/identity';
-import {clearStoredSession, readStoredSession, writeStoredSession} from '../sessionStore';
+import {
+  clearStoredSession,
+  isOfflineNow,
+  offlineSessionFromMarker,
+  readStoredSession,
+  writeStoredSession,
+} from '../sessionStore';
 import {familyUidFor} from '../familyScope';
 import {
   CREDENTIAL_VERSION,
@@ -251,10 +257,28 @@ export function createFirebaseBackend(): Backend {
       const restoredUser = await auth.whenAuthReady();
       const marker = readStoredSession();
       const authUid = restoredUser?.uid ?? auth.currentUserId();
-      if (!authUid) return null;
+      if (!authUid) {
+        // Even the auth SDK can come back empty-handed offline (slow IndexedDB
+        // restore, an expired local token). A device that is OFFLINE and holds
+        // a marker still resumes — the login screen must never be the reward
+        // for losing signal. Firestore's persistent cache serves the subtree.
+        const stranded = offlineSessionFromMarker();
+        return stranded ? {...stranded, isNewUser: false} : null;
+      }
 
       // The bound family uid, not the raw auth uid — see familyUidForSession.
-      const existingUid = (await familyUidForSession()) ?? authUid;
+      let existingUid = (await familyUidForSession().catch(() => null)) ?? authUid;
+      // ── OFFLINE MARKER TRUST ─────────────────────────────────────────────
+      // familyUidForSession resolves the bound family uid through two Firestore
+      // reads (parents/{uid} → credentials/{phone}). With no network those come
+      // back empty, degrading existingUid to the RAW device uid — which no
+      // longer equals the family uid the marker remembers, so the equality
+      // check below failed and restore returned null: login screen on every
+      // airplane mode, auto-login again the moment signal returned. Offline,
+      // the marker's uid wins: it was written by the last ONLINE resolution.
+      if (marker?.uid && marker.uid !== existingUid && isOfflineNow()) {
+        existingUid = marker.uid;
+      }
 
       const profile = await cachedRead(
         keys.parent(existingUid),
