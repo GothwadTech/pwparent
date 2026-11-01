@@ -46,6 +46,14 @@ measurement of a real device screenshot. No more eyeballing.
 | Bottom-nav icons           | 24 dp      | vector `android:width`               |
 | Week chips                 | ~40 dp     | capture bbox ÷ 2.625                 |
 | Batch pill height          | ~36 dp     | capture bbox ÷ 2.625                 |
+| Week day pill              | 32×34 dp, radius 10 dp, border 1.5 dp, dot 5 dp | coloured-pill bboxes ÷ 2.625 (2026-11-01 capture) |
+| Week column pitch          | ~54.7 dp (7 columns, 18 dp side margins) | pill-centre spacing ÷ 2.625 |
+| Gate-times callout         | 48 dp tall, slate border, 12 dp caret under the selected column | row scan ÷ 2.625 |
+| Selected week column       | 1.5 dp slate ring around letter+pill | border scan |
+
+Light-theme mapping of the dark capture's pill hues: present `#7CBF94/#EDF7F0/#34A853`,
+absent `#D9938C/#FAEEEC/#C4534F`, today `#8B7FE8/#F0EEFC/#5A4BDA`,
+no-class `#DCDBD7/#F5F5F3/#9CA3AF`; ring + callout chrome `#9BAABC`.
 
 ## Rule going forward
 

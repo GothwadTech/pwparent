@@ -18,9 +18,10 @@
  */
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, Minus, Moon} from 'lucide-react';
-import type {AttendanceMark, AttendanceRecord, Batch} from '../../types';
+import type {AttendanceMark, AttendanceRecord, Batch, DayMarkValue} from '../../types';
 import type {Backend} from '../../lib/backend';
 import {monthDays, monthKey, monthMarksOf, summarizeAttendance, todayKey} from '../../lib/backend';
+import {markCodeOf, markTimesOf} from '../../lib/backend/batchTypes';
 import {btnGhost, btnPrimary, cardCls, inputCls, labelCls, Note} from './ui';
 
 interface BatchAttendancePanelProps {
@@ -28,14 +29,6 @@ interface BatchAttendancePanelProps {
   batch: Batch;
   flash: (message: string) => void;
 }
-
-/** The tap cycle. `null` is "clear", which returns the cell to unmarked. */
-const CYCLE: (AttendanceMark | null)[] = [null, 'P', 'A', 'L'];
-
-const nextMark = (current: AttendanceMark | undefined): AttendanceMark | null => {
-  const index = CYCLE.findIndex((m) => m === current);
-  return CYCLE[(index + 1) % CYCLE.length];
-};
 
 const MARK_STYLE: Record<AttendanceMark, {bg: string; label: string}> = {
   P: {bg: 'bg-[#D8F0DE] border-[#A7D9B4] text-[#8ff0b0]', label: 'Present'},
@@ -55,18 +48,99 @@ const monthLabel = (month: string) => {
   return new Date(year, mon - 1, 1).toLocaleDateString('en-IN', {month: 'long', year: 'numeric'});
 };
 
+/**
+ * One day's editor: status segment + the campus gate times the parent app
+ * shows under its week strip ("Campus entry at 3:46 PM"). Keyed by day so
+ * switching days resets the draft instead of leaking it across the month.
+ */
+const DayEditor: React.FC<{
+  day: string;
+  value: DayMarkValue | undefined;
+  busy: boolean;
+  onSave: (mark: AttendanceMark | null, times: {entryAt: string | null; exitAt: string | null}) => void;
+}> = ({day, value, busy, onSave}) => {
+  const [code, setCode] = useState<AttendanceMark | null>(markCodeOf(value));
+  const times = markTimesOf(value);
+  const [entry, setEntry] = useState(times.entryAt ?? '');
+  const [exit, setExit] = useState(times.exitAt ?? '');
+
+  const seg = (m: AttendanceMark, label: string) => (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => setCode(m)}
+      className={`py-2 rounded-lg border text-[11px] font-bold transition-colors ${
+        code === m ? MARK_STYLE[m].bg : 'bg-white border-[#E4E6EB] text-neutral-600'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className={`${cardCls} space-y-2.5`}>
+      <p className={labelCls}>
+        {day} — status & campus times
+      </p>
+      <div className="grid grid-cols-3 gap-1.5">
+        {seg('P', 'Present')}
+        {seg('A', 'Absent')}
+        {seg('L', 'Late')}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block">
+          <span className="block text-[11px] font-semibold text-neutral-600 mb-1">Campus entry</span>
+          <input type="time" value={entry} onChange={(e) => setEntry(e.target.value)} className={inputCls} />
+        </label>
+        <label className="block">
+          <span className="block text-[11px] font-semibold text-neutral-600 mb-1">Campus exit</span>
+          <input type="time" value={exit} onChange={(e) => setExit(e.target.value)} className={inputCls} />
+        </label>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={`${btnPrimary} flex-1 py-2`}
+          disabled={busy || !code}
+          onClick={() => onSave(code, {entryAt: entry || null, exitAt: exit || null})}
+        >
+          <Check size={12} /> Save day
+        </button>
+        <button
+          type="button"
+          className={`${btnGhost} py-2`}
+          disabled={busy}
+          onClick={() => onSave(null, {entryAt: null, exitAt: null})}
+        >
+          Clear day
+        </button>
+      </div>
+      <Note>
+        Gate times are optional — parents see them under the selected day as &ldquo;Campus entry at 3:46 PM&rdquo;.
+        Clearing a day removes its mark AND its times.
+      </Note>
+    </div>
+  );
+};
+
 const StudentCalendar: React.FC<{
   studentName: string;
   month: string;
   record: AttendanceRecord;
   onBack: () => void;
-  onMark: (day: string, mark: AttendanceMark | null) => void;
+  onMark: (
+    day: string,
+    mark: AttendanceMark | null,
+    times?: {entryAt?: string | null; exitAt?: string | null} | null,
+  ) => void;
   busy: boolean;
 }> = ({studentName, month, record, onBack, onMark, busy}) => {
   const days = useMemo(() => monthDays(month), [month]);
   const marks = monthMarksOf(record, month);
   const summary = summarizeAttendance(marks);
   const today = todayKey();
+  /** Tap a day to open its editor below the grid. */
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   return (
     <>
@@ -83,7 +157,7 @@ const StudentCalendar: React.FC<{
         </p>
       </div>
 
-      {/* Tap a day to cycle P → A → L → clear. */}
+      {/* Tap a day to edit its status and campus gate times. */}
       <div className="grid grid-cols-7 gap-1.5">
         {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
           <span key={i} className="text-center text-[10px] font-semibold text-neutral-600 py-1">
@@ -97,20 +171,22 @@ const StudentCalendar: React.FC<{
         ))}
 
         {days.map((day) => {
-          const mark = marks[day];
-          const style = mark ? MARK_STYLE[mark] : null;
+          const code = markCodeOf(marks[day]);
+          const style = code ? MARK_STYLE[code] : null;
           const isToday = day === today;
+          const isSelected = day === selectedDay;
           return (
             <button
               key={day}
               type="button"
               disabled={busy}
-              onClick={() => onMark(day, nextMark(mark))}
-              title={`${day}${mark ? ` — ${style?.label}` : ' — unmarked'}`}
-              aria-label={`${day}${mark ? `, ${style?.label}` : ', unmarked'}`}
+              onClick={() => setSelectedDay(isSelected ? null : day)}
+              title={`${day}${code ? ` — ${style?.label}` : ' — unmarked'}`}
+              aria-label={`${day}${code ? `, ${style?.label}` : ', unmarked'}${isSelected ? ', editing' : ''}`}
+              aria-pressed={isSelected}
               className={`aspect-square rounded-lg border text-[11px] font-bold flex items-center justify-center transition-colors disabled:opacity-50 ${
                 style?.bg ?? 'bg-[#FFFFFF] border-[#E4E6EB] text-neutral-600 hover:border-[#E4E6EB]'
-              } ${isToday ? 'ring-1 ring-[#8E75FF]' : ''}`}
+              } ${isSelected ? 'ring-2 ring-[#5A4BDA]' : isToday ? 'ring-1 ring-[#8E75FF]' : ''}`}
             >
               {Number(day.slice(-2))}
             </button>
@@ -118,10 +194,21 @@ const StudentCalendar: React.FC<{
         })}
       </div>
 
-      <Note>
-        Tap a day to cycle Present → Absent → Late → clear. Unmarked days are excluded from the percentage, so a month
-        in progress does not read as a string of absences. Late counts as present.
-      </Note>
+      {selectedDay ? (
+        <DayEditor
+          key={selectedDay}
+          day={selectedDay}
+          value={marks[selectedDay]}
+          busy={busy}
+          onSave={(markValue, times) => onMark(selectedDay, markValue, times)}
+        />
+      ) : (
+        <Note>
+          Tap a day to set Present / Absent / Late and, optionally, that day&apos;s campus entry and exit times —
+          the parent dashboard shows them under the week strip. Unmarked days are excluded from the percentage, so a
+          month in progress does not read as a string of absences. Late counts as present.
+        </Note>
+      )}
     </>
   );
 };
@@ -190,10 +277,15 @@ export const BatchAttendancePanel: React.FC<BatchAttendancePanelProps> = ({backe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
-  const mark = async (studentId: string, day: string, value: AttendanceMark | null) => {
+  const mark = async (
+    studentId: string,
+    day: string,
+    value: AttendanceMark | null,
+    times?: {entryAt?: string | null; exitAt?: string | null} | null,
+  ) => {
     setBusy(true);
     try {
-      const next = await backend.setAttendanceDay(batch.id, studentId, day, value);
+      const next = await backend.setAttendanceDay(batch.id, studentId, day, value, times);
       setRecords((prev) => ({...prev, [studentId]: next}));
     } catch (markError) {
       setError(markError instanceof Error ? markError.message : 'Could not save attendance.');
