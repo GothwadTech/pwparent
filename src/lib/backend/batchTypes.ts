@@ -13,6 +13,7 @@
  *                     `batches/{batchId}/members/{parentUid}`
  */
 import type {
+  DayMarkValue,
   AttendanceMark,
   AttendanceRecord,
   Batch,
@@ -104,6 +105,8 @@ export interface BatchOps {
     studentId: string,
     day: string,
     mark: AttendanceMark | null,
+    /** Campus gate times for that day; omitted leaves whatever is stored. */
+    times?: {entryAt?: string | null; exitAt?: string | null} | null,
   ): Promise<AttendanceRecord>;
   /** Every student's record in the batch — one collection query. Admin-only. */
   listBatchAttendance(batchId: string): Promise<AttendanceRecord[]>;
@@ -174,7 +177,7 @@ export function monthDays(month: string): string[] {
  * string of absences. Returns 0 when nothing has been marked yet.
  */
 export function attendancePercent(days: MonthMarks | undefined): number {
-  const marks = Object.values(days ?? {});
+  const marks = Object.values(days ?? {}).map(markCodeOf);
   if (marks.length === 0) return 0;
   const present = marks.filter((m) => m === 'P' || m === 'L').length;
   return Math.round((present / marks.length) * 100);
@@ -189,7 +192,7 @@ export interface AttendanceSummary {
 }
 
 export function summarizeAttendance(days: MonthMarks | undefined): AttendanceSummary {
-  const marks = Object.values(days ?? {});
+  const marks = Object.values(days ?? {}).map(markCodeOf);
   const present = marks.filter((m) => m === 'P').length;
   const late = marks.filter((m) => m === 'L').length;
   const absent = marks.filter((m) => m === 'A').length;
@@ -200,6 +203,51 @@ export function summarizeAttendance(days: MonthMarks | undefined): AttendanceSum
     marked: marks.length,
     percent: attendancePercent(days),
   };
+}
+
+/**
+ * ── RICH DAY MARKS ─────────────────────────────────────────────────────────
+ * A stored mark is either a legacy plain `'P' | 'A' | 'L'` string or the rich
+ * `{mark, entryAt, exitAt}` object (campus gate times). Every reader goes
+ * through these three helpers so old documents keep working untouched and no
+ * call site ever has to remember both shapes.
+ */
+export function markCodeOf(value: DayMarkValue | null | undefined): AttendanceMark | null {
+  if (!value) return null;
+  return typeof value === 'string' ? value : value.mark;
+}
+
+/** The campus gate times of a mark; both null on legacy string marks. */
+export function markTimesOf(value: DayMarkValue | null | undefined): {entryAt: string | null; exitAt: string | null} {
+  if (!value || typeof value === 'string') return {entryAt: null, exitAt: null};
+  return {entryAt: value.entryAt ?? null, exitAt: value.exitAt ?? null};
+}
+
+/**
+ * Compose the value to STORE for a day: a plain string while there are no
+ * times (keeps legacy documents byte-identical), the rich object once an
+ * admin fills either gate time. `null` code means "clear the day".
+ */
+export function makeDayMark(
+  code: AttendanceMark | null,
+  entryAt?: string | null,
+  exitAt?: string | null,
+): DayMarkValue | null {
+  if (!code) return null;
+  if (!entryAt && !exitAt) return code;
+  return {mark: code, entryAt: entryAt ?? null, exitAt: exitAt ?? null};
+}
+
+/** `15:46` → `3:46 PM` — how the parent-facing callout prints a gate time. */
+export function formatCampusTime(hhmm: string | null | undefined): string {
+  const match = /^(\d{1,2}):(\d{2})$/.exec((hhmm ?? '').trim());
+  if (!match) return '';
+  const hour = Number(match[1]);
+  const minute = match[2];
+  if (hour > 23 || Number(minute) > 59) return '';
+  const suffix = hour < 12 ? 'AM' : 'PM';
+  const twelve = hour % 12 === 0 ? 12 : hour % 12;
+  return `${twelve}:${minute} ${suffix}`;
 }
 
 /** Total syllabus weightage, for spotting a paper that does not add up to 100. */
@@ -240,7 +288,7 @@ export function overallAttendancePercent(record: AttendanceRecord | null | undef
 export function withDayMark(
   record: AttendanceRecord,
   day: string,
-  mark: AttendanceMark | null,
+  mark: DayMarkValue | null,
 ): AttendanceRecord {
   const month = day.slice(0, 7);
   const days: MonthMarks = {...(record.months?.[month] ?? {})};

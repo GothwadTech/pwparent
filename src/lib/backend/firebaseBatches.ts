@@ -33,7 +33,7 @@ import type {
 import type {BatchOps} from './batchTypes';
 import {paths, readCollection, readDoc, removeDoc, writeDoc} from '../firebase/firestore';
 import {cachedRead, cachedWrite, DEFAULT_TTL_MS, invalidate} from './readCache';
-import {emptyAttendanceRecord, scorePercentOf, withDayMark} from './batchTypes';
+import {emptyAttendanceRecord, makeDayMark, markTimesOf, scorePercentOf, withDayMark} from './batchTypes';
 
 const keys = {
   all: () => 'batches:all',
@@ -356,12 +356,16 @@ export function createFirebaseBatchOps(deps: FirebaseBatchDeps): BatchOps {
 
     getAttendance: getAttendanceImpl,
 
-    async setAttendanceDay(batchId, studentId, day, mark) {
+    async setAttendanceDay(batchId, studentId, day, mark, times) {
       // Read-modify-write on ONE document. `mark: null` clears the day, which is
       // how an admin undoes a wrong entry. The merge logic lives in
       // `withDayMark` so the mock backend cannot drift from it.
       const current = await getAttendanceImpl(batchId, studentId);
-      const next = withDayMark(current, day, mark);
+      // `times === undefined` keeps whatever gate times are stored; an explicit
+      // object (or null) replaces them. `mark: null` clears the whole day.
+      const stored = markTimesOf(current.months?.[day.slice(0, 7)]?.[day]);
+      const keep = times === undefined ? stored : {entryAt: times?.entryAt ?? null, exitAt: times?.exitAt ?? null};
+      const next = withDayMark(current, day, makeDayMark(mark, keep.entryAt, keep.exitAt));
 
       await cachedWrite(keys.attendanceOf(batchId, studentId), () =>
         writeDoc(paths.batchAttendanceOf(batchId, studentId), next as unknown as Record<string, unknown>),

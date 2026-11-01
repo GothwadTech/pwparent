@@ -138,8 +138,25 @@ export interface BatchMember {
   joinedAt: string;
 }
 
+/**
+ * A rich day mark: the P/A/L status PLUS the campus entry/exit times an admin
+ * can fill for that day. The parent dashboard shows them in the "Campus entry
+ * at … / Campus exit at …" callout under the week strip.
+ *
+ * Times are 24h `HH:MM` strings (display converts to `3:46 PM`), and optional:
+ * a day can be marked present without anyone knowing the gate times yet.
+ */
+export interface DayMarkDetail {
+  mark: AttendanceMark;
+  entryAt?: string | null;
+  exitAt?: string | null;
+}
+
+/** A stored mark: legacy plain string, or the rich object form. */
+export type DayMarkValue = AttendanceMark | DayMarkDetail;
+
 /** `{'2026-10-05': 'P', '2026-10-06': 'A'}` — unmarked days are simply absent. */
-export type MonthMarks = Record<string, AttendanceMark>;
+export type MonthMarks = Record<string, DayMarkValue>;
 
 /**
  * One student's ENTIRE attendance history in one batch — a single document.

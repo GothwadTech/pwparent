@@ -25,7 +25,7 @@ import type {
   TestResult,
 } from '../../types';
 import type {BatchOps} from './batchTypes';
-import {emptyAttendanceRecord, scorePercentOf, withDayMark} from './batchTypes';
+import {emptyAttendanceRecord, makeDayMark, markTimesOf, scorePercentOf, withDayMark} from './batchTypes';
 import {loadSlice, saveSlice} from './demoStore';
 
 /** Small delay so loading states are observable, matching the rest of mock mode. */
@@ -229,12 +229,16 @@ export function createMockBatchOps(deps: MockBatchDeps): BatchOps {
 
     getAttendance: getAttendanceImpl,
 
-    async setAttendanceDay(batchId, studentId, day, mark) {
+    async setAttendanceDay(batchId, studentId, day, mark, times) {
       await delay(70);
       // Same pure merge helper as the Firebase path, so `null` (clear) behaves
       // identically in both backends.
       const current = await getAttendanceImpl(batchId, studentId);
-      const next = withDayMark(current, day, mark);
+      // `times === undefined` keeps whatever gate times are stored; an explicit
+      // object (or null) replaces them. `mark: null` clears the whole day.
+      const stored = markTimesOf(current.months?.[day.slice(0, 7)]?.[day]);
+      const keep = times === undefined ? stored : {entryAt: times?.entryAt ?? null, exitAt: times?.exitAt ?? null};
+      const next = withDayMark(current, day, makeDayMark(mark, keep.entryAt, keep.exitAt));
 
       const tree = readTree();
       ensure(tree, batchId).attendance[studentId] = {...next, batchId, studentId};

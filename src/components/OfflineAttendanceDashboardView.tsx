@@ -30,6 +30,11 @@ export interface CalendarDay {
   status: 'present' | 'absent' | 'no_class';
   dateStr: string;
   details: string;
+  /** True for the running day — its pill takes the brand purple. */
+  isToday?: boolean;
+  /** Campus gate times for this day (24h HH:MM), when an admin filled them. */
+  entryAt?: string | null;
+  exitAt?: string | null;
 }
 
 /** One row in the offline/centre test list. */

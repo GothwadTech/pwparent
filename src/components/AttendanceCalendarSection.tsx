@@ -1,10 +1,11 @@
 /**
  * Attendance section of the offline dashboard — pixel-perfect match to PW Parent app.
  */
-import React from 'react';
+import React, {useState} from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { CalendarDay } from './OfflineAttendanceDashboardView';
+import {formatCampusTime} from '../lib/backend/batchTypes';
 
 interface AttendanceCalendarSectionProps {
   summary: BatchSummary;
@@ -90,51 +91,61 @@ const IconCalendarWithClock: React.FC<{ size?: number }> = ({ size = 22 }) => (
   </svg>
 );
 
-/** One weekday column matching real app screenshot */
-const DayColumn: React.FC<{ day: CalendarDay; isToday: boolean }> = ({ day, isToday }) => {
-  // The reference tints the whole chip by state, not just the dot.
-  const chip = isToday
-    ? 'bg-[#F2EFFF] border-[#5A4BDA]'
-    : day.status === 'present'
-      ? 'bg-[#E0F2E6] border-[#BFE3CC]'
-      : day.status === 'absent'
-        ? 'bg-[#FDECEA] border-[#F2C4BE]'
-        : day.status === 'no_class'
-          ? 'bg-[#EBECF0] border-[#EBECF0]'
-          : 'bg-white border-[#E5E7EB]';
-  const dot = isToday
-    ? 'bg-[#5A4BDA]'
-    : day.status === 'present'
-      ? 'bg-[#10B981]'
-      : day.status === 'absent'
-        ? 'bg-[#EF4444]'
-        : day.status === 'no_class'
-          ? 'bg-[#9CA3AF]'
-          : null;
+/**
+ * Pill palette, light theme. Measured off the reference capture (density
+ * 2.625): pills are 32×34dp, radius 10dp, 1.5dp border, a 5dp status dot under
+ * the number; columns sit on a ~54dp pitch with 18dp side margins. The dark
+ * capture's hues map to these tints — the layout is copied, the theme is ours.
+ */
+const PILL = {
+  present: {border: '#7CBF94', bg: '#EDF7F0', dot: '#34A853'},
+  absent: {border: '#D9938C', bg: '#FAEEEC', dot: '#C4534F'},
+  today: {border: '#8B7FE8', bg: '#F0EEFC', dot: '#5A4BDA'},
+  no_class: {border: '#DCDBD7', bg: '#F5F5F3', dot: '#9CA3AF'},
+} as const;
+
+/** The selected column's ring + the callout chrome share one slate blue. */
+const RING = '#9BAABC';
+
+/** One weekday column: letter above the status pill, tap to select. */
+const WeekDayColumn: React.FC<{
+  day: CalendarDay;
+  selected: boolean;
+  onSelect: () => void;
+}> = ({day, selected, onSelect}) => {
+  const c = PILL[day.isToday ? 'today' : day.status];
   return (
-    <div className="flex flex-col items-center pt-1 pb-1 px-0.5">
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      aria-label={`${day.dateStr} — ${day.details}`}
+      className={`flex flex-col items-center pt-1.5 pb-2 rounded-xl border-[1.5px] transition-colors ${
+        selected ? 'bg-[#F7F9FB]' : 'border-transparent'
+      }`}
+      style={selected ? {borderColor: RING} : undefined}
+    >
+      <span className="text-[12px] leading-none font-semibold text-[#5F6672] mb-2">{day.dayLabel}</span>
       <span
-        className={`text-[12.5px] leading-none mb-1.5 ${
-          isToday ? 'font-bold text-[#111827]' : 'font-medium text-[#4B5563]'
-        }`}
+        className="w-8 h-[34px] rounded-[10px] border-[1.5px] flex flex-col items-center justify-center"
+        style={{borderColor: c.border, background: c.bg}}
       >
-        {day.dayLabel}
+        <span className="text-[14px] leading-none font-bold text-[#17181C]">{day.dayNum}</span>
+        <span className="mt-1 w-[5px] h-[5px] rounded-full" style={{background: c.dot}} />
       </span>
-      <div
-        className={`w-10 h-10 rounded-[10px] border flex flex-col items-center justify-center ${chip}`}
-      >
-        <span
-          className={`text-[14px] leading-none ${
-            isToday ? 'font-bold text-[#111827]' : 'font-semibold text-[#111827]'
-          }`}
-        >
-          {day.dayNum}
-        </span>
-        {dot ? <span className={`mt-1 h-[5px] w-[5px] rounded-full ${dot}`} /> : null}
-      </div>
-    </div>
+    </button>
   );
 };
+
+/** "Campus entry at 3:46 PM" — one half of the gate-times callout. */
+const GateSegment: React.FC<{label: string; time: string | null}> = ({label, time}) => (
+  <span className="flex-1 flex items-baseline justify-center gap-1.5 px-2">
+    <span className="text-[13px] font-medium text-[#4B5563] whitespace-nowrap">{label}</span>
+    <span className="text-[14px] font-extrabold text-[#17181C] whitespace-nowrap">
+      {formatCampusTime(time)}
+    </span>
+  </span>
+);
 
 export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps> = ({
   summary,
@@ -142,7 +153,8 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
   weekLabel,
   onPrevWeek,
   onNextWeek,
-}) => {
+} ) => {
+  const [selected, setSelected] = useState<number | null>(null);
   // If data is empty / unseeded, show default metrics matching the screenshot
   const displayPercent = summary.avgAttendance > 0 ? summary.avgAttendance : 95;
   const displayStreak = summary.streakDays > 0 ? summary.streakDays : 16;
@@ -153,20 +165,23 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
   const displayDays =
     days && days.length >= 7
       ? days.slice(0, 7)
-      : [
-          { dayNum: 26, dayLabel: 'M', status: 'no_class', dateStr: '26 Oct', details: '' },
-          { dayNum: 27, dayLabel: 'T', status: 'no_class', dateStr: '27 Oct', details: '' },
-          { dayNum: 28, dayLabel: 'W', status: 'no_class', dateStr: '28 Oct', details: '' },
-          { dayNum: 29, dayLabel: 'T', status: 'no_class', dateStr: '29 Oct', details: '' },
-          { dayNum: 30, dayLabel: 'F', status: 'no_class', dateStr: '30 Oct', details: '' },
-          { dayNum: 31, dayLabel: 'S', status: 'no_class', dateStr: '31 Oct', details: '' },
-          { dayNum: 1, dayLabel: 'S', status: 'no_class', dateStr: '1 Nov', details: '' },
-        ] as CalendarDay[];
+      : ([
+          {dayNum: 26, dayLabel: 'M', status: 'present', dateStr: '26 Oct', details: 'Present • Marked by the batch administrator', entryAt: '15:46', exitAt: '19:28'},
+          {dayNum: 27, dayLabel: 'T', status: 'no_class', dateStr: '27 Oct', details: 'Not marked yet'},
+          {dayNum: 28, dayLabel: 'W', status: 'no_class', dateStr: '28 Oct', details: 'Not marked yet'},
+          {dayNum: 29, dayLabel: 'T', status: 'present', dateStr: '29 Oct', details: 'Present • Marked by the batch administrator', entryAt: '15:52', exitAt: '19:31'},
+          {dayNum: 30, dayLabel: 'F', status: 'no_class', dateStr: '30 Oct', details: 'Not marked yet'},
+          {dayNum: 31, dayLabel: 'S', status: 'absent', dateStr: '31 Oct', details: 'Absent • Marked by the batch administrator'},
+          {dayNum: 1, dayLabel: 'S', status: 'no_class', dateStr: '1 Nov', details: 'Not marked yet', isToday: true},
+        ] as CalendarDay[]);
 
-  const todayIndex = displayDays.findIndex(
-    (d) => d.dayNum === (new Date().getDate() === 26 ? 26 : displayDays[0].dayNum),
-  );
-  const activeTodayIdx = todayIndex >= 0 ? todayIndex : 0;
+  // Selection defaults to the first day that has gate times (so the callout is
+  // visible at a glance), else today, else the first column.
+  const firstWithTimes = displayDays.findIndex((d) => d.entryAt || d.exitAt);
+  const todayIdx = displayDays.findIndex((d) => d.isToday);
+  const defaultIdx = firstWithTimes >= 0 ? firstWithTimes : todayIdx >= 0 ? todayIdx : 0;
+  const activeIdx = selected !== null && selected < displayDays.length ? selected : defaultIdx;
+  const activeDay = displayDays[activeIdx];
 
   const displayWeekLabel = weekLabel || '26 Oct - 1 Nov';
 
@@ -240,12 +255,44 @@ export const AttendanceCalendarSection: React.FC<AttendanceCalendarSectionProps>
         </button>
       </div>
 
-      {/* 7 Days of the week */}
-      <div className="grid grid-cols-7 gap-1.5 items-end">
+      {/* 7 Days of the week — letters above status pills; the selected column
+          carries a slate ring, exactly as in the reference. */}
+      <div className="grid grid-cols-7 gap-1 items-start px-0.5">
         {displayDays.map((d, i) => (
-          <DayColumn key={`${d.dayLabel}-${d.dayNum}-${i}`} day={d} isToday={i === activeTodayIdx} />
+          <WeekDayColumn
+            key={`${d.dayLabel}-${d.dayNum}-${i}`}
+            day={d}
+            selected={i === activeIdx}
+            onSelect={() => setSelected(i)}
+          />
         ))}
       </div>
+
+      {/* Campus gate times for the selected day, with the caret that points at
+          its column. Absent when no admin filled them — an honest empty. */}
+      {activeDay && (activeDay.entryAt || activeDay.exitAt) ? (
+        <div className="relative mt-3 mx-0.5">
+          <span
+            aria-hidden="true"
+            className="absolute -top-[6.5px] w-3 h-3 rotate-45 bg-white"
+            style={{
+              left: `calc(${(activeIdx + 0.5) * (100 / 7)}% - 6px)`,
+              borderLeft: `1.5px solid ${RING}`,
+              borderTop: `1.5px solid ${RING}`,
+            }}
+          />
+          <div
+            className="rounded-xl border-[1.5px] bg-white flex items-stretch py-3 px-1"
+            style={{borderColor: RING}}
+          >
+            {activeDay.entryAt ? <GateSegment label="Campus entry at" time={activeDay.entryAt} /> : null}
+            {activeDay.entryAt && activeDay.exitAt ? (
+              <span className="w-px self-stretch my-0.5 bg-[#E4E7EC]" aria-hidden="true" />
+            ) : null}
+            {activeDay.exitAt ? <GateSegment label="Campus exit at" time={activeDay.exitAt} /> : null}
+          </div>
+        </div>
+      ) : null}
 
       {/* Legend row — left-packed with even gaps, as in the reference */}
       <div className="flex items-center gap-4 mt-6 px-1">

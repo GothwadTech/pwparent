@@ -29,6 +29,7 @@
  */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {BatchOption, BatchTest, MonthMarks, StudentProfile, TestResult} from '../types';
+import {markCodeOf, markTimesOf} from '../lib/backend/batchTypes';
 import {attendanceTotals} from '../lib/attendanceTotals';
 import type {Backend} from '../lib/backend';
 import {monthDays, monthKey} from '../lib/backend';
@@ -117,7 +118,7 @@ export function useBatchView(
   const [batches, setBatches] = useState<BatchOption[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [tests, setTests] = useState<TestWithResult[]>([]);
-  const [attendanceMonths, setAttendanceMonths] = useState<Record<string, Record<string, 'P' | 'A' | 'L'>>>({});
+  const [attendanceMonths, setAttendanceMonths] = useState<Record<string, MonthMarks>>({});
   const [loading, setLoading] = useState(true);
   const [nonce, setNonce] = useState(0);
 
@@ -234,25 +235,36 @@ export function useBatchView(
 
     return monthDays(month).map((day) => {
       const mark = marks[day];
+      const code = markCodeOf(mark);
+      const times = markTimesOf(mark);
       const date = new Date(`${day}T00:00:00`);
       const dayLabel = Number.isNaN(date.getTime()) ? '' : WEEKDAY[date.getDay()];
       const dayNum = Number(day.slice(-2));
 
       // `no_class` is the neutral grey state — used for days nobody has marked,
       // which is the honest reading of an absent mark.
-      const status: CalendarDay['status'] = mark === 'P' || mark === 'L' ? 'present' : mark === 'A' ? 'absent' : 'no_class';
+      const status: CalendarDay['status'] = code === 'P' || code === 'L' ? 'present' : code === 'A' ? 'absent' : 'no_class';
       const details =
-        mark === 'P'
+        code === 'P'
           ? 'Present • Marked by the batch administrator'
-          : mark === 'L'
+          : code === 'L'
             ? 'Late • Counted as present'
-            : mark === 'A'
+            : code === 'A'
               ? 'Absent • Marked by the batch administrator'
               : day > today
                 ? 'Upcoming • Not conducted yet'
                 : 'Not marked yet';
 
-      return {dayNum, dayLabel, status, dateStr: longDate(day), details};
+      return {
+        dayNum,
+        dayLabel,
+        status,
+        dateStr: longDate(day),
+        details,
+        isToday: day === today,
+        entryAt: times.entryAt,
+        exitAt: times.exitAt,
+      };
     });
   }, [attendanceMonths, month]);
 
@@ -326,7 +338,7 @@ export function useBatchView(
     // Flatten every month into one pseudo-month so the shared summariser can
     // compute an all-time percentage. The keys are meaningless here; only the
     // marks are read.
-    const allMarks = Object.values(attendanceMonths).flatMap((m) => Object.values(m));
+    const allMarks = Object.values(attendanceMonths).flatMap((m) => Object.values(m)).map(markCodeOf);
     const present = allMarks.filter((m) => m === 'P' || m === 'L').length;
     // Lifetime = admin-seeded history + the running week's live marks.
     const seeded = batches.find((b) => b.id === selectedBatchId);
@@ -347,7 +359,8 @@ export function useBatchView(
     dayEntries.sort((a, b) => (a[0] < b[0] ? 1 : -1));
     let streak = 0;
     for (const [, mark] of dayEntries) {
-      if (mark === 'P' || mark === 'L') streak += 1;
+      const code = markCodeOf(mark);
+      if (code === 'P' || code === 'L') streak += 1;
       else break;
     }
 

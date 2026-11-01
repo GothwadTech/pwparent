@@ -63,8 +63,23 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
         {/* The rail: first dot to last card, behind the dots. */}
         <span className="absolute left-0 top-5 bottom-8 w-[2px]" style={{ background: ACCENT }} />
         <div className="space-y-5">
-          {offlineTests.map((t) => (
-            <div key={t.id} className="relative">
+          {/* FOUR cards only. The whole list lives behind View All Tests — the
+              dashboard teases it instead of duplicating it: when more tests
+              exist, the last card fades out (mask, exactly the reference's
+              "there is more below" cue) rather than scrolling forever. */}
+          {offlineTests.slice(0, 4).map((t, i, visible) => (
+            <div
+              key={t.id}
+              className="relative"
+              style={
+                i === visible.length - 1 && offlineTests.length > visible.length
+                  ? {
+                      maskImage: 'linear-gradient(to bottom, #000 35%, transparent 96%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, #000 35%, transparent 96%)',
+                    }
+                  : undefined
+              }
+            >
               <span
                 className="absolute -left-[4.5px] top-6 w-2 h-2 rounded-full"
                 style={{ background: ACCENT }}
