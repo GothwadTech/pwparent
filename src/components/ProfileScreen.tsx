@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { ChevronRight, LogOut, Check, ChevronLeft } from 'lucide-react';
 import { StudentProfile } from '../types';
 import { StudentAvatar } from './StudentAvatar';
@@ -24,6 +24,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onOpenTerms,
   onLogout,
 }) => {
+  /** Logout stays hidden until the profile picture is tapped once. */
+  const [logoutRevealed, setLogoutRevealed] = useState(false);
+
   return (
     <div className="relative w-full h-full min-h-full bg-[#FFFFFF] text-[#17181C] flex flex-col justify-between overflow-hidden select-none">
       {/* Top App Bar matching Screenshot_20260918_180819.jpg */}
@@ -62,7 +65,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <button
                   key={student.id}
                   type="button"
-                  onClick={() => onSelectStudent(student)}
+                  onClick={() => {
+                    onSelectStudent(student);
+                    // The logout door: tapping the profile picture once reveals
+                    // the Logout row below. Until then the row does not exist —
+                    // an accidental logout must take a deliberate second tap.
+                    setLogoutRevealed(true);
+                  }}
                   className="flex flex-col items-center group focus:outline-none"
                 >
                   <div className="relative">
@@ -137,17 +146,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <ChevronRight size={19} className="text-neutral-500" />
           </button>
 
-          {/* Logout */}
-          <button
-            type="button"
-            onClick={onLogout}
-            className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
-          >
-            <span className="text-[15px] font-semibold text-[#17181C]">
-              Logout
-            </span>
-            <LogOut size={19} className="text-neutral-600" />
-          </button>
+          {/* Logout — hidden until the profile picture is tapped once. */}
+          {logoutRevealed && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="w-full px-5 py-4.5 flex items-center justify-between hover:bg-white transition-colors text-left"
+            >
+              <span className="text-[15px] font-semibold text-[#17181C]">
+                Logout
+              </span>
+              <LogOut size={19} className="text-neutral-600" />
+            </button>
+          )}
         </div>
       </div>
     </div>

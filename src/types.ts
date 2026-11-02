@@ -308,6 +308,12 @@ export interface StudentProfile {
   avgScorePercent?: number;
   accuracyPercent?: number;
   tests?: TestRecord[];
+
+  // ---- Admin-controlled streak (parent dashboard's "N day streak" pill) ----
+  /** Manual base the streak starts from. 0 / absent = purely attendance-driven. */
+  streakBase?: number;
+  /** 1 = +1 per present day, 2 = +1 per two present days, 0 = manual only. */
+  streakStep?: 0 | 1 | 2;
 }
 
 export interface ParentProfileData {

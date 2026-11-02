@@ -3,9 +3,13 @@
  *
  * Left: the batch selector as a soft grey pill (opens the batch picker).
  * Right: the child's avatar with their name beneath (opens the profile).
+ *
+ * The circular sync button that used to sit left of the avatar is GONE on the
+ * owner's instruction — the header is now just selector + profile, and a touch
+ * shorter (pt-2/pb-2) so more of the dashboard fits above the fold.
  */
-import React, { useState } from 'react';
-import { ChevronDown, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { StudentAvatar } from './StudentAvatar';
 import { StudentProfile } from '../types';
 
@@ -14,8 +18,6 @@ interface MainTopBarProps {
   onOpenBatchSelector: () => void;
   activeStudent: StudentProfile;
   onOpenProfile: () => void;
-  /** The circular sync button: bypass the cache and re-read everything once. */
-  onRefreshData?: () => Promise<void> | void;
 }
 
 export const MainTopBar: React.FC<MainTopBarProps> = ({
@@ -23,22 +25,9 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
   onOpenBatchSelector,
   activeStudent,
   onOpenProfile,
-  onRefreshData,
 }) => {
-  const [syncing, setSyncing] = useState(false);
-
-  const runSync = async () => {
-    if (syncing || !onRefreshData) return;
-    setSyncing(true);
-    try {
-      await onRefreshData();
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   return (
-    <div className="w-full px-4 pt-3 pb-3 flex items-center justify-between z-30 select-none bg-white">
+    <div className="w-full px-4 pt-2 pb-2 flex items-center justify-between z-30 select-none bg-white">
       {/* Batch dropdown selector — white pill with hairline border, as in the reference */}
       <button
         type="button"
@@ -52,23 +41,8 @@ export const MainTopBar: React.FC<MainTopBarProps> = ({
         <ChevronDown size={16} className="text-[#3F4650] shrink-0 ml-1" strokeWidth={2} />
       </button>
 
-      {/* Sync + student avatar + name */}
+      {/* Student avatar + name */}
       <div className="flex items-center space-x-1">
-        {onRefreshData && (
-          <button
-            type="button"
-            onClick={() => void runSync()}
-            aria-label="Refresh data"
-            title="Sync now"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#5A4BDA] hover:bg-[#F2F0FE] active:scale-95 transition-all"
-          >
-            <RefreshCw
-              size={17}
-              className={syncing ? 'animate-spin' : ''}
-              style={{ color: syncing ? '#5A4BDA' : undefined }}
-            />
-          </button>
-        )}
         <button
           type="button"
           onClick={onOpenProfile}

@@ -16,8 +16,8 @@ import type {StudentProfile} from '../types';
  *   • when the remembered session cannot be restored the app falls back to
  *     login honestly (prefilled number), instead of holding a blank paint.
  *
- * Plus the header's circular sync button: left of the avatar, spins while the
- * cache-bypassing re-read runs, and gone entirely without a handler.
+ * Plus the header shape: the circular sync button was REMOVED on the owner's
+ * instruction — the spec locks that it never comes back.
  */
 const student: StudentProfile = {
   id: 'kid-1',
@@ -31,49 +31,19 @@ const student: StudentProfile = {
   tests: [],
 };
 
-describe('header sync button', () => {
-  it('sits to the LEFT of the profile avatar and fires the refresh', async () => {
-    let release!: () => void;
-    const pending = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    const onRefreshData = vi.fn(() => pending);
-
-    const {container} = render(
-      <MainTopBar
-        selectedBatchName="Vidyapeeth 16"
-        onOpenBatchSelector={vi.fn()}
-        activeStudent={student}
-        onOpenProfile={vi.fn()}
-        onRefreshData={onRefreshData}
-      />,
-    );
-
-    const sync = screen.getByLabelText('Refresh data');
-    const profile = screen.getByTitle('Open Profile');
-    expect(sync.parentElement).toBe(profile.parentElement);
-    expect(
-      sync.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-
-    fireEvent.click(sync);
-    expect(onRefreshData).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(container.innerHTML).toContain('animate-spin'));
-
-    release();
-    await waitFor(() => expect(container.innerHTML).not.toContain('animate-spin'));
-  });
-
-  it('does not render at all when the owner offers no refresh', () => {
+describe('header: no sync button (owner instruction, 2026-11-02)', () => {
+  it('renders selector + profile only — the refresh icon is gone', () => {
     render(
       <MainTopBar
-        selectedBatchName="B"
+        selectedBatchName="Vidyapeeth 16"
         onOpenBatchSelector={vi.fn()}
         activeStudent={student}
         onOpenProfile={vi.fn()}
       />,
     );
     expect(screen.queryByLabelText('Refresh data')).toBeNull();
+    expect(screen.getByTitle('Open Profile')).toBeTruthy();
+    expect(screen.getByTitle('Select Batch')).toBeTruthy();
   });
 });
 
