@@ -25,6 +25,7 @@
  * Username + password in firebase mode, local passcode in mock mode.
  */
 import React, {useState} from 'react';
+import type {StudentProfile} from './types';
 import {useAppData} from './hooks/useAppData';
 import {useBatchView} from './hooks/useBatchView';
 import {useDppView} from './hooks/useDppView';
@@ -46,6 +47,17 @@ import {IconClipboard} from './components/icons/AppIcons';
 /** Ambient wash. Outside the scaled shell so it always covers the window. */
 export const App: React.FC = () => {
   const app = useAppData();
+  /** Stand-in child so the real header/nav can paint while data restores. */
+  const placeholderStudent: StudentProfile = {
+    id: '',
+    name: '',
+    batch: '',
+    course: '',
+    attendance: '',
+    testsCompleted: 0,
+    dppsDone: 0,
+    videoWatchRate: '',
+  };
   const scale = useFluidScale();
 
   /**
@@ -67,6 +79,7 @@ export const App: React.FC = () => {
   const {
     backend,
     booting,
+    hydrating,
     refreshData,
     mode,
     uid,
@@ -139,6 +152,33 @@ export const App: React.FC = () => {
         );
 
       case 'dashboard':
+        // Data still restoring (cache or network, offline or online): the
+        // shell paints with shimmer blocks — the user lands on the dashboard
+        // instantly and the numbers arrive a beat later, like every polished
+        // app. No "No student record" flash, ever.
+        if (!activeStudent && (booting || hydrating)) {
+          return (
+            <ChildDashboardScreen
+              student={placeholderStudent}
+              loading
+              onBack={() => setScreen('profile')}
+              onOpenProfile={() => setScreen('profile')}
+              onOpenSettings={openSettings}
+              customLogoUrl={customLogoUrl}
+              onOpenLogoCustomizer={openLogoCustomizer}
+              announcements={announcements}
+              batches={batchView.batches}
+              selectedBatchId={batchView.selectedBatchId}
+              onSelectBatch={batchView.selectBatch}
+              calendarDays={batchView.calendarDays}
+              offlineTests={batchView.offlineTests}
+              subjects={batchView.subjects}
+              summary={batchView.summary}
+              dpp={dppSummary}
+              batchTests={batchView.tests}
+            />
+          );
+        }
         // A dashboard with no child to show must NEVER be a blank screen —
         // that is exactly the "OTP ke baad poora white" report. Hydration can
         // come back empty (slow network, a denied read, a record that lives
@@ -262,10 +302,9 @@ export const App: React.FC = () => {
             src/lib/sessionStore.ts (offlineSessionFromMarker) and the
             persistent Firestore cache in src/lib/firebase/firestore.ts. */}
         <OfflineBanner />
-        {/* A remembered session holds the first paint instead of flashing the
-            login form — a blank hold, not a splash: it clears the moment the
-            boot settles either way. */}
-        {booting ? null : renderCurrentScreen()}
+        {/* The first paint is never blank and never a wrong login: the
+            dashboard skeleton holds the screen until boot + hydration settle. */}
+        {renderCurrentScreen()}
       </main>
 
       {/* ── Everything below stays OUTSIDE the scaled subtree ─────────────── */}

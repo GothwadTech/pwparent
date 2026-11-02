@@ -81,7 +81,7 @@ export const CenterTestsSection: React.FC<CenterTestsSectionProps> = ({
               }
             >
               <span
-                className="absolute -left-[4.5px] top-6 w-2 h-2 rounded-full"
+                className="absolute -left-[19px] top-6 w-2 h-2 rounded-full"
                 style={{ background: ACCENT }}
               />
               <div className="bg-white border rounded-xl px-4 py-3.5" style={{ borderColor: CARD_BORDER }}>

@@ -29,7 +29,6 @@ import {recomputeStudent} from '../lib/admin';
 import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
 import {
   clearStoredSession,
-  hasStoredSession,
   offlineSessionFromMarker,
   storedSessionPhone,
   writeStoredSession,
@@ -66,6 +65,8 @@ export interface AppData {
    * auto-advances, and it always clears when the boot settles.
    */
   booting: boolean;
+  /** True while the dashboard's data restore is in flight (skeleton time). */
+  hydrating: boolean;
 
   // ── navigation ──────────────────────────────────────────────────────────
   screen: ScreenId;
@@ -112,11 +113,18 @@ export function useAppData(): AppData {
    * still until the restore has actually decided, so the wrong screen is
    * never shown even for one frame.
    */
+  // The user ALWAYS lands on the dashboard — offline or online, session or
+  // not. A remembered session hydrates straight into it; a device with no
+  // session sees the skeleton for the beat the restore takes and is then
+  // walked to login FROM the dashboard. Never again a login screen that
+  // turns out, a second later, to have been wrong.
   const [screen, setScreen] = useState<ScreenId>(() =>
-    !hasSeenOnboarding() ? 'onboarding1' : hasStoredSession() ? 'dashboard' : 'login',
+    !hasSeenOnboarding() ? 'onboarding1' : 'dashboard',
   );
   /** Only ever true when this device remembers a session to resume. */
-  const [booting, setBooting] = useState<boolean>(() => hasStoredSession());
+  const [booting, setBooting] = useState<boolean>(() => hasSeenOnboarding());
+  /** Data restore in flight — the dashboard wears its skeleton meanwhile. */
+  const [hydrating, setHydrating] = useState<boolean>(() => hasSeenOnboarding());
   const [previousScreen, setPreviousScreen] = useState<ScreenId>(ADMIN_RETURN_SCREEN);
 
   const [students, setStudents] = useState<StudentProfile[]>([]);
@@ -231,12 +239,19 @@ export function useAppData(): AppData {
         setUid(restored.uid);
         setPhoneNumber(restored.phone);
         setBoundStudentId(restored.studentId ?? null);
-        await hydrate(instance, restored.uid, restored.studentId ?? null);
+        setHydrating(true);
+        try {
+          await hydrate(instance, restored.uid, restored.studentId ?? null);
+        } finally {
+          if (!cancelled) setHydrating(false);
+        }
         // Straight to the child. No picker: one number is one student.
         if (!cancelled) setScreen('dashboard');
       } else {
-        // Nothing resumable: land on login (we may have opened optimistically
-        // on the dashboard) and remember whatever number this device held.
+        // Nothing resumable: walk to login FROM the dashboard (the skeleton
+        // already replaced the old blank/login flash) and remember whatever
+        // number this device held.
+        setHydrating(false);
         setScreen('login');
         if (storedSessionPhone()) setPhoneNumber(storedSessionPhone());
       }
@@ -304,7 +319,12 @@ export function useAppData(): AppData {
 
       setUid(result.uid ?? null);
       setBoundStudentId(result.studentId ?? null);
-      await hydrate(backend, result.uid, result.studentId ?? null);
+      setHydrating(true);
+      try {
+        await hydrate(backend, result.uid, result.studentId ?? null);
+      } finally {
+        setHydrating(false);
+      }
       // The number decided the child, so there is nothing left to pick.
       setScreen('dashboard');
     },
@@ -540,6 +560,7 @@ export function useAppData(): AppData {
   return {
     backend,
     booting,
+    hydrating,
     mode,
     uid,
     phoneNumber,

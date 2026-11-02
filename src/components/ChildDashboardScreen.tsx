@@ -18,6 +18,7 @@ import type { SubjectProgress } from './SubjectDetailsModal';
 import type { BatchSummary } from '../hooks/useBatchView';
 import type { DppSummary } from '../hooks/useDppView';
 import { MainTopBar } from './MainTopBar';
+import { DashboardSkeleton } from './DashboardSkeleton';
 import { AppBottomNav } from './AppBottomNav';
 import { StudentDashboardView } from './StudentDashboardView';
 import { OfflineAttendanceDashboardView } from './OfflineAttendanceDashboardView';
@@ -51,6 +52,11 @@ interface ChildDashboardScreenProps {
   dpp: DppSummary;
   /** Raw tests + this student's result, for the detail screen. */
   batchTests: (BatchTest & { result: TestResult | null })[];
+  /**
+   * Data restore in flight: the shell (header, bottom nav) is real, the
+   * content area wears the shimmer skeleton. Never an empty-state flash.
+   */
+  loading?: boolean;
 }
 
 export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
@@ -70,6 +76,7 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
   summary,
   dpp,
   batchTests,
+  loading = false,
 }) => {
   const [activeTab, setActiveTab] = useState<MainTabId>('dashboard');
   const [localBatchId, setLocalBatchId] = useState<string | null>(null);
@@ -142,7 +149,9 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
       </header>
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
-        {!selectedBatch ? (
+        {loading ? (
+          <DashboardSkeleton />
+        ) : !selectedBatch ? (
           <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
             <p className="text-base font-bold mb-2" style={{ color: TEXT_PRIMARY }}>No batch allotted yet</p>
             <p className="text-xs leading-relaxed" style={{ color: TEXT_SECONDARY }}>
