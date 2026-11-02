@@ -55,10 +55,16 @@ describe('boot: a remembered session never shows a login frame', () => {
     await getBackend();
   });
 
-  it('opens on login when nothing is remembered', () => {
+  it('opens on the DASHBOARD (skeleton) even when nothing is remembered', async () => {
     const {result} = renderHook(() => useAppData());
 
-    expect(result.current.screen).toBe('login');
+    // Never a login first-paint: the dashboard skeleton holds the screen…
+    expect(result.current.screen).toBe('dashboard');
+    expect(result.current.booting).toBe(true);
+    expect(result.current.hydrating).toBe(true);
+
+    // …and an unrestorable device is walked to login FROM the dashboard.
+    await waitFor(() => expect(result.current.screen).toBe('login'));
     expect(result.current.booting).toBe(false);
   });
 

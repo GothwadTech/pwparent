@@ -65,3 +65,17 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* ── Skeleton shimmer ───────────────────────────────────────────────────────
+   The dashboard shell paints instantly; while the real data restores (cache
+   or network) its blocks wear this light sweep — the "UI first, data a beat
+   later" effect every polished app uses instead of flashing empty states. */
+@keyframes pw-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #F3F3F3 25%, #E8E9EC 37%, #F3F3F3 63%);
+  background-size: 200% 100%;
+  animation: pw-shimmer 1.4s ease-in-out infinite;
+}
