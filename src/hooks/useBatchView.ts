@@ -30,7 +30,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {BatchOption, BatchTest, MonthMarks, StudentProfile, TestResult} from '../types';
 import {markCodeOf, markTimesOf} from '../lib/backend/batchTypes';
-import {attendanceTotals} from '../lib/attendanceTotals';
+import {attendanceTotals, streakDisplay} from '../lib/attendanceTotals';
 import type {Backend} from '../lib/backend';
 import {monthDays, monthKey} from '../lib/backend';
 import type {AllTestsRow} from '../components/AllTestsModal';
@@ -372,11 +372,11 @@ export function useBatchView(
       avgAttendance: percent,
       studyDays: totals.studyDays,
       presentDays: totals.presentDays,
-      streakDays: streak,
+      streakDays: streakDisplay(streak, student?.streakBase, student?.streakStep),
       avgScorePercent: avgOf(attempted.map((x) => x.result?.scorePercent)),
       avgAccuracyPercent: avgOf(attempted.map((x) => x.result?.accuracyPercent)),
     };
-  }, [tests, attendanceMonths, batches, selectedBatchId]);
+  }, [tests, attendanceMonths, batches, selectedBatchId, student?.streakBase, student?.streakStep]);
 
   const subjects = useMemo<SubjectProgress[]>(() => {
     // Group every syllabus line across the batch's tests by subject, then attach

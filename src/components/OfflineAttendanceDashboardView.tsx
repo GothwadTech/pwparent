@@ -115,8 +115,6 @@ export const OfflineAttendanceDashboardView: React.FC<OfflineAttendanceDashboard
 
   return (
     <div className="flex-1 w-full pb-6 overflow-y-auto no-scrollbar select-none">
-      {/* Neutral band separating the top bar from the content, as in the reference */}
-      {band}
       <AttendanceCalendarSection
         summary={summary}
         days={currentWeek}

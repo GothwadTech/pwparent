@@ -32,3 +32,23 @@ export function attendanceTotals(
     percent: study > 0 ? Math.round((capped / study) * 100) : 0,
   };
 }
+
+/**
+ * The streak number the dashboard shows — admin-controlled per student.
+ *
+ *   • `base` — the value an admin typed for this child (manual streak);
+ *   • `step` — how attendance grows it: `1` = +1 per consecutive present day,
+ *     `2` = +1 per TWO consecutive present days, `0` = never (manual only).
+ *
+ * Defaults keep the old behaviour (base 0, step 1) for students an admin has
+ * never touched, so existing batches render exactly as before.
+ */
+export function streakDisplay(
+  consecutivePresentRun: number,
+  base?: number,
+  step?: 0 | 1 | 2,
+): number {
+  const run = Math.max(0, Math.round(consecutivePresentRun));
+  const auto = step === 0 ? 0 : step === 2 ? Math.floor(run / 2) : run;
+  return Math.max(0, Math.round(base ?? 0)) + auto;
+}

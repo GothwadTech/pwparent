@@ -180,7 +180,7 @@ export const App: React.FC = () => {
             onBack={() => setScreen('profile')}
             onOpenProfile={() => setScreen('profile')}
             onOpenSettings={openSettings}
-            onRefreshData={refreshData}
+
             customLogoUrl={customLogoUrl}
             onOpenLogoCustomizer={openLogoCustomizer}
             announcements={announcements}
@@ -247,7 +247,10 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden bg-[#F0F2F5] text-[#17181C] relative flex justify-center">
+    <div
+      className="fixed inset-0 overflow-hidden bg-[#F0F2F5] text-[#17181C] flex justify-center"
+      style={{overscrollBehavior: 'none'}}
+    >
 
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main

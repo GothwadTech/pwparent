@@ -11,21 +11,21 @@ interface AnnouncementsViewProps {
  * Real PW Announcements matching the reference screenshots exactly.
  * Fixed in code as per instruction.
  */
+/**
+ * Real PW Announcements matching the reference screenshots exactly.
+ * Fixed in code as per instruction.
+ *
+ * ORDER (owner's instruction, 2026-11-02): the weekly-schedule notice leads,
+ * then the test-time reminder, then everything else in its original order.
+ * CONTENT: no specific test names and no specific dates — those age into
+ * wrong information, so the copy stays generic.
+ * TIME LABEL: always "moment ago" — the card never computes an age.
+ */
 const FIXED_ANNOUNCEMENTS: AnnouncementItem[] = [
-  {
-    id: 'ann-1',
-    author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
-    isNew: false,
-    content:
-      'Learn simple, practical sleep strategies that every student can use during exam preparation.\n\n🔗 Register Now:\nhttps://www.healthgennie.com/download-app\n\nDon’t just study longer. Learn how to study smarter.\n\n👉 Download the Health Gennie App and register now.',
-    videoLink: 'https://www.healthgennie.com/download-app',
-    imageUrl: '/assets/announcements/sleep_webinar.jpg',
-  },
   {
     id: 'ann-2',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
       'Dear Vidyapeeth Students, Kindly Check the Weekly Schedule in the || Description Section || By Clicking || Calendar Icon 📅 || Keep Studying!! Physics Wallah is for you, by you and from you',
@@ -34,36 +34,46 @@ const FIXED_ANNOUNCEMENTS: AnnouncementItem[] = [
   {
     id: 'ann-3',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
-      'AITS - 2 (CBT) Test Time: (Check message on your Reg. Mobile No.) [Test@20-09-2026] [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+      'Test Time: (Check message on your Reg. Mobile No.) [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
     videoLink:
       'https://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
   },
   {
-    id: 'ann-4',
+    id: 'ann-1',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
-      "AITS - 2, [Test@20-09-2026] [Test_Syllabus] Please Check the Test Syllabus in the Test Planner in your batch's description section.",
+      'Learn simple, practical sleep strategies that every student can use during exam preparation.\n\n🔗 Register Now:\nhttps://www.healthgennie.com/download-app\n\nDon’t just study longer. Learn how to study smarter.\n\n👉 Download the Health Gennie App and register now.',
+    videoLink: 'https://www.healthgennie.com/download-app',
+    imageUrl: '/assets/announcements/sleep_webinar.jpg',
+  },
+  {
+    id: 'ann-4',
+    author: 'Physics Wallah team',
+    timeAgo: 'moment ago',
+    isNew: false,
+    content:
+      "[Test_Syllabus] Please Check the Test Syllabus in the Test Planner in your batch's description section.",
     imageUrl: '/assets/announcements/syllabus.jpg',
   },
   {
     id: 'ann-5',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
-      'Milestone:7 (Offline) Test Time: (2:00 PM to 5:00 PM) [Test@13-09-2026] [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
+      'Test Time: (2:00 PM to 5:00 PM) [Test_Reminder] For more info click on below link:\nhttps://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
     videoLink:
       'https://app.powerbi.com/view?r=eyJrIjoiMTRjNmJlZGU0MDJmNi00M2M1LTk5NWEtZjlmODJhZDY2YTgzIiwidCI6IjY5MzI3NDk3LWFjMTktNGU5MC1iYWI0LWY2NDVlOTY0YTM4ZiJ9',
   },
   {
     id: 'ann-6',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
       '🔗 Register Now:\nhttps://www.healthgennie.com/download-app\n\nDownload the Health Gennie App & register for the webinar.\nLimited Seats 🚀',
@@ -73,10 +83,10 @@ const FIXED_ANNOUNCEMENTS: AnnouncementItem[] = [
   {
     id: 'ann-7',
     author: 'Physics Wallah team',
-    timeAgo: '1 month ago',
+    timeAgo: 'moment ago',
     isNew: false,
     content:
-      'Dear Vidyapeeth Students, || Results Are Out!! || Kindly Check Your Milestone:7 Results in Test Series section of your batch. Keep Studying!! Physics Wallah is for you, by you and from you! [Test@13-09-2026] [Result_Published]',
+      'Dear Vidyapeeth Students, || Results Are Out!! || Kindly Check Your Results in Test Series section of your batch. Keep Studying!! Physics Wallah is for you, by you and from you! [Result_Published]',
   },
 ];
 

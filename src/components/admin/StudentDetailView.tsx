@@ -213,6 +213,34 @@ export const StudentDetailView: React.FC<StudentDetailViewProps> = ({
             </Field>
           </div>
 
+          {/* ── streak control ─────────────────────────────────────────────
+              The parent dashboard's "N day streak" pill is this child's number:
+              a manual base the admin types, grown by attendance per the step —
+              every present day, every second present day, or never (manual). */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <Field label="Streak (base)" htmlFor={`streak-${sid}`}>
+              <input
+                id={`streak-${sid}`}
+                className={inputCls}
+                inputMode="numeric"
+                value={draft.streakBase ?? 0}
+                onChange={(e) => patch({streakBase: Math.max(0, Number(e.target.value) || 0)})}
+              />
+            </Field>
+            <Field label="Streak grows" htmlFor={`streakstep-${sid}`}>
+              <select
+                id={`streakstep-${sid}`}
+                className={inputCls}
+                value={String(draft.streakStep ?? 1)}
+                onChange={(e) => patch({streakStep: Number(e.target.value) as 0 | 1 | 2})}
+              >
+                <option value="1">+1 per present day</option>
+                <option value="2">+1 per 2 present days</option>
+                <option value="0">Manual only</option>
+              </select>
+            </Field>
+          </div>
+
           <Note>
             Tests attempted, avg. score and accuracy are derived from the rows below on every save — they cannot be
             typed directly. Day-wise attendance marked in a batch overrides the percentage shown here.

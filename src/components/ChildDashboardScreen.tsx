@@ -39,8 +39,6 @@ interface ChildDashboardScreenProps {
   announcements?: AnnouncementItem[];
   /** Second door into the settings panel (Help Centre "admin" search). */
   onOpenSettings?: () => void;
-  /** Header sync button — bypass the read cache once, on demand. */
-  onRefreshData?: () => Promise<void> | void;
 
   batches: BatchOption[];
   selectedBatchId?: string | null;
@@ -63,7 +61,6 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
   onOpenLogoCustomizer,
   announcements,
   onOpenSettings,
-  onRefreshData,
   batches,
   selectedBatchId,
   onSelectBatch,
@@ -138,8 +135,10 @@ export const ChildDashboardScreen: React.FC<ChildDashboardScreenProps> = ({
           onOpenBatchSelector={() => setIsBatchModalOpen(true)}
           activeStudent={student}
           onOpenProfile={onOpenProfile}
-          onRefreshData={onRefreshData}
         />
+        {/* The neutral band under the top bar is part of the HEADER: it stays
+            put while the content scrolls (it used to scroll away with it). */}
+        <div className="h-2.5 w-full bg-[#EBECF0]" />
       </header>
 
       <main className="flex-1 w-full min-h-0 overflow-hidden flex flex-col">
