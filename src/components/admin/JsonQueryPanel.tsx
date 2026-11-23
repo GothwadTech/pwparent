@@ -107,7 +107,7 @@ export const JsonQueryPanel: React.FC<JsonQueryPanelProps> = ({backend, batch, f
       setReport(line);
       flash(line);
     } catch (runError) {
-      setError(runError instanceof Error ? runError.message : 'JSON parse nahi hua.');
+      setError(runError instanceof Error ? runError.message : 'The JSON could not be parsed.');
     } finally {
       setBusy(false);
     }
@@ -134,7 +134,7 @@ export const JsonQueryPanel: React.FC<JsonQueryPanelProps> = ({backend, batch, f
           value={studentId}
           onChange={(e) => setStudentId(e.target.value)}
         >
-          <option value="">Sirf tests — koi result nahi</option>
+          <option value="">Tests only — no results</option>
           {students.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name || s.id}

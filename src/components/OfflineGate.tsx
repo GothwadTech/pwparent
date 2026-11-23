@@ -75,11 +75,11 @@ export const OfflineGate: React.FC = () => {
       <WifiOffGlyph />
 
       <h2 id="offline-title" className="mt-5 text-[18px] font-extrabold tracking-tight text-[#17181C]">
-        Internet connection nahi hai
+        No internet connection
       </h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#5B6169] max-w-[300px]">
-        Ye app chalane ke liye internet zaroori hai. Wi-Fi ya mobile data on karke
-        &ldquo;Retry&rdquo; dabaiye.
+        This app needs an internet connection to work. Turn on Wi-Fi or mobile
+        data, then tap &ldquo;Retry&rdquo;.
       </p>
 
       <button
@@ -91,7 +91,7 @@ export const OfflineGate: React.FC = () => {
       </button>
 
       <p className="mt-4 text-[11px] text-[#8B8F96]">
-        Offline ho to app ka data nahi dikhta — connect karte hi sab wapas aa jayega.
+        Your data is safe. It comes back the moment you are connected again.
       </p>
     </div>
   );

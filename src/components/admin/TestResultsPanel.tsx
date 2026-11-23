@@ -264,8 +264,8 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
           admin who expects saving a score to close the test. */}
       {(test.status === 'upcoming' || test.status === 'scheduled' || test.status === 'cancelled') && (
         <Note tone="warn">
-          Ye test abhi <b>{adminStatusLabel(test.status)}</b> hai. Marks save karne se status apne aap
-          Completed nahi hoga — Tests panel me status badalna padega.
+          This test is still <b>{adminStatusLabel(test.status)}</b>. Saving marks does not change the
+          status by itself — set it to Completed in the Tests panel.
         </Note>
       )}
 

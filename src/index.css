@@ -81,22 +81,28 @@ body {
 }
 
 /* ── Edge-to-edge on phones ─────────────────────────────────────────────────
-   The shell is a 430px-wide "phone" column that gets centred on a desktop. On
-   a phone it must fill the screen exactly:
-   · a max-width narrower than the viewport leaves the grey canvas (#F0F2F5)
-     showing as a vertical strip down both sides, and
-   · the old `border-x` hairline drew a full-height seam right on the curved
-     edge of panels like the Motorola Edge series.
-   Below 461px the cap is dropped so the white shell reaches both edges, and
-   the shell is inset by the display's safe area instead (curved edges, side
-   cutouts in landscape). */
+   The shell is the phone UI. On a DESKTOP it is a 430px column, centred, with
+   the grey canvas either side — that is the frame the design wants.
+
+   On a phone it must reach both edges, at ANY width. Two separate bugs came
+   from getting this wrong, and both looked like "a thin strip down both sides,
+   top to bottom" on a Motorola Edge (curved panel):
+   · the 430px cap was applied at every width, so a device whose CSS viewport is
+     wider than 430px (the Edge 70 Fusion is ~444-462px) showed the #F0F2F5
+     canvas as a band on each side;
+   · the old `border-x` hairline drew a full-height seam right on the curve.
+   So the cap is now opt-in for wide screens only — never a `max-width` that a
+   phone has to beat. The shell is inset by the display's own safe area instead
+   (curved edges, side cutouts in landscape). */
 .app-shell {
+  max-width: none;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-@media (max-width: 460px) {
+/* Desktop / tablet-landscape only: the centred phone column. */
+@media (min-width: 601px) {
   .app-shell {
-    max-width: none;
+    max-width: 430px;
   }
 }

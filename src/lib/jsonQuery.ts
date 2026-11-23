@@ -50,10 +50,10 @@ export const WHOLE_SUBJECT_CHAPTER = '(whole subject)';
 export const parseJsonQuery = (text: string): JsonQueryPayload => {
   const raw = JSON.parse(text) as {tests?: unknown} | JsonQueryTest[];
   const tests = Array.isArray(raw) ? raw : (raw as {tests?: unknown}).tests;
-  if (!Array.isArray(tests)) throw new Error('JSON me "tests" array honi chahiye.');
+  if (!Array.isArray(tests)) throw new Error('The JSON must contain a "tests" array.');
   for (const t of tests as JsonQueryTest[]) {
-    if (!t || typeof t.title !== 'string' || !t.title.trim()) throw new Error('Har test ka title zaroori hai.');
-    if (typeof t.date !== 'string' || !t.date.trim()) throw new Error(`"${t.title}" ki date zaroori hai.`);
+    if (!t || typeof t.title !== 'string' || !t.title.trim()) throw new Error('Every test needs a title.');
+    if (typeof t.date !== 'string' || !t.date.trim()) throw new Error(`"${t.title}" needs a date.`);
   }
   return {tests: tests as JsonQueryTest[]};
 };

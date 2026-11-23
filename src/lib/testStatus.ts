@@ -107,7 +107,7 @@ export const normalizeStatusInput = (raw: string | undefined, title: string): Ba
   }
   if (value === 'CANCELLED' || value === 'CANCELED') return 'cancelled';
   throw new Error(
-    `"${title}" ka status "${raw}" samajh nahi aaya. Upcoming, Completed ya Cancelled — inme se ek likhiye.`,
+    `"${title}" has an unknown status "${raw}". Use Upcoming, Completed or Cancelled.`,
   );
 };
 

@@ -384,10 +384,11 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
           </div>
 
           <Note>
-            <b>Upcoming</b> ka matlab: paper abhi hona hai — parent ko lavender "UPCOMING" chip dikhta hai.
-            Date nikal jaane ke baad wahi test apne aap "result awaited" ban jaata hai (marks enter karte hi
-            score dikhne lagta hai). <b>Completed</b> = paper ho gaya. <b>Cancelled</b> = test cancel — na
-            score dikhta hai, na hi "attempted/total" count me ginta hai.
+            <b>Upcoming</b> means the paper is still to come — the parent sees a lavender
+            &ldquo;UPCOMING&rdquo; chip. Once the date has passed, the same test shows as result awaited,
+            and the score appears as soon as marks are entered. <b>Completed</b> means the paper was
+            held. <b>Cancelled</b> means the test was called off: no score is shown and it is left out
+            of the attempted/total count.
           </Note>
 
           <SyllabusEditor

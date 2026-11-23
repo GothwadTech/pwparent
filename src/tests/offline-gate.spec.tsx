@@ -28,7 +28,7 @@ describe('OfflineGate', () => {
 
     const gate = screen.getByRole('alertdialog');
     expect(gate).toBeTruthy();
-    expect(screen.getByText(/Internet connection nahi hai/i)).toBeTruthy();
+    expect(screen.getByText(/No internet connection/i)).toBeTruthy();
     expect(screen.getByRole('button', {name: /retry/i})).toBeTruthy();
   });
 
