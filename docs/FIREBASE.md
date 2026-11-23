@@ -218,7 +218,8 @@ batches/{batchId}/attendance/{studentId}   ← EK doc per student, saare months
 batches/{batchId}/tests/{testId}       BatchTest — test BATCH ka hai, student ka nahi
   ├─ title, date, mode                 string / "YYYY-MM-DD" / "Online"|"Offline"
   ├─ marksTotal                        number
-  ├─ status                            "scheduled" | "completed"
+  ├─ status                            "upcoming" | "completed" | "cancelled"
+  │                                      ("scheduled" = purana naam, Upcoming ki tarah padha jata hai)
   └─ syllabus[]                        {subject, topic, weightage?}
 
 batches/{batchId}/tests/{testId}/results/{studentId}

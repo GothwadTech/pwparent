@@ -121,7 +121,15 @@ hamesha absent dikhta. **Late = present** gina jata hai.
 #### Step 4 — Test banao
 
 **Tests** panel → `Create test` → title, date, mode, **total marks**, status
-(scheduled/completed).
+(**Upcoming / Completed / Cancelled**).
+
+**Status ka matlab:** *Upcoming* = paper abhi hona hai, parent ko lavender
+"UPCOMING" chip dikhta hai. Test ki date nikal jaane ke baad wahi test apne aap
+"result awaited" ban jaata hai — marks enter karte hi score dikhne lagta hai.
+*Completed* = paper ho gaya. *Cancelled* = test cancel; na score dikhta hai, na
+test "attempted/total" count me ginta hai. Purane tests jinka status `scheduled`
+tha, wo list me Upcoming dikhte hain aur unhe save karne par `upcoming` likha
+jaata hai — koi bhi purana document apne aap nahi badalta.
 
 **Syllabus structured hai**, ek text blob nahi. Har line: `subject` + `topic` +
 `weightage %`. Neeche live total dikhta hai, aur 100% na banne par amber

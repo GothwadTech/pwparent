@@ -191,7 +191,18 @@ export interface SyllabusTopic {
   weightage?: number;
 }
 
-export type BatchTestStatus = 'scheduled' | 'completed';
+/**
+ * A test's lifecycle, as the admin sets it.
+ *
+ * `upcoming` — announced, not held yet (the parent app shows UPCOMING).
+ * `completed` — held; results are entered (or still awaited) per student.
+ * `cancelled` — called off; it keeps its results but is never scored.
+ *
+ * `scheduled` is the older spelling of `upcoming`. Every document written before
+ * this status existed still says `scheduled`, and it is read as Upcoming. It is
+ * never written any more, and nothing rewrites the stored documents.
+ */
+export type BatchTestStatus = 'upcoming' | 'scheduled' | 'completed' | 'cancelled';
 
 /**
  * A test belonging to a BATCH, not to a student.

@@ -59,6 +59,12 @@ export const PILL_MISSED_BG = '#FBE0E5';
 export const PILL_MISSED_TEXT = '#B02A43';
 export const PILL_AWAITING_BG = '#FBF1D7';
 export const PILL_AWAITING_TEXT = '#B7791F';
+/** A paper that has not been held yet: lavender, the app's own "ahead" colour. */
+export const PILL_UPCOMING_BG = '#EDEAFB';
+export const PILL_UPCOMING_TEXT = '#5A4BDA';
+/** Called off: neutral, never red — a cancelled test is not a failure. */
+export const PILL_CANCELLED_BG = '#EEF0F2';
+export const PILL_CANCELLED_TEXT = '#6B7280';
 
 /* ── attendance calendar ──────────────────────────────────────────────────── */
 export const CAL_TODAY_COL_BG = '#E8F1FB';
@@ -106,6 +112,10 @@ export function statusPillClasses(status: string): { bg: string; text: string } 
       return { bg: PILL_MISSED_BG, text: PILL_MISSED_TEXT };
     case 'RESULT_AWAITING':
       return { bg: PILL_AWAITING_BG, text: PILL_AWAITING_TEXT };
+    case 'UPCOMING':
+      return { bg: PILL_UPCOMING_BG, text: PILL_UPCOMING_TEXT };
+    case 'CANCELLED':
+      return { bg: PILL_CANCELLED_BG, text: PILL_CANCELLED_TEXT };
     default:
       return { bg: INSET_BG, text: TEXT_SECONDARY };
   }

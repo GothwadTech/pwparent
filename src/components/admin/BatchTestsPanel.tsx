@@ -17,6 +17,7 @@ import {newBatchTestId} from '../../lib/backend';
 import {NEET_SUBJECTS, NEET_SUBJECT_MARKS, subjectTypeOf} from '../../lib/neetSubjects';
 import {chapterOptions} from '../../lib/neetSyllabus';
 import {TestResultsPanel} from './TestResultsPanel';
+import {TEST_STATUS_OPTIONS, adminStatusLabel, isUpcomingStatus} from '../../lib/testStatus';
 import {btnDanger, btnGhost, btnPrimary, Field, inputCls, labelCls, Note} from './ui';
 
 interface BatchTestsPanelProps {
@@ -34,10 +35,33 @@ function blankTest(existing: BatchTest[]): BatchTest {
     mode: 'Online',
     paperType: 'Objective',
     marksTotal: 300,
-    status: 'scheduled',
+    // New tests start Upcoming; a date that has already passed is what moves a
+    // card to "result awaited" on the parent's phone, not this value.
+    status: 'upcoming',
     syllabus: [],
   };
 }
+
+/** Colour per admin status, so the list reads at a glance instead of showing
+ *  the raw lowercase value it used to print. */
+const STATUS_CHIP: Record<string, string> = {
+  Upcoming: 'bg-[#EDEAFB] text-[#5A4BDA] border-[#D6CFF7]',
+  Completed: 'bg-[#D8F0DE] text-[#1E7E43] border-[#B9E3C6]',
+  Cancelled: 'bg-[#EEF0F2] text-[#6B7280] border-[#DFE3E8]',
+};
+
+const StatusChip: React.FC<{status: BatchTest['status']}> = ({status}) => {
+  const label = adminStatusLabel(status);
+  return (
+    <span
+      className={`px-2 py-0.5 rounded-md border text-[10px] font-bold tracking-wide shrink-0 ${
+        STATUS_CHIP[label] ?? STATUS_CHIP.Upcoming
+      }`}
+    >
+      {label}
+    </span>
+  );
+};
 
 const SyllabusEditor: React.FC<{
   syllabus: SyllabusTopic[];
@@ -345,14 +369,26 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
               <select
                 id="test-status"
                 className={inputCls}
-                value={draft.status}
+                // A test saved before Upcoming existed says `scheduled`; it is
+                // shown (and saved) as Upcoming from now on.
+                value={isUpcomingStatus(draft.status) ? 'upcoming' : draft.status}
                 onChange={(e) => setDraft({...draft, status: e.target.value as BatchTest['status']})}
               >
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
+                {TEST_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </Field>
           </div>
+
+          <Note>
+            <b>Upcoming</b> ka matlab: paper abhi hona hai — parent ko lavender "UPCOMING" chip dikhta hai.
+            Date nikal jaane ke baad wahi test apne aap "result awaited" ban jaata hai (marks enter karte hi
+            score dikhne lagta hai). <b>Completed</b> = paper ho gaya. <b>Cancelled</b> = test cancel — na
+            score dikhta hai, na hi "attempted/total" count me ginta hai.
+          </Note>
 
           <SyllabusEditor
             syllabus={draft.syllabus}
@@ -381,9 +417,10 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate">{test.title}</p>
                 <p className="text-[11px] text-neutral-500 truncate">
-                  {test.date} · {test.mode} · out of {test.marksTotal} · {test.status}
+                  {test.date} · {test.mode} · out of {test.marksTotal}
                 </p>
               </div>
+              <StatusChip status={test.status} />
               <ChevronRight size={15} className="text-neutral-500 shrink-0" />
             </button>
 
@@ -396,7 +433,13 @@ export const BatchTestsPanel: React.FC<BatchTestsPanelProps> = ({backend, batch,
                 <span className="text-neutral-700 font-semibold">{resultCounts[test.id] ?? 0}</span> results entered
               </p>
               <div className="flex gap-2 shrink-0">
-                <button type="button" className={btnGhost} onClick={() => setDraft(test)}>
+                <button
+                  type="button"
+                  className={btnGhost}
+                  onClick={() =>
+                    setDraft({...test, status: isUpcomingStatus(test.status) ? 'upcoming' : test.status})
+                  }
+                >
                   Edit
                 </button>
                 <button type="button" className={btnDanger} disabled={busy} onClick={() => void remove(test)}>

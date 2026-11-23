@@ -8,6 +8,7 @@
  * a corrected query never duplicates papers.
  */
 import type {BatchTest, StudentProfile, SyllabusTopic, TestResult} from '../types';
+import {isResultlessImportStatus, normalizeStatusInput} from './testStatus';
 
 export interface JsonQueryChapter {
   chapter: string;
@@ -66,10 +67,13 @@ export const syllabusFromQuery = (t: JsonQueryTest): SyllabusTopic[] =>
     return [];
   });
 
+/**
+ * The imported status, normalised. A blank status keeps the old default
+ * (`completed`), but a status that is present and unrecognised throws instead of
+ * quietly becoming "completed" — a bulk import must not hide a typo.
+ */
 const statusOf = (t: JsonQueryTest): BatchTest['status'] =>
-  (t.status ?? '').toUpperCase() === 'UPCOMING' || (t.status ?? '').toUpperCase() === 'SCHEDULED'
-    ? 'scheduled'
-    : 'completed';
+  normalizeStatusInput(t.status, t.title.trim());
 
 /** Upsert shape: same id when the title already exists in the batch. */
 export const buildTestFromQuery = (
@@ -105,7 +109,8 @@ export const buildResultFromQuery = (
 ): TestResult | null => {
   const status = (t.status ?? '').toUpperCase();
   const base = {id: student.id, studentId: student.id, studentName: student.name};
-  if (status === 'UPCOMING' || status === 'SCHEDULED') return null;
+  // A paper that has not been held yet, or was cancelled, carries no marks.
+  if (isResultlessImportStatus(t.status)) return null;
   if (status === 'MISSED') return {...base, status: 'MISSED'};
 
   const topicMarks: Record<string, number> = {};

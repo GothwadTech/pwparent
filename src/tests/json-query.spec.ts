@@ -57,7 +57,15 @@ describe('buildTestFromQuery', () => {
     expect(test).toMatchObject({id: 'new-id', title: 'Milestone:8', date: '2026-10-25', mode: 'Offline'});
     expect(test.status).toBe('completed');
     expect(test.marksTotal).toBe(720);
-    expect(buildTestFromQuery(undefined, {...milestone8, status: 'UPCOMING'}, 'x').status).toBe('scheduled');
+    expect(buildTestFromQuery(undefined, {...milestone8, status: 'UPCOMING'}, 'x').status).toBe('upcoming');
+    // The old spelling of Upcoming is still accepted on the way in.
+    expect(buildTestFromQuery(undefined, {...milestone8, status: 'scheduled'}, 'x').status).toBe('upcoming');
+    expect(buildTestFromQuery(undefined, {...milestone8, status: 'CANCELLED'}, 'x').status).toBe('cancelled');
+    // A missing status keeps the old default; a present-but-unknown one is an error.
+    expect(buildTestFromQuery(undefined, {...milestone8, status: undefined}, 'x').status).toBe('completed');
+    expect(() => buildTestFromQuery(undefined, {...milestone8, status: 'POSTPONED'}, 'x')).toThrow(
+      /status "POSTPONED"/,
+    );
     expect(buildTestFromQuery(undefined, {...milestone8, mode: 'Online'}, 'x').mode).toBe('Online');
   });
 

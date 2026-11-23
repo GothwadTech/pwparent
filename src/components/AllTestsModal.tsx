@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, ArrowLeft } from 'lucide-react';
+import type { TestDisplayStatus } from '../lib/testStatus';
 
 /** One row in the all-tests list. Shape matches the batch test model. */
 export interface AllTestsRow {
@@ -7,7 +8,8 @@ export interface AllTestsRow {
   name: string;
   date: string;
   mode: string;
-  status: string;
+  /** Derived by `testDisplayStatus`, never typed by hand. */
+  status: TestDisplayStatus;
 }
 
 interface AllTestsModalProps {

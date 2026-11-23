@@ -33,6 +33,7 @@ import {markCodeOf, markTimesOf} from '../lib/backend/batchTypes';
 import {attendanceTotals, streakDisplay} from '../lib/attendanceTotals';
 import type {Backend} from '../lib/backend';
 import {monthDays, monthKey} from '../lib/backend';
+import {countsTowardsTotal, testDisplayStatus} from '../lib/testStatus';
 import type {AllTestsRow} from '../components/AllTestsModal';
 import type {CalendarDay, OfflineTestRow} from '../components/OfflineAttendanceDashboardView';
 import type {SubjectProgress} from '../components/SubjectDetailsModal';
@@ -273,23 +274,22 @@ export function useBatchView(
     [month],
   );
 
-  const allTests = useMemo<AllTestsRow[]>(
-    () =>
-      tests.map((t) => ({
-        id: t.id,
-        name: t.title,
-        date: displayDate(t.date),
-        mode: t.mode,
-        // No result row yet means the admin has not entered marks — that is
-        // different from the student missing the test.
-        status: t.result ? t.result.status : t.status === 'scheduled' ? 'UPCOMING' : 'NOT ENTERED',
-      })),
-    [tests],
-  );
+  const allTests = useMemo<AllTestsRow[]>(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return tests.map((t) => ({
+      id: t.id,
+      name: t.title,
+      date: displayDate(t.date),
+      mode: t.mode,
+      // Same derivation as `offlineTests` below — one function, so the two
+      // lists can never disagree about the same test again.
+      status: testDisplayStatus(t, t.result, today),
+    }));
+  }, [tests]);
 
-  const offlineTests = useMemo<OfflineTestRow[]>(
-    () =>
-      tests.map((t) => ({
+  const offlineTests = useMemo<OfflineTestRow[]>(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return tests.map((t) => ({
         id: t.id,
         name: t.title,
         date: displayDate(t.date),
@@ -306,17 +306,13 @@ export function useBatchView(
         // here: ranking needs every student's marks and the rules let a parent
         // read only their own child's result.
         rank: t.result && typeof t.result.rank === 'number' ? String(t.result.rank) : '',
-        // No result row yet means the result is not announced — never MISSED,
-        // which is a statement the parent's device cannot make.
-        status: !t.result
-          ? 'RESULT_AWAITING'
-          : t.result.status === 'ATTEMPTED'
-            ? 'ATTEMPTED'
-            : 'MISSED',
+        // Upcoming / Result awaited / Cancelled / Attempted / Missed, decided in
+        // one place. A test dated ahead shows UPCOMING — it used to claim the
+        // result was merely "not announced yet", which was false.
+        status: testDisplayStatus(t, t.result, today),
         paperType: t.paperType ?? 'Objective',
-      })),
-    [tests],
-  );
+      }));
+  }, [tests]);
 
   /** "52%" from a list of percentages; empty when nothing was entered. */
   const avgOf = (vals: (number | undefined)[]): string => {
@@ -364,9 +360,15 @@ export function useBatchView(
       else break;
     }
 
+    // Upcoming and cancelled papers stay out of the denominator: "2/7" reads
+    // like failure when five of those papers are still ahead. `Math.max` keeps
+    // the bar sane if marks were entered on a test that is still upcoming.
+    const today = new Date().toISOString().slice(0, 10);
+    const counted = tests.filter((t) => countsTowardsTotal(t, today)).length;
+
     return {
       testsAttempted: attempted.length,
-      testsTotal: tests.length,
+      testsTotal: Math.max(counted, attempted.length),
       bestScore: bestTest && best > 0 ? `${best}/${bestTest.marksTotal}` : '',
       attendancePercent: totals.studyDays > 0 ? `${percent}%` : '',
       avgAttendance: percent,

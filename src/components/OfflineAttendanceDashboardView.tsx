@@ -17,6 +17,7 @@
 import React, { useMemo } from 'react';
 import { StudentProfile } from '../types';
 import type { BatchSummary } from '../hooks/useBatchView';
+import type { TestDisplayStatus } from '../lib/testStatus';
 import type { DppSummary } from '../hooks/useDppView';
 import { AttendanceCalendarSection } from './AttendanceCalendarSection';
 import { DppSection } from './DppSection';
@@ -50,7 +51,8 @@ export interface OfflineTestRow {
   scorePercent: string;
   /** Class rank as entered by the admin. Empty when unknown. */
   rank: string;
-  status: 'ATTEMPTED' | 'MISSED' | 'RESULT_AWAITING';
+  /** Derived by `testDisplayStatus` — the card never decides this itself. */
+  status: TestDisplayStatus;
   /** Which list of the All Tests screen this test belongs to. */
   paperType: 'Objective' | 'Subjective';
 }

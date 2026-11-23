@@ -19,6 +19,7 @@ import type {Backend} from '../../lib/backend';
 import {scorePercentOf,} from '../../lib/backend';
 import {btnDanger, btnGhost, btnPrimary, cardCls, inputCls, labelCls, Note} from './ui';
 import {NEET_SUBJECT_MARKS} from '../../lib/neetSubjects';
+import {adminStatusLabel} from '../../lib/testStatus';
 
 interface TestResultsPanelProps {
   backend: Backend;
@@ -254,9 +255,19 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
         </p>
         <h3 className="text-base font-bold mt-1">{test.title}</h3>
         <p className="text-[11px] text-neutral-500 mt-0.5">
-          {test.date} · {test.mode} · out of {test.marksTotal} · {test.status}
+          {test.date} · {test.mode} · out of {test.marksTotal} · {adminStatusLabel(test.status)}
         </p>
       </div>
+
+      {/* Marks can be entered on any paper — but on one that is still Upcoming or
+          Cancelled the parent's card will keep saying so, which surprises an
+          admin who expects saving a score to close the test. */}
+      {(test.status === 'upcoming' || test.status === 'scheduled' || test.status === 'cancelled') && (
+        <Note tone="warn">
+          Ye test abhi <b>{adminStatusLabel(test.status)}</b> hai. Marks save karne se status apne aap
+          Completed nahi hoga — Tests panel me status badalna padega.
+        </Note>
+      )}
 
       <SyllabusList syllabus={test.syllabus ?? []} />
 
