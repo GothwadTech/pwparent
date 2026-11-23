@@ -38,10 +38,32 @@ wapas login ho jata hai."*
    the live resolution remains the only authority — a marker alone can never
    fake a login (rules still key on `request.auth.uid`).
 
-3. **No honest offline state.** → `src/components/OfflineBanner.tsx`: a thin
-   strip ("You're offline — showing saved data…") on every screen while the
-   device reports no network; it disappears on reconnect, when Firestore
-   reconciles by itself.
+3. ~~**No honest offline state.**~~ — **REVERSED 2026-11-23 by owner
+   instruction:** the app must NOT work offline. The thin strip is gone; an
+   opaque full-screen gate (`src/components/OfflineGate.tsx`) now covers the
+   whole shell with "Internet connection nahi hai" + Retry, so no stale
+   dashboard is ever shown as if it were live. The marker/offline-session
+   machinery below still exists (it costs nothing and keeps the restore honest),
+   but nothing behind the gate is reachable while there is no network.
+
+## Always the newest build (web-only, 2026-11-23)
+
+The Android wrapper only loads this URL, so every update fix lives here:
+
+- **Navigation is NetworkFirst** (`vite.config.ts` → workbox `runtimeCaching`,
+  `navigateFallback` removed). Before, `navigateFallback: '/index.html'`
+  answered every navigation from the precache, so the first launch after a
+  deploy painted the OLD bundle. Online now always means the newest HTML and
+  therefore the newest hashed JS; the precached shell is only the offline
+  fallback (`PrecacheFallbackPlugin`).
+- **Registration is hand-written** (`src/lib/swUpdate.ts`, `injectRegister:
+  false`): `updateViaCache: 'none'`, a one-time reload on `controllerchange`
+  (never on first install), an update check on resume / reconnect / every two
+  minutes while visible. A deploy lands without a second launch.
+- **`/sw.js` is served `no-cache`** (`public/_headers`).
+- **Build stamp**: version · build time · commit, injected by Vite `define`
+  (`src/lib/buildInfo.ts`) and shown in Settings → Session → Build, so "naya
+  aaya ya purana?" is answerable from the phone.
 
 Tests: `src/tests/offline-session.spec.ts` (7 cases: marker trust offline,
 auth-empty offline resume, no online faking, fresh-device offline = null).

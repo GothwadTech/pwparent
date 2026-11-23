@@ -22,6 +22,11 @@
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
+# The worker script itself must never be served stale, or a deploy cannot be
+# discovered. `updateViaCache: 'none'` in src/lib/swUpdate.ts is the second half.
+/sw.js
+  Cache-Control: no-cache
+
 # App icons rarely change.
 /assets/ic_launcher.webp
   Cache-Control: public, max-age=604800

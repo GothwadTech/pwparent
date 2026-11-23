@@ -20,6 +20,7 @@ import type {Backend} from '../lib/backend';
 import {cacheStats} from '../lib/backend/readCache';
 import type {AdminIdentity} from '../lib/adminAuth';
 import {labelCls} from './admin/ui';
+import {buildStamp} from '../lib/buildInfo';
 
 interface SettingsDockProps {
   /** Controlled: the panel renders only while this is true. */
@@ -146,6 +147,8 @@ export const SettingsDock: React.FC<SettingsDockProps> = ({
               <Row label="Number" value={phone ? `+91 ${phone}` : '—'} />
               <Row label="Admin" value={admin?.username ?? '—'} />
               <Row label="uid" value={uid ?? '—'} />
+              {/* Which build is running — the answer to "naya aaya ya purana?" */}
+              <Row label="Build" value={buildStamp()} />
             </div>
 
             <p className={labelCls}>Firestore reads</p>

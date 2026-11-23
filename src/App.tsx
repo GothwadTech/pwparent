@@ -39,7 +39,7 @@ import {ParentProfileScreen} from './components/ParentProfileScreen';
 import {PurchasesScreen} from './components/PurchasesScreen';
 import {AdminPanelScreen} from './components/admin/AdminPanelScreen';
 import {SettingsDock} from './components/SettingsDock';
-import {OfflineBanner} from './components/OfflineBanner';
+import {OfflineGate} from './components/OfflineGate';
 import {HowItWorksModal} from './components/HowItWorksModal';
 import {LogoCustomizerModal} from './components/LogoCustomizerModal';
 import {IconClipboard} from './components/icons/AppIcons';
@@ -297,17 +297,17 @@ export const App: React.FC = () => {
         style={fluidShellStyle(scale)}
         className="app-shell bg-white flex flex-col relative z-10 overflow-hidden w-full max-w-[430px] h-full shadow-[0_0_50px_rgba(0,0,0,0.06)]"
       >
-        {/* Airplane-mode honesty: a thin strip while the device is offline,
-            on every screen. The session itself now survives offline — see
-            src/lib/sessionStore.ts (offlineSessionFromMarker) and the
-            persistent Firestore cache in src/lib/firebase/firestore.ts. */}
-        <OfflineBanner />
         {/* The first paint is never blank and never a wrong login: the
             dashboard skeleton holds the screen until boot + hydration settle. */}
         {renderCurrentScreen()}
       </main>
 
       {/* ── Everything below stays OUTSIDE the scaled subtree ─────────────── */}
+
+      {/* No network = no app. An opaque full-screen gate (owner instruction,
+          2026-11-23): a stale dashboard behind a thin strip read as a broken
+          app, so the honest "internet connect karo" screen replaces it. */}
+      <OfflineGate />
 
       <SettingsDock
         open={isSettingsOpen}
