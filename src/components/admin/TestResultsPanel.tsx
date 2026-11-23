@@ -103,12 +103,51 @@ const SyllabusList: React.FC<{syllabus: SyllabusTopic[]}> = ({syllabus}) => {
   );
 };
 
+/**
+ * "Visible to parent" switch — the undo button for a wrongly entered result.
+ *
+ * ON (default): the parent sees the score. OFF: the result stays in Firestore
+ * with every mark intact, but the parent's card says "result awaited", exactly
+ * as if nothing had been entered. Nothing is deleted, so switching it back on
+ * restores the original score instantly.
+ */
+const VisibilitySwitch: React.FC<{
+  hidden: boolean;
+  disabled: boolean;
+  studentName: string;
+  onToggle: () => void;
+}> = ({hidden, disabled, studentName, onToggle}) => (
+  <div className="flex items-center gap-1.5 shrink-0">
+    <span className={`text-[10px] font-semibold ${hidden ? 'text-[#B7791F]' : 'text-neutral-500'}`}>
+      {hidden ? 'Hidden' : 'Visible'}
+    </span>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={!hidden}
+      aria-label={`Show ${studentName || 'this student'}'s result to the parent`}
+      disabled={disabled}
+      onClick={onToggle}
+      className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+        hidden ? 'bg-[#F2DFA8]' : 'bg-[#5A4BDA]'
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+          hidden ? 'left-0.5' : 'left-[18px]'
+        }`}
+      />
+    </button>
+  </div>
+);
+
 export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batch, test, flash, onBack}) => {
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [saved, setSaved] = useState<Record<string, TestResult>>({});
   const [drafts, setDrafts] = useState<Record<string, RowDraft>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -146,6 +185,41 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
     return {entered: rows.length, attempted: attempted.length, avg, top, total: students.length};
   }, [saved, students.length, test.marksTotal]);
 
+  /**
+   * Withhold / release one result. Saves immediately (a merge write of the flag
+   * only), because the whole point is to fix a wrong score before the parent
+   * opens the app — waiting for the row's Save button would be one step too many.
+   */
+  const toggleVisibility = async (student: StudentProfile) => {
+    const current = saved[student.id];
+    if (!current) return;
+    const next = !current.hidden;
+    setTogglingId(student.id);
+    setError('');
+    try {
+      await backend.setResultVisibility(batch.id, test.id, student.id, next);
+      setSaved((prev) => ({
+        ...prev,
+        [student.id]: {
+          ...prev[student.id],
+          hidden: next,
+          hiddenAt: next ? new Date().toISOString() : undefined,
+        },
+      }));
+      flash(
+        next
+          ? `${student.name || 'This student'}'s result is now hidden — the parent sees "result awaited".`
+          : `${student.name || 'This student'}'s result is visible to the parent again.`,
+      );
+    } catch (toggleError) {
+      setError(
+        toggleError instanceof Error ? toggleError.message : 'Could not change the result visibility.',
+      );
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const patchDraft = (studentId: string, change: Partial<RowDraft>) =>
     setDrafts((prev) => ({...prev, [studentId]: {...(prev[studentId] ?? emptyDraft()), ...change}}));
 
@@ -181,6 +255,10 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
         topicMarks: Object.keys(topicMarks).length > 0 ? topicMarks : undefined,
         rank: draft.rank === '' ? undefined : Number(draft.rank),
         status: draft.status,
+        // Saving marks must not silently publish a withheld result (or unpublish
+        // one): the flag belongs to the toggle, not to the Save button.
+        hidden: saved[student.id]?.hidden,
+        hiddenAt: saved[student.id]?.hiddenAt,
       });
       const results = await backend.listResults(batch.id, test.id);
 
@@ -210,6 +288,11 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
               avgScore: avg,
               // Rank is DECLARED by the administrator, never recomputed here.
               rank: r.rank,
+              // Re-saving a row rewrites the whole document, so the withheld flag
+              // has to travel with it or a class-stat pass would publish every
+              // hidden result at once.
+              hidden: r.hidden,
+              hiddenAt: r.hiddenAt,
             });
           }
         }
@@ -321,9 +404,20 @@ export const TestResultsPanel: React.FC<TestResultsPanelProps> = ({backend, batc
               <div className="min-w-0">
                 <p className="text-sm font-bold truncate">{student.name || '(unnamed)'}</p>
                 <p className="text-[11px] text-neutral-500 truncate">
-                  {result ? `Saved · ${result.scorePercent ?? 0}%` : 'Not entered yet'}
+                  {result
+                    ? `Saved · ${result.scorePercent ?? 0}%${result.hidden ? ' · hidden from parent' : ''}`
+                    : 'Not entered yet'}
                 </p>
               </div>
+
+              <VisibilitySwitch
+                hidden={Boolean(result?.hidden)}
+                // Nothing saved yet = the parent already sees "result awaited";
+                // there is nothing to withhold and no document to flip.
+                disabled={!result || togglingId === student.id}
+                studentName={student.name}
+                onToggle={() => void toggleVisibility(student)}
+              />
               {percent !== null && (
                 <span
                   className={`text-sm font-bold shrink-0 ${

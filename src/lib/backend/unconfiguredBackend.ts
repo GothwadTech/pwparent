@@ -63,6 +63,7 @@ export const unconfiguredBatchOps: BatchOps = {
   getResult: emptyRead(null),
   saveResult: blockedWrite('saveResult'),
   deleteResult: blockedWrite('deleteResult'),
+  setResultVisibility: blockedWrite('setResultVisibility'),
 };
 
 export function createUnconfiguredBackend(configError: string | null): Backend {

@@ -240,6 +240,18 @@ export interface TestResult {
   status: 'ATTEMPTED' | 'MISSED';
   /** Derived: marksObtained / marksTotal * 100. Never typed by hand. */
   scorePercent?: number;
+  /**
+   * The administrator has WITHHELD this result from the parent.
+   *
+   * Absent means visible — every result written before this flag existed keeps
+   * showing exactly as it did. While `hidden` is true the parent app treats the
+   * row as "no result yet" (RESULT_AWAITING), so a wrongly entered score can be
+   * pulled back without deleting the marks. Admin-only field: the parent's own
+   * read returns it, but nothing in the parent UI ever renders a hidden result.
+   */
+  hidden?: boolean;
+  /** When it was withheld (ISO). Kept so the admin list can say "since when". */
+  hiddenAt?: string;
 
   /** Questions answered correctly. Admin-entered. */
   correctCount?: number;

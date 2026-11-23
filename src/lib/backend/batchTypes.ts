@@ -140,6 +140,20 @@ export interface BatchOps {
     result: Omit<TestResult, 'id' | 'studentId' | 'scorePercent'>,
   ): Promise<void>;
   deleteResult(batchId: string, testId: string, studentId: string): Promise<void>;
+  /**
+   * Withhold or release ONE student's result from the parent's view.
+   *
+   * A merge write of `hidden` (+ `hiddenAt`) only: it must never touch the marks.
+   * The admin may toggle this while a row has unsaved edits, and those edits are
+   * not this method's business. The parent app reads the flag and treats a
+   * hidden result exactly like "no result entered yet".
+   */
+  setResultVisibility(
+    batchId: string,
+    testId: string,
+    studentId: string,
+    hidden: boolean,
+  ): Promise<void>;
 }
 
 /* ── shared helpers (used by both backend implementations and the UI) ──────── */

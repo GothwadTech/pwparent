@@ -312,5 +312,22 @@ export function createMockBatchOps(deps: MockBatchDeps): BatchOps {
       if (testRecord) delete testRecord.results[studentId];
       writeTree(tree);
     },
+
+    async setResultVisibility(batchId, testId, studentId, hidden) {
+      await delay(70);
+      const tree = readTree();
+      const result = tree[batchId]?.tests?.[testId]?.results?.[studentId];
+      // Nothing entered yet: there is nothing to withhold, and creating a
+      // document here would read as "entered" in the admin counts.
+      if (!result) return;
+      if (hidden) {
+        result.hidden = true;
+        result.hiddenAt = new Date().toISOString();
+      } else {
+        delete result.hidden;
+        delete result.hiddenAt;
+      }
+      writeTree(tree);
+    },
   };
 }

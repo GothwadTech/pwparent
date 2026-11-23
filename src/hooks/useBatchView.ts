@@ -33,7 +33,7 @@ import {markCodeOf, markTimesOf} from '../lib/backend/batchTypes';
 import {attendanceTotals, streakDisplay} from '../lib/attendanceTotals';
 import type {Backend} from '../lib/backend';
 import {monthDays, monthKey} from '../lib/backend';
-import {countsTowardsTotal, testDisplayStatus} from '../lib/testStatus';
+import {countsTowardsTotal, testDisplayStatus, visibleResult} from '../lib/testStatus';
 import type {AllTestsRow} from '../components/AllTestsModal';
 import type {CalendarDay, OfflineTestRow} from '../components/OfflineAttendanceDashboardView';
 import type {SubjectProgress} from '../components/SubjectDetailsModal';
@@ -184,7 +184,15 @@ export function useBatchView(
         if (cancelled) return;
         setTests(
           list
-            .map((t, i) => ({...t, result: results[i]}))
+            .map((t, i) => ({
+              ...t,
+              // A withheld result is dropped HERE, not only at render time: the
+              // summary (attempted/total, best score, averages) and the
+              // subject-wise accuracy all read `result`, so a card that says
+              // "result awaited" while the counters included its marks would be
+              // two contradictory statements on one screen.
+              result: visibleResult(results[i]),
+            }))
             // Newest first, matching how the sample lists were ordered.
             .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)),
         );

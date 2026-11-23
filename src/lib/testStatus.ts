@@ -38,6 +38,18 @@ export const isUpcomingStatus = (status: BatchTestStatus | undefined): boolean =
   status === 'upcoming' || status === 'scheduled';
 
 /**
+ * A result the parent is allowed to see — or nothing.
+ *
+ * A WITHHELD result (`hidden: true`) is deliberately invisible: the admin may
+ * have entered a wrong score and switched it off, so the parent must see "result
+ * awaited", not the number. `hidden` absent (every result written before the
+ * flag existed) means visible. One helper, so the card, the counters and the
+ * subject accuracy can never disagree about the same row.
+ */
+export const visibleResult = <T extends {hidden?: boolean}>(result: T | null | undefined): T | null =>
+  result && !result.hidden ? result : null;
+
+/**
  * The one derivation. Order matters:
  *
  *   1. A cancelled test is cancelled, whatever else is true of it.
@@ -50,11 +62,12 @@ export const isUpcomingStatus = (status: BatchTestStatus | undefined): boolean =
  */
 export const testDisplayStatus = (
   test: Pick<{status: BatchTestStatus; date: string}, 'status' | 'date'>,
-  result: Pick<TestResult, 'status'> | null,
+  result: (Pick<TestResult, 'status'> & {hidden?: boolean}) | null,
   today: string,
 ): TestDisplayStatus => {
   if (test.status === 'cancelled') return 'CANCELLED';
-  if (result) return result.status === 'ATTEMPTED' ? 'ATTEMPTED' : 'MISSED';
+  const visible = visibleResult(result);
+  if (visible) return visible.status === 'ATTEMPTED' ? 'ATTEMPTED' : 'MISSED';
   if (isUpcomingStatus(test.status) && test.date >= today) return 'UPCOMING';
   return 'RESULT_AWAITING';
 };

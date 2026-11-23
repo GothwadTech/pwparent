@@ -465,5 +465,17 @@ export function createFirebaseBatchOps(deps: FirebaseBatchDeps): BatchOps {
         removeDoc(paths.batchTestResult(batchId, testId, studentId)),
       );
     },
+
+    async setResultVisibility(batchId, testId, studentId, hidden) {
+      // Merge write of the flag alone — the marks are never rewritten here, so a
+      // toggle cannot clobber a row the admin is still editing.
+      await cachedWrite(keys.results(batchId, testId), () =>
+        writeDoc(paths.batchTestResult(batchId, testId, studentId), {
+          hidden,
+          hiddenAt: hidden ? new Date().toISOString() : null,
+        }),
+      );
+      invalidate(`${keys.results(batchId, testId)}:${studentId}`);
+    },
   };
 }
