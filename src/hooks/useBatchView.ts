@@ -65,6 +65,20 @@ export interface BatchView {
   selectedBatchId: string | null;
   selectBatch: (batch: BatchOption) => void;
   loading: boolean;
+  /**
+   * True only when EVERYTHING this dashboard draws has landed for the current
+   * child + batch: the batch list, the tests with this child's results, and the
+   * attendance months.
+   *
+   * `loading` alone was not enough — it covers the batch list only, so the
+   * dashboard used to paint real ZEROS ("0/0 tests", an empty calendar, no
+   * tests) for a few hundred milliseconds until the other two reads arrived.
+   * The shell now holds its skeleton until this is true.
+   *
+   * It stays true across a background refresh (the keys do not change), so
+   * coming back to the app does not flash the skeleton again.
+   */
+  dataReady: boolean;
   calendarDays: CalendarDay[];
   weeks: {label: string; range: string}[];
   allTests: AllTestsRow[];
@@ -122,14 +136,24 @@ export function useBatchView(
   const [attendanceMonths, setAttendanceMonths] = useState<Record<string, MonthMarks>>({});
   const [loading, setLoading] = useState(true);
   const [nonce, setNonce] = useState(0);
+  /**
+   * Which selection each read has finished for. Keys rather than booleans, so a
+   * re-read (nonce bump) keeps the dashboard "ready" instead of blanking it,
+   * while a real change of child or batch correctly does not.
+   */
+  const [batchesKey, setBatchesKey] = useState<string | null>(null);
+  const [testsKey, setTestsKey] = useState<string | null>(null);
+  const [attendanceKey, setAttendanceKey] = useState<string | null>(null);
 
   const studentId = student?.id ?? null;
 
   // ── 1. which batches is this student in? ─────────────────────────────────
   useEffect(() => {
+    const key = `${parentUid ?? ''}|${studentId ?? ''}`;
     if (!backend || !parentUid) {
       setBatches([]);
       setLoading(false);
+      setBatchesKey(key);
       return;
     }
     let cancelled = false;
@@ -157,7 +181,10 @@ export function useBatchView(
         console.warn('[batchView] listBatches failed:', error);
         if (!cancelled) setBatches([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setBatchesKey(key);
+        }
       }
     })();
 
@@ -168,8 +195,10 @@ export function useBatchView(
 
   // ── 2. tests for the selected batch + THIS student's result on each ──────
   useEffect(() => {
+    const key = `${selectedBatchId ?? ''}|${studentId ?? ''}`;
     if (!backend || !selectedBatchId || !studentId) {
       setTests([]);
+      setTestsKey(key);
       return;
     }
     let cancelled = false;
@@ -199,6 +228,10 @@ export function useBatchView(
       } catch (error) {
         console.warn('[batchView] listTests failed:', error);
         if (!cancelled) setTests([]);
+      } finally {
+        // Settled either way: an empty/failed read must not hold the skeleton
+        // forever. The dashboard shows honest zeros once we KNOW there are none.
+        if (!cancelled) setTestsKey(key);
       }
     })();
 
@@ -209,8 +242,10 @@ export function useBatchView(
 
   // ── 3. attendance for this student in this batch (one read, all months) ──
   useEffect(() => {
+    const key = `${selectedBatchId ?? ''}|${studentId ?? ''}`;
     if (!backend || !selectedBatchId || !studentId) {
       setAttendanceMonths({});
+      setAttendanceKey(key);
       return;
     }
     let cancelled = false;
@@ -222,6 +257,8 @@ export function useBatchView(
       } catch (error) {
         console.warn('[batchView] getAttendance failed:', error);
         if (!cancelled) setAttendanceMonths({});
+      } finally {
+        if (!cancelled) setAttendanceKey(key);
       }
     })();
 
@@ -232,6 +269,39 @@ export function useBatchView(
 
   const selectBatch = useCallback((batch: BatchOption) => setSelectedBatchId(batch.id), []);
   const reload = useCallback(() => setNonce((n) => n + 1), []);
+
+  const batchesReady = batchesKey === `${parentUid ?? ''}|${studentId ?? ''}`;
+  const batchDataKey = `${selectedBatchId ?? ''}|${studentId ?? ''}`;
+  const dataReady =
+    batchesReady &&
+    (!selectedBatchId || (testsKey === batchDataKey && attendanceKey === batchDataKey));
+
+  /**
+   * Keep the dashboard CURRENT — the admin edits marks, attendance and tests all
+   * day, and a parent should not have to know about a refresh button.
+   *
+   * On resume / reconnect we re-read, but no more than once every 30 s: the read
+   * cache (60 s TTL) absorbs the repeats, and Firestore's free tier is shared by
+   * every visitor. A background refresh does NOT flip `dataReady`, so the
+   * skeleton never flashes over data that is already on screen.
+   */
+  useEffect(() => {
+    const MIN_GAP_MS = 30_000;
+    let lastRun = Date.now();
+    const maybeRefresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+      if (Date.now() - lastRun < MIN_GAP_MS) return;
+      lastRun = Date.now();
+      reload();
+    };
+    document.addEventListener('visibilitychange', maybeRefresh);
+    window.addEventListener('online', maybeRefresh);
+    return () => {
+      document.removeEventListener('visibilitychange', maybeRefresh);
+      window.removeEventListener('online', maybeRefresh);
+    };
+  }, [reload]);
 
   const month = monthKey();
 
@@ -434,6 +504,7 @@ export function useBatchView(
     selectedBatchId,
     selectBatch,
     loading,
+    dataReady,
     calendarDays,
     weeks,
     allTests,

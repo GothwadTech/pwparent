@@ -151,12 +151,18 @@ export const App: React.FC = () => {
           />
         );
 
-      case 'dashboard':
-        // Data still restoring (cache or network, offline or online): the
-        // shell paints with shimmer blocks — the user lands on the dashboard
-        // instantly and the numbers arrive a beat later, like every polished
-        // app. No "No student record" flash, ever.
-        if (!activeStudent && (booting || hydrating)) {
+      case 'dashboard': {
+        // ONE condition decides the skeleton.
+        //
+        // `booting || hydrating` covers the session/profile restore. `!dataReady`
+        // is what stops the "0 / 0 for a few milliseconds" flash: the batch data
+        // (tests, this child's results, attendance) lands AFTER hydration, and
+        // until it does the dashboard would draw real zeros over a real child —
+        // a wrong statement, not a slow one. It stays true across a background
+        // refresh, so returning to the app does not blank the screen again.
+        const dataPending = booting || hydrating || !batchView.dataReady;
+
+        if (!activeStudent && dataPending) {
           return (
             <ChildDashboardScreen
               student={placeholderStudent}
@@ -183,7 +189,7 @@ export const App: React.FC = () => {
         // that is exactly the "OTP ke baad poora white" report. Hydration can
         // come back empty (slow network, a denied read, a record that lives
         // under another uid); say so honestly and offer a retry instead.
-        if (!activeStudent) {
+        if (!activeStudent && !dataPending) {
           return (
             <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
               <div
@@ -217,6 +223,7 @@ export const App: React.FC = () => {
         return (
           <ChildDashboardScreen
             student={activeStudent}
+            loading={dataPending}
             onBack={() => setScreen('profile')}
             onOpenProfile={() => setScreen('profile')}
             onOpenSettings={openSettings}
@@ -238,6 +245,7 @@ export const App: React.FC = () => {
             batchTests={batchView.tests}
           />
         );
+      }
 
       case 'profile':
         return (
