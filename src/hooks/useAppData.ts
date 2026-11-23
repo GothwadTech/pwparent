@@ -26,7 +26,7 @@ import {
   type SendOtpResult,
 } from '../lib/backend';
 import {recomputeStudent} from '../lib/admin';
-import {hasSeenOnboarding, markOnboarded} from '../lib/firstVisit';
+import {initialScreen, markOnboarded} from '../lib/firstVisit';
 import {
   clearStoredSession,
   offlineSessionFromMarker,
@@ -118,13 +118,14 @@ export function useAppData(): AppData {
   // session sees the skeleton for the beat the restore takes and is then
   // walked to login FROM the dashboard. Never again a login screen that
   // turns out, a second later, to have been wrong.
-  const [screen, setScreen] = useState<ScreenId>(() =>
-    !hasSeenOnboarding() ? 'onboarding1' : 'dashboard',
-  );
+  // A remembered session counts as "used before", so the intro never paints over
+  // a boot that is about to land on the dashboard — see `initialScreen`.
+  const remembersSession = initialScreen() === 'dashboard';
+  const [screen, setScreen] = useState<ScreenId>(() => initialScreen());
   /** Only ever true when this device remembers a session to resume. */
-  const [booting, setBooting] = useState<boolean>(() => hasSeenOnboarding());
+  const [booting, setBooting] = useState<boolean>(() => remembersSession);
   /** Data restore in flight — the dashboard wears its skeleton meanwhile. */
-  const [hydrating, setHydrating] = useState<boolean>(() => hasSeenOnboarding());
+  const [hydrating, setHydrating] = useState<boolean>(() => remembersSession);
   const [previousScreen, setPreviousScreen] = useState<ScreenId>(ADMIN_RETURN_SCREEN);
 
   const [students, setStudents] = useState<StudentProfile[]>([]);
@@ -247,6 +248,9 @@ export function useAppData(): AppData {
         }
         // Straight to the child. No picker: one number is one student.
         if (!cancelled) setScreen('dashboard');
+        // A session was just proven on this device: the intro is over for good,
+        // so a later sign-out lands on login instead of the slides.
+        markOnboarded();
       } else {
         // Nothing resumable: walk to login FROM the dashboard (the skeleton
         // already replaced the old blank/login flash) and remember whatever

@@ -1,3 +1,5 @@
+import {hasStoredSession} from './sessionStore';
+
 /**
  * Has this browser already seen the onboarding slides?
  *
@@ -15,6 +17,24 @@
  * seen the intro" should survive closing the tab.
  */
 const KEY = 'pwparent.onboarded.v1';
+
+/**
+ * The screen the very FIRST frame shows — decided synchronously, before boot.
+ *
+ * ── THE BUG THIS FIXES ─────────────────────────────────────────────────────
+ * Only the intro's "Get Started" tap ever set the flag above. A device that was
+ * already logged in but had never tapped through the slides (an older build
+ * without onboarding, a demo login, a restored install) therefore failed this
+ * check on every cold start: it painted "Get Started", waited out the 3-4 s
+ * boot, and only then jumped to the dashboard.
+ *
+ * A device holding a session has, by definition, used the app before. The intro
+ * is a first-visit screen, so the marker counts as "seen" too.
+ */
+export function initialScreen(): 'dashboard' | 'onboarding1' {
+  if (hasSeenOnboarding()) return 'dashboard';
+  return hasStoredSession() ? 'dashboard' : 'onboarding1';
+}
 
 export function hasSeenOnboarding(): boolean {
   try {
