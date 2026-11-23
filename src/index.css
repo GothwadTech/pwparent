@@ -79,3 +79,24 @@ body {
   background-size: 200% 100%;
   animation: pw-shimmer 1.4s ease-in-out infinite;
 }
+
+/* ── Edge-to-edge on phones ─────────────────────────────────────────────────
+   The shell is a 430px-wide "phone" column that gets centred on a desktop. On
+   a phone it must fill the screen exactly:
+   · a max-width narrower than the viewport leaves the grey canvas (#F0F2F5)
+     showing as a vertical strip down both sides, and
+   · the old `border-x` hairline drew a full-height seam right on the curved
+     edge of panels like the Motorola Edge series.
+   Below 461px the cap is dropped so the white shell reaches both edges, and
+   the shell is inset by the display's safe area instead (curved edges, side
+   cutouts in landscape). */
+.app-shell {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+@media (max-width: 460px) {
+  .app-shell {
+    max-width: none;
+  }
+}

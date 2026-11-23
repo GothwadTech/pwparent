@@ -295,7 +295,7 @@ export const App: React.FC = () => {
       {/* The scaled shell: the phone UI, grown to fill the window. */}
       <main
         style={fluidShellStyle(scale)}
-        className="bg-white flex flex-col relative z-10 overflow-hidden w-full max-w-[430px] h-full shadow-[0_0_50px_rgba(0,0,0,0.06)] border-x border-[#E4E6EB]/60"
+        className="app-shell bg-white flex flex-col relative z-10 overflow-hidden w-full max-w-[430px] h-full shadow-[0_0_50px_rgba(0,0,0,0.06)]"
       >
         {/* Airplane-mode honesty: a thin strip while the device is offline,
             on every screen. The session itself now survives offline — see
