@@ -206,7 +206,7 @@ export const ParentProfileScreen: React.FC<ParentProfileScreenProps> = ({
           </div>
 
           {/* Bottom sheet content */}
-          <div className="relative z-10 w-full max-w-[420px] mx-auto bg-[#FFFFFF] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
+          <div className="relative z-10 w-full bg-[#FFFFFF] rounded-t-3xl border-t border-[#E4E6EB] p-5 pt-3 pb-8 shadow-2xl">
             {/* Top drag handle pill */}
             <div className="w-12 h-1 bg-neutral-600 rounded-full mx-auto mb-5" />
 

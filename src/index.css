@@ -80,29 +80,24 @@ body {
   animation: pw-shimmer 1.4s ease-in-out infinite;
 }
 
-/* ── Edge-to-edge on phones ─────────────────────────────────────────────────
-   The shell is the phone UI. On a DESKTOP it is a 430px column, centred, with
-   the grey canvas either side — that is the frame the design wants.
+/* ── Liquid shell: the app is the screen ───────────────────────────────────
+   The shell takes the FULL width the browser gives it, at every size — the same
+   way it already takes the full height. No 430px "phone column", no grey canvas
+   down either side, no `border-x` seam on a curved panel.
 
-   On a phone it must reach both edges, at ANY width. Two separate bugs came
-   from getting this wrong, and both looked like "a thin strip down both sides,
-   top to bottom" on a Motorola Edge (curved panel):
-   · the 430px cap was applied at every width, so a device whose CSS viewport is
-     wider than 430px (the Edge 70 Fusion is ~444-462px) showed the #F0F2F5
-     canvas as a band on each side;
-   · the old `border-x` hairline drew a full-height seam right on the curve.
-   So the cap is now opt-in for wide screens only — never a `max-width` that a
-   phone has to beat. The shell is inset by the display's own safe area instead
-   (curved edges, side cutouts in landscape). */
+   Why this kept coming back: a fixed cap only works when the viewport is the
+   size you assumed. A Motorola Edge (curved panel) reports ~444-462 CSS px, and
+   Chrome in desktop mode reports ~980 — in both cases a 430px shell left a wide
+   #F0F2F5 band on each side, which is the "thin strip, top to bottom" report.
+   A width cap can always be beaten by a wider viewport; `max-width: none`
+   cannot. The phone UI is fluid by design (src/lib/layout.ts), so it simply
+   reflows.
+
+   Safe-area insets keep content off a curved edge / a side cutout in landscape
+   without painting a visible border there. */
 .app-shell {
   max-width: none;
+  width: 100%;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
-}
-
-/* Desktop / tablet-landscape only: the centred phone column. */
-@media (min-width: 601px) {
-  .app-shell {
-    max-width: 430px;
-  }
 }
